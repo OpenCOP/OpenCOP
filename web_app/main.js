@@ -204,26 +204,26 @@ Ext.onReady(function() {
       iconCls: 'opencop_logo',
       handler: displayAppInfo
     }, '-', {
-      text: 'Hide Side Panel(s)',
-      iconCls: 'silk_arrow_out',
-      toggle: true,
-      handler: function() {
-        app.west.collapse(true)
-        this.setText("Show Side Panel(s)")
-      }
+      text: 'Load View',
+        iconCls: 'silk_map_go',
+      disabled: true
+    }, {
+      text: 'Save View',
+      iconCls: 'geosilk_map_save',
+      disabled: true
     }, '-', {
       text: 'Zoom In',
       iconCls: 'silk_zoom_in',
       handler: function() {
         app.center_south_and_east_panel.map_panel.map.zoomIn();
       }
-    }, '-', {
+    }, {
       text: 'Zoom Out',
       iconCls: 'silk_zoom_out',
       handler: function() {
         app.center_south_and_east_panel.map_panel.map.zoomOut();
       }
-    }, '-', {
+    }, {
       text: 'Zoom to Me',
       iconCls: 'silk_zoom_to_me',
       handler: function() {
@@ -256,18 +256,26 @@ Ext.onReady(function() {
         // call to the browser's geolocation utility
         navigator.geolocation.getCurrentPosition( handler );
       }
-    }, '-', {
+    }, {
       text: 'Zoom to Selected Layer',
       iconCls: 'silk_zoom_to_layer',
       disabled: true,
     }, '-', {
-      text: 'Print Map',
-      iconCls: 'silk_printer',
-      disabled: true
+      text: 'Hide Side Panel(s)',
+      iconCls: 'silk_arrow_out',
+      toggle: true,
+      handler: function() {
+        app.west.collapse(true)
+        this.setText("Show Side Panel(s)")
+      }
     }, '->', {
       text: 'Help',
       iconCls: 'silk_help',
       handler: displayHelp
+    }, '-', {
+      text: 'Print Map',
+      iconCls: 'silk_printer',
+      disabled: true
     }, '-', {
       text: 'Application Settings',
       iconCls: 'silk_cog_edit',
@@ -330,11 +338,7 @@ Ext.onReady(function() {
 //            app.center_south_and_east_panel.map_panel.map.removeLayer(node.layer)
 //          }
 //        }
-      }, '-', {
-      text: 'Save as My Default Layers',
-      iconCls: 'geosilk_layers_save',
-      disabled: true
-    }]
+      }]
   }
 
   var layerDetail = {
