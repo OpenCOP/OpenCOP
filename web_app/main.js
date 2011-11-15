@@ -13,7 +13,6 @@ Ext.onReady(function() {
   // Construct all the stuff:
 
   Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
-  Ext.state.Manager.setProvider(new Ext.state.CookieProvider())
 
   var vectorLayer = new OpenLayers.Layer.Vector(
       'Editable features',
@@ -231,31 +230,31 @@ Ext.onReady(function() {
         // IE doesn't support geolocation (at least the IE that I have)
         // so just return out.
         if( navigator == null || navigator.geolocation == null ) { return; }
-        
+
         var handler = function(location) {
           var zoom = 14;  // zoom level (higher number is closer in to the ground)
 
           // Get an OpenLayers LonLat from the location passed in from the browser.
           var lonlat = new OpenLayers.LonLat(
-            location.coords.longitude, 
+            location.coords.longitude,
             location.coords.latitude
           );
-            
+
           // Convert the LonLat to the map's projection
           lonlat.transform(
             app.center_south_and_east_panel.map_panel.map.displayProjection,
             app.center_south_and_east_panel.map_panel.map.getProjectionObject()
           );
-          
-          // Set the center and zoom level of the map object 
+
+          // Set the center and zoom level of the map object
           app.center_south_and_east_panel.map_panel.map.setCenter(
             lonlat,
             zoom
           );
         }
- 
+
         // call to the browser's geolocation utility
-        navigator.geolocation.getCurrentPosition( handler );         
+        navigator.geolocation.getCurrentPosition( handler );
       }
     }, '-', {
       text: 'Zoom to Selected Layer',
