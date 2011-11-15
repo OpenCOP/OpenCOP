@@ -5,12 +5,12 @@ sudo uptime
 
 # clean build
 echo "-- clean build folder\n"
-rm -rf ~/OpenCOP-2.0/build/
-mkdir ~/OpenCOP-2.0/build/
+rm -rf ~/OpenCOP/build/
+mkdir ~/OpenCOP/build/
 
 # build war
 echo "-- build war\n"
-cd ~/OpenCOP-2.0/web_app/
+cd ~/OpenCOP/web_app/
 jar cvf ../build/opencop.war .
 cd -
 
@@ -21,7 +21,7 @@ sudo rm /var/lib/tomcat6/webapps/opencop.war
 
 # copy new war to tomcat
 echo "-- copy war to tomcat\n"
-sudo cp ~/OpenCOP-2.0/build/opencop.war /var/lib/tomcat6/webapps
+sudo cp ~/OpenCOP/build/opencop.war /var/lib/tomcat6/webapps
 
 echo "==================="
 echo "You, sir, are done!\n"
