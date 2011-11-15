@@ -1,3 +1,3 @@
-More coming soon!
+More has come!
 
 [Geocent](http://geocent.com)

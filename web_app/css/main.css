@@ -1,0 +1,18 @@
+html, body {
+  font:normal 12px verdana;
+  margin:0;
+  padding:0;
+  border:0 none;
+  overflow:hidden;
+  height:100%;
+}
+p {
+  margin:5px;
+}
+.opencop_logo { 
+  background-image: url(/opencop/images/OpenCOP_logo_16.png); 
+  width: 84 !important;
+  height: 16;
+  background-repeat: no-repeat !important; 
+}
+.geocent_logo { background-image: url(/opencop/images/geocent_logo_16.png) !important; background-repeat: no-repeat; }
