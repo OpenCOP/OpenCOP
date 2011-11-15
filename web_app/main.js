@@ -12,7 +12,7 @@ Ext.onReady(function() {
 
   // Construct all the stuff:
 
-  Ext.BLANK_IMAGE_URL = "/EOC/ext-3.4.0/resources/images/default/s.gif"
+  Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
   Ext.state.Manager.setProvider(new Ext.state.CookieProvider())
 
   var vectorLayer = new OpenLayers.Layer.Vector(
@@ -281,7 +281,7 @@ Ext.onReady(function() {
     }, '-', {
       text: 'Log Out',
       iconCls: 'silk_door_in',
-      handler: function() {parent.location='/EOC/logout'}
+      disabled: true
     }, ' ']
   })
 
@@ -829,7 +829,7 @@ function displayAppInfo() {
     width: 400,
     height: 400,
     items: [{
-      html: '<p><img src="/EOC/images/OpenCOP_logo_32.png"></p><br><p class="about-text">OpenCOP is a richly-featured, interactive open source mapping tool which allows users to identify and view incident data in near real-time, creating a common operational picture (COP) of an event. OpenCOP was created by Geocent, LLC.  </p> <br /> <p class="about-text"> For more information on Geocent, please visit us online at <a href="http://www.geocent.com" target="_blank">www.geocent.com</a>.  For information or technical support, email us at <a href="mailto:OpenCop@geocent.com">OpenCop@geocent.com</a> or call (800) 218-9009.</p> <br/> <p class="version"> Version 2.0.0.</p>',
+      html: '<p><img src="/opencop/images/OpenCOP_logo_32.png"></p><br><p class="about-text">OpenCOP is a richly-featured, interactive open source mapping tool which allows users to identify and view incident data in near real-time, creating a common operational picture (COP) of an event. OpenCOP was created by Geocent, LLC.  </p> <br /> <p class="about-text"> For more information on Geocent, please visit us online at <a href="http://www.geocent.com" target="_blank">www.geocent.com</a>.  For information or technical support, email us at <a href="mailto:OpenCop@geocent.com">OpenCop@geocent.com</a> or call (800) 218-9009.</p> <br/> <p class="version"> Version 2.0.0.</p>',
       padding: '10 10 10 10'
     }],
     buttons: [{
@@ -875,7 +875,7 @@ function displayApplicationSettings() {
     width: 800,
     height: 600,
     items: [{
-      html: "<iframe style='border: none; height: 100%; width: 100%' src='/EOC/admin'><a target='_blank' href='/EOC/admin'>Application Settings</a></iframe>",
+      html: "<p>Coming soon!</p>",
       padding: '10 10 10 10'
     }],
     buttons: [{
