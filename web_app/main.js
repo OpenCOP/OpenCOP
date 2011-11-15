@@ -12,7 +12,7 @@ Ext.onReady(function() {
 
   // Construct all the stuff:
 
-  Ext.BLANK_IMAGE_URL = "/EOC/ext-3.4.0/resources/images/default/s.gif"
+  Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
   Ext.state.Manager.setProvider(new Ext.state.CookieProvider())
 
   var vectorLayer = new OpenLayers.Layer.Vector(
@@ -160,7 +160,51 @@ Ext.onReady(function() {
     ref: "map_panel",
     id: "map_panel",
     region: "center",
-    tbar: [{
+    map: {
+      numZoomLevels: 19,
+      projection        : new OpenLayers.Projection("EPSG:900913" ),
+      displayProjection : new OpenLayers.Projection("EPSG:4326"   ),
+      units             : "m",
+      numZoomLevels     : 21,
+      maxResolution     : 156543.0339,
+      tileSize          : new OpenLayers.Size(512,512),
+      maxExtent : new OpenLayers.Bounds(-20037508, -20037508,
+                                         20037508,  20037508.34),
+      controls: controls
+    },
+    extent : new OpenLayers.Bounds(-10918469.080342, 2472890.3987378,
+                                   -9525887.0459675, 6856095.3481128),
+    layers: [
+      new OpenLayers.Layer.Google("Google Streets", {
+        sphericalMercator: true,
+        transitionEffect: 'resize',
+        baselayer: true
+      })
+      // new OpenLayers.Layer.Google("Google Hybrid", {
+      //   sphericalMercator: true,
+      //   transitionEffect: 'resize',
+      //   type: G_HYBRID_MAP,
+      //   baselayer: true
+      // })
+      // new OpenLayers.Layer.Google("Google Physical", {
+      //   type: G_PHYSICAL_MAP,
+      //   baselayer: true
+      // }),
+      // new OpenLayers.Layer.Google("Google Satellite", {
+      //   type: G_SATELLITE_MAP,
+      //   baselayer: true
+      // })
+    ]
+  }
+
+  var menu_bar = new Ext.Toolbar({
+    region: 'north',
+    height: 28,
+    items: [{
+      width: 90,
+      iconCls: 'opencop_logo',
+      handler: displayAppInfo
+    }, '-', {
       text: 'Hide Side Panel(s)',
       iconCls: 'silk_arrow_out',
       toggle: true,
@@ -221,51 +265,6 @@ Ext.onReady(function() {
       text: 'Print Map',
       iconCls: 'silk_printer',
       disabled: true
-    }],
-    map: {
-      numZoomLevels: 19,
-      projection        : new OpenLayers.Projection("EPSG:900913" ),
-      displayProjection : new OpenLayers.Projection("EPSG:4326"   ),
-      units             : "m",
-      numZoomLevels     : 21,
-      maxResolution     : 156543.0339,
-      tileSize          : new OpenLayers.Size(512,512),
-      maxExtent : new OpenLayers.Bounds(-20037508, -20037508,
-                                         20037508,  20037508.34),
-      controls: controls
-    },
-    extent : new OpenLayers.Bounds(-10918469.080342, 2472890.3987378,
-                                   -9525887.0459675, 6856095.3481128),
-    layers: [
-      new OpenLayers.Layer.Google("Google Streets", {
-        sphericalMercator: true,
-        transitionEffect: 'resize',
-        baselayer: true
-      })
-      // new OpenLayers.Layer.Google("Google Hybrid", {
-      //   sphericalMercator: true,
-      //   transitionEffect: 'resize',
-      //   type: G_HYBRID_MAP,
-      //   baselayer: true
-      // })
-      // new OpenLayers.Layer.Google("Google Physical", {
-      //   type: G_PHYSICAL_MAP,
-      //   baselayer: true
-      // }),
-      // new OpenLayers.Layer.Google("Google Satellite", {
-      //   type: G_SATELLITE_MAP,
-      //   baselayer: true
-      // })
-    ]
-  }
-
-  var menu_bar = new Ext.Toolbar({
-    region: 'north',
-    height: 28,
-    items: [{
-      width: 90,
-      iconCls: 'opencop_logo',
-      handler: displayAppInfo
     }, '->', {
       text: 'Help',
       iconCls: 'silk_help',
@@ -281,7 +280,7 @@ Ext.onReady(function() {
     }, '-', {
       text: 'Log Out',
       iconCls: 'silk_door_in',
-      handler: function() {parent.location='/EOC/logout'}
+      disabled: true
     }, ' ']
   })
 
@@ -829,7 +828,7 @@ function displayAppInfo() {
     width: 400,
     height: 400,
     items: [{
-      html: '<p><img src="/EOC/images/OpenCOP_logo_32.png"></p><br><p class="about-text">OpenCOP is a richly-featured, interactive open source mapping tool which allows users to identify and view incident data in near real-time, creating a common operational picture (COP) of an event. OpenCOP was created by Geocent, LLC.  </p> <br /> <p class="about-text"> For more information on Geocent, please visit us online at <a href="http://www.geocent.com" target="_blank">www.geocent.com</a>.  For information or technical support, email us at <a href="mailto:OpenCop@geocent.com">OpenCop@geocent.com</a> or call (800) 218-9009.</p> <br/> <p class="version"> Version 2.0.0.</p>',
+      html: '<p><img src="/opencop/images/OpenCOP_logo_32.png"></p><br><p class="about-text">OpenCOP is a richly-featured, interactive open source mapping tool which allows users to identify and view incident data in near real-time, creating a common operational picture (COP) of an event. OpenCOP was created by Geocent, LLC.  </p> <br /> <p class="about-text"> For more information on Geocent, please visit us online at <a href="http://www.geocent.com" target="_blank">www.geocent.com</a>.  For information or technical support, email us at <a href="mailto:OpenCop@geocent.com">OpenCop@geocent.com</a> or call (800) 218-9009.</p> <br/> <p class="version"> Version 2.0.0.</p>',
       padding: '10 10 10 10'
     }],
     buttons: [{
@@ -875,7 +874,7 @@ function displayApplicationSettings() {
     width: 800,
     height: 600,
     items: [{
-      html: "<iframe style='border: none; height: 100%; width: 100%' src='/EOC/admin'><a target='_blank' href='/EOC/admin'>Application Settings</a></iframe>",
+      html: "<p>Coming soon!</p>",
       padding: '10 10 10 10'
     }],
     buttons: [{
