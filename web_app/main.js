@@ -160,7 +160,51 @@ Ext.onReady(function() {
     ref: "map_panel",
     id: "map_panel",
     region: "center",
-    tbar: [{
+    map: {
+      numZoomLevels: 19,
+      projection        : new OpenLayers.Projection("EPSG:900913" ),
+      displayProjection : new OpenLayers.Projection("EPSG:4326"   ),
+      units             : "m",
+      numZoomLevels     : 21,
+      maxResolution     : 156543.0339,
+      tileSize          : new OpenLayers.Size(512,512),
+      maxExtent : new OpenLayers.Bounds(-20037508, -20037508,
+                                         20037508,  20037508.34),
+      controls: controls
+    },
+    extent : new OpenLayers.Bounds(-10918469.080342, 2472890.3987378,
+                                   -9525887.0459675, 6856095.3481128),
+    layers: [
+      new OpenLayers.Layer.Google("Google Streets", {
+        sphericalMercator: true,
+        transitionEffect: 'resize',
+        baselayer: true
+      })
+      // new OpenLayers.Layer.Google("Google Hybrid", {
+      //   sphericalMercator: true,
+      //   transitionEffect: 'resize',
+      //   type: G_HYBRID_MAP,
+      //   baselayer: true
+      // })
+      // new OpenLayers.Layer.Google("Google Physical", {
+      //   type: G_PHYSICAL_MAP,
+      //   baselayer: true
+      // }),
+      // new OpenLayers.Layer.Google("Google Satellite", {
+      //   type: G_SATELLITE_MAP,
+      //   baselayer: true
+      // })
+    ]
+  }
+
+  var menu_bar = new Ext.Toolbar({
+    region: 'north',
+    height: 28,
+    items: [{
+      width: 90,
+      iconCls: 'opencop_logo',
+      handler: displayAppInfo
+    }, '-', {
       text: 'Hide Side Panel(s)',
       iconCls: 'silk_arrow_out',
       toggle: true,
@@ -221,51 +265,6 @@ Ext.onReady(function() {
       text: 'Print Map',
       iconCls: 'silk_printer',
       disabled: true
-    }],
-    map: {
-      numZoomLevels: 19,
-      projection        : new OpenLayers.Projection("EPSG:900913" ),
-      displayProjection : new OpenLayers.Projection("EPSG:4326"   ),
-      units             : "m",
-      numZoomLevels     : 21,
-      maxResolution     : 156543.0339,
-      tileSize          : new OpenLayers.Size(512,512),
-      maxExtent : new OpenLayers.Bounds(-20037508, -20037508,
-                                         20037508,  20037508.34),
-      controls: controls
-    },
-    extent : new OpenLayers.Bounds(-10918469.080342, 2472890.3987378,
-                                   -9525887.0459675, 6856095.3481128),
-    layers: [
-      new OpenLayers.Layer.Google("Google Streets", {
-        sphericalMercator: true,
-        transitionEffect: 'resize',
-        baselayer: true
-      })
-      // new OpenLayers.Layer.Google("Google Hybrid", {
-      //   sphericalMercator: true,
-      //   transitionEffect: 'resize',
-      //   type: G_HYBRID_MAP,
-      //   baselayer: true
-      // })
-      // new OpenLayers.Layer.Google("Google Physical", {
-      //   type: G_PHYSICAL_MAP,
-      //   baselayer: true
-      // }),
-      // new OpenLayers.Layer.Google("Google Satellite", {
-      //   type: G_SATELLITE_MAP,
-      //   baselayer: true
-      // })
-    ]
-  }
-
-  var menu_bar = new Ext.Toolbar({
-    region: 'north',
-    height: 28,
-    items: [{
-      width: 90,
-      iconCls: 'opencop_logo',
-      handler: displayAppInfo
     }, '->', {
       text: 'Help',
       iconCls: 'silk_help',
