@@ -1,27 +1,19 @@
 #!/bin/sh
 
-# force sudo password entry early
-sudo uptime
-
-# clean build
+# clean opencop build
 echo "-- clean build folder\n"
 rm -rf ~/OpenCOP/build/
 mkdir ~/OpenCOP/build/
 
-# build war
+# build opencop war
 echo "-- build war\n"
 cd ~/OpenCOP/web_app/
 jar cvf ../build/opencop.war .
 cd -
 
-# delete existing war/folder in tomcat
-echo "-- clean tomcat\n"
-sudo rm -rf /var/lib/tomcat6/webapps/opencop/
-sudo rm /var/lib/tomcat6/webapps/opencop.war
-
-# copy new war to tomcat
+# copy new opencop war to tomcat
 echo "-- copy war to tomcat\n"
-sudo cp ~/OpenCOP/build/opencop.war /var/lib/tomcat6/webapps
+cp ~/OpenCOP/build/opencop.war /var/lib/tomcat6/webapps
 
 echo "==================="
 echo "You, sir, are done!\n"
