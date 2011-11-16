@@ -506,8 +506,7 @@ Ext.onReady(function() {
           url: "/geoserver/ows",
           version: "1.1.0"
         })
-      }),
-      autoLoad: true
+      })
     }),
     columns: [],
     bbar: []
@@ -525,7 +524,7 @@ Ext.onReady(function() {
   // init app
   var app = new Ext.Viewport({
     layout: 'border',
-    items: [menu_bar, west_panel, center_south_and_east_panel ]
+    items: [menu_bar, west_panel, center_south_and_east_panel]
   })
 
   // build scratch, vector layer
@@ -593,22 +592,21 @@ Ext.onReady(function() {
     })
     app.center_south_and_east_panel.feature_table.reconfigure(new GeoExt.data.FeatureStore({
       autoLoad: true,
-    proxy: new GeoExt.data.ProtocolProxy({
-      protocol: new OpenLayers.Protocol.WFS({
-                  url: url,
-      version: "1.1.0",
-      featureType: rawAttributeData.featureTypes[0].typeName,
-      featureNS: rawAttributeData.targetNamespace,
-      srsName: "EPSG:900913",
-      geometryName: geometryName,
-      maxFeatures: 250
-                })
-    }),
-    fields: fields
-    }),
-        new Ext.grid.ColumnModel(columns))
-      app.center_south_and_east_panel.feature_table.store.bind(vectorLayer)
-      app.center_south_and_east_panel.feature_table.getSelectionModel().bind(vectorLayer)
+      proxy: new GeoExt.data.ProtocolProxy({
+        protocol: new OpenLayers.Protocol.WFS({
+          url: url,
+          version: "1.1.0",
+          featureType: rawAttributeData.featureTypes[0].typeName,
+          featureNS: rawAttributeData.targetNamespace,
+          srsName: "EPSG:900913",
+          geometryName: geometryName,
+          maxFeatures: 250
+        })
+      }),
+      fields: fields
+    }), new Ext.grid.ColumnModel(columns))
+    app.center_south_and_east_panel.feature_table.store.bind(vectorLayer)
+    app.center_south_and_east_panel.feature_table.getSelectionModel().bind(vectorLayer)
 
     // Set the correct sketch handler according to the geometryType
     drawControl.handler = new OpenLayers.Handler[geometryType](
@@ -616,7 +614,7 @@ Ext.onReady(function() {
       drawControl.callbacks,
       drawControl.handlerOptions
     )
-}
+  }
 
   // fired on layer selection in the selection tree
   function setLayer() {
@@ -820,14 +818,10 @@ Ext.onReady(function() {
     })
     available_layers_window.show()
   }
-
 })
 
-/**
- * Objects with the same keys and values (excluding functions) are equal.
- *
- *   Example: {a: 1, :b: 2} == {a: 1, :b: 2} != {a: 1, b: 2, c: 3}.
- */
+// Objects with the same keys and values (excluding functions) are equal.
+//   Example: {a: 1, :b: 2} == {a: 1, :b: 2} != {a: 1, b: 2, c: 3}.
 function equalAttributes(objA, objB) {
   // Yes, I feel bad about how hacky this is.  But it seems to work.
   return Ext.encode(objA) === Ext.encode(objB)
