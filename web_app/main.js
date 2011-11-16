@@ -13,6 +13,7 @@ Ext.onReady(function() {
   // Construct all the stuff:
 
   Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
+  Ext.state.Manager.setProvider(new Ext.state.CookieProvider())
 
   var vectorLayer = new OpenLayers.Layer.Vector(
       'Editable features',
