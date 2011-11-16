@@ -1,0 +1,4 @@
+#!/bin/sh
+
+./local_deploy > /dev/null
+echo "Silent deploy complete\n"
