@@ -303,8 +303,19 @@ Ext.onReady(function() {
   }
 
   var layerTree = new Ext.tree.TreeNode({ text: "All Layers", expanded: true })
-  layerTree.appendChild(new GeoExt.tree.OverlayLayerContainer({ text: "Overlays", expanded: true, allowDrag: false, iconCls: "geosilk_folder_layer" }))
-  layerTree.appendChild(new GeoExt.tree.BaseLayerContainer({ text: "Base Layers", expanded: true, allowDrag: false, allowDrop: false, iconCls: "geosilk_folder_map"}))
+  layerTree.appendChild(new GeoExt.tree.OverlayLayerContainer({
+    text: "Overlays",
+    expanded: true,
+    allowDrag: false,
+    iconCls: "geosilk_folder_layer"
+  }))
+  layerTree.appendChild(new GeoExt.tree.BaseLayerContainer({
+    text: "Base Layers",
+    expanded: true,
+    allowDrag: false,
+    allowDrop: false,
+    iconCls: "geosilk_folder_map"
+  }))
 
   var tree_panel = {
     autoScroll: true,
@@ -514,7 +525,7 @@ Ext.onReady(function() {
   // init app
   var app = new Ext.Viewport({
     layout: 'border',
-    items: [menu_bar, west_panel, center_south_and_east_panel]
+    items: [menu_bar, west_panel, center_south_and_east_panel ]
   })
 
   // build scratch, vector layer
@@ -534,10 +545,10 @@ Ext.onReady(function() {
   // (whatever field/types the given featuretype currently has)
   function makeWfsGridHeadersDynamic(store, url) {
     var fields = [], columns = [], geometryName, geometryType
-    // regular expression to detect the geometry column
-    var geomRegex = /gml:(Multi)?(Point|Line|Polygon|Surface|Geometry).*/
-    // mapping of xml schema data types to Ext JS data types
-    var types = {
+      // regular expression to detect the geometry column
+      var geomRegex = /gml:(Multi)?(Point|Line|Polygon|Surface|Geometry).*/
+      // mapping of xml schema data types to Ext JS data types
+      var types = {
         "xsd:int": "int",
         "xsd:short": "int",
         "xsd:long": "int",
@@ -547,57 +558,57 @@ Ext.onReady(function() {
         "xsd:decimal": "float",
         "Line": "Path",
         "Surface": "Polygon"
-    }
+      }
     store.each(function(rec) {
-        var type = rec.get("type")
-        var name = rec.get("name")
-        var match = geomRegex.exec(type)
-        if (match) {
-            // we found the geometry column
-            geometryName = name
-            // Geometry type for the sketch handler:
-            // match[2] is "Point", "Line", "Polygon", "Surface" or "Geometry"
-            geometryType = types[match[2]] || match[2]
-        } else {
-            // we have an attribute column
-            fields.push({
-                name: name,
-                type: types[type]
-            })
-            columns.push({
-                xtype: types[type] == "string" ?
-                    "gridcolumn" :
-                    "numbercolumn",
-                dataIndex: name,
-                header: name,
-                sortable: true,
-                // textfield editor for strings, numberfield for others
-                editor: {
-                    xtype: types[type] == "string" ?
-                        "textfield" :
-                        "numberfield"
-                }
-            })
+      var type = rec.get("type")
+      var name = rec.get("name")
+      var match = geomRegex.exec(type)
+      if (match) {
+        // we found the geometry column
+        geometryName = name
+      // Geometry type for the sketch handler:
+      // match[2] is "Point", "Line", "Polygon", "Surface" or "Geometry"
+      geometryType = types[match[2]] || match[2]
+      } else {
+        // we have an attribute column
+        fields.push({
+          name: name,
+        type: types[type]
+        })
+        columns.push({
+          xtype: types[type] == "string" ?
+          "gridcolumn" :
+          "numbercolumn",
+        dataIndex: name,
+        header: name,
+        sortable: true,
+        // textfield editor for strings, numberfield for others
+        editor: {
+          xtype: types[type] == "string" ?
+          "textfield" :
+          "numberfield"
         }
+        })
+      }
     })
     app.center_south_and_east_panel.feature_table.reconfigure(new GeoExt.data.FeatureStore({
-        autoLoad: true,
-        proxy: new GeoExt.data.ProtocolProxy({
-            protocol: new OpenLayers.Protocol.WFS({
-                url: url,
-                version: "1.1.0",
-                featureType: rawAttributeData.featureTypes[0].typeName,
-                featureNS: rawAttributeData.targetNamespace,
-                srsName: "EPSG:900913",
-                geometryName: geometryName,
-                maxFeatures: 250
-            })
-        }),
-        fields: fields
-      }),
-      new Ext.grid.ColumnModel(columns))
-    app.center_south_and_east_panel.feature_table.store.bind(vectorLayer)
-    app.center_south_and_east_panel.feature_table.getSelectionModel().bind(vectorLayer)
+      autoLoad: true,
+    proxy: new GeoExt.data.ProtocolProxy({
+      protocol: new OpenLayers.Protocol.WFS({
+                  url: url,
+      version: "1.1.0",
+      featureType: rawAttributeData.featureTypes[0].typeName,
+      featureNS: rawAttributeData.targetNamespace,
+      srsName: "EPSG:900913",
+      geometryName: geometryName,
+      maxFeatures: 250
+                })
+    }),
+    fields: fields
+    }),
+        new Ext.grid.ColumnModel(columns))
+      app.center_south_and_east_panel.feature_table.store.bind(vectorLayer)
+      app.center_south_and_east_panel.feature_table.getSelectionModel().bind(vectorLayer)
 
     // Set the correct sketch handler according to the geometryType
     drawControl.handler = new OpenLayers.Handler[geometryType](
@@ -811,12 +822,12 @@ Ext.onReady(function() {
   }
 
 })
+
 /**
  * Objects with the same keys and values (excluding functions) are equal.
  *
  *   Example: {a: 1, :b: 2} == {a: 1, :b: 2} != {a: 1, b: 2, c: 3}.
  */
-
 function equalAttributes(objA, objB) {
   // Yes, I feel bad about how hacky this is.  But it seems to work.
   return Ext.encode(objA) === Ext.encode(objB)
