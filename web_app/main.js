@@ -21,12 +21,15 @@ Ext.onReady(function() {
 
   function createWfsPopup(feature) {
     if (queryFeaturesActive()) {
-      createQueryWfsPopup(feature)
+      // Our current thinking says that the query panel shouldn't be opening
+      // its own popups.
+      //    createQueryWfsPopup(feature)
     } else if (editFeaturesActive()) {
       createEditWfsPopup(feature)
     }
   }
 
+  // deprecated
   function createQueryWfsPopup(feature) {
     var popup = new GeoExt.Popup({
       title: "Query WFS-T Feature",
