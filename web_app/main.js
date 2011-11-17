@@ -21,14 +21,17 @@ Ext.onReady(function() {
 
   function createWfsPopup(feature) {
     if (queryFeaturesActive()) {
-      createQueryWfsPopup(feature)
+      // Our current thinking says that the query panel shouldn't be opening
+      // its own popups.
+      //    createQueryWfsPopup(feature)
     } else if (editFeaturesActive()) {
       createEditWfsPopup(feature)
     }
   }
 
+  // deprecated
   function createQueryWfsPopup(feature) {
-    var popup = new GeoExt.Popup({
+    var popup = GeoExtPopup.create({
       title: "Query WFS-T Feature",
       height: 300,
       width: 300,
@@ -55,7 +58,7 @@ Ext.onReady(function() {
   }
 
   function createEditWfsPopup(feature) {
-    var popup = new GeoExt.Popup({
+    var popup = GeoExtPopup.create({
       title: "Edit WFS-T Feature",
       height: 300,
       width: 300,
@@ -142,7 +145,7 @@ Ext.onReady(function() {
             source: feature.attributes
           })
         })
-        new GeoExt.Popup({
+        GeoExtPopup.create({
           title: "Feature Info",
           width: 300,
           height: 300,
@@ -624,6 +627,7 @@ Ext.onReady(function() {
 
   function refreshVectorLayerAndFeatureGrid() {
     if(!app) return  // app isn't defined until later
+    GeoExtPopup.closeAll()
     var grid = app.center_south_and_east_panel.feature_table
     if(queryFeaturesActive() || editFeaturesActive()) {
       var node = currentlySelectedLayerNode()
@@ -922,3 +926,30 @@ function displayMySettings() {
   });
   win.show();
 }
+
+// This "class" ensures that only a single GeoExt popup will be
+// available at a time.
+var GeoExtPopup = function() {
+  var singletonPopup = null;
+
+  function close() {
+    if (singletonPopup) singletonPopup.close()
+  }
+
+  return {
+
+    // Static factory method.  Opts is the massive options hash
+    // that GeoExt.popup takes.
+    create: function(opts) {
+      close()
+      singletonPopup = new GeoExt.Popup(opts)
+      return singletonPopup
+    },
+
+    // Close all GeoExt.popups on the map.
+    closeAll: function() {
+      close()
+      singletonPopup = null
+    }
+  }
+}()
