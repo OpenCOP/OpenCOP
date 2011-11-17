@@ -4,7 +4,7 @@ Ext.onReady(function() {
 
   // if the user doesn't have any layers saved, prompt them to choose some
   function getUsersDefaultLayers() {
-    return false; // this will be a real check -- dummy place holder for now until layer saving is implemented
+    return false // this will be a real check -- dummy place holder for now until layer saving is implemented
   }
   if (!getUsersDefaultLayers()) {
     displayAvailableLayers()
@@ -221,13 +221,13 @@ Ext.onReady(function() {
       text: 'Zoom In',
       iconCls: 'silk_zoom_in',
       handler: function() {
-        app.center_south_and_east_panel.map_panel.map.zoomIn();
+        app.center_south_and_east_panel.map_panel.map.zoomIn()
       }
     }, {
       text: 'Zoom Out',
       iconCls: 'silk_zoom_out',
       handler: function() {
-        app.center_south_and_east_panel.map_panel.map.zoomOut();
+        app.center_south_and_east_panel.map_panel.map.zoomOut()
       }
     }, {
       text: 'Zoom to Me',
@@ -235,32 +235,32 @@ Ext.onReady(function() {
       handler: function() {
         // IE doesn't support geolocation (at least the IE that I have)
         // so just return out.
-        if( navigator == null || navigator.geolocation == null ) { return; }
+        if( navigator == null || navigator.geolocation == null ) { return }
 
         var handler = function(location) {
-          var zoom = 14;  // zoom level (higher number is closer in to the ground)
+          var zoom = 14  // zoom level (higher number is closer in to the ground)
 
           // Get an OpenLayers LonLat from the location passed in from the browser.
           var lonlat = new OpenLayers.LonLat(
             location.coords.longitude,
             location.coords.latitude
-          );
+          )
 
           // Convert the LonLat to the map's projection
           lonlat.transform(
             app.center_south_and_east_panel.map_panel.map.displayProjection,
             app.center_south_and_east_panel.map_panel.map.getProjectionObject()
-          );
+          )
 
           // Set the center and zoom level of the map object
           app.center_south_and_east_panel.map_panel.map.setCenter(
             lonlat,
             zoom
-          );
+          )
         }
 
         // call to the browser's geolocation utility
-        navigator.geolocation.getCurrentPosition( handler );
+        navigator.geolocation.getCurrentPosition( handler )
       }
     }, '-', {
       text: 'Hide Side Panel(s)',
@@ -915,23 +915,23 @@ function displayMySettings() {
       text: 'Save Changes',
       iconCls: 'silk_tick',
       handler: function() {
-        win.hide();
+        win.hide()
       }
     }, {
       text: 'Cancel',
       iconCls: 'silk_cross',
       handler: function() {
-        win.hide();
+        win.hide()
       }
     }]
-  });
-  win.show();
+  })
+  win.show()
 }
 
 // This "class" ensures that only a single GeoExt popup will be
 // available at a time.
 var GeoExtPopup = function() {
-  var singletonPopup = null;
+  var singletonPopup = null
 
   function close() {
     if (singletonPopup) singletonPopup.close()
