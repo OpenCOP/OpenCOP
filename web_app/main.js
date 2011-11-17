@@ -31,7 +31,7 @@ Ext.onReady(function() {
 
   // deprecated
   function createQueryWfsPopup(feature) {
-    var popup = new GeoExt.Popup({
+    var popup = GeoExtPopup.create({
       title: "Query WFS-T Feature",
       height: 300,
       width: 300,
@@ -58,7 +58,7 @@ Ext.onReady(function() {
   }
 
   function createEditWfsPopup(feature) {
-    var popup = new GeoExt.Popup({
+    var popup = GeoExtPopup.create({
       title: "Edit WFS-T Feature",
       height: 300,
       width: 300,
@@ -145,7 +145,7 @@ Ext.onReady(function() {
             source: feature.attributes
           })
         })
-        new GeoExt.Popup({
+        GeoExtPopup.create({
           title: "Feature Info",
           width: 300,
           height: 300,
@@ -637,6 +637,7 @@ Ext.onReady(function() {
 
   function refreshVectorLayerAndFeatureGrid() {
     if(!app) return  // app isn't defined until later
+    GeoExtPopup.closeAll()
     var grid = app.center_south_and_east_panel.feature_table
     if(queryFeaturesActive() || editFeaturesActive()) {
       var node = currentlySelectedLayerNode()
@@ -935,3 +936,23 @@ function displayMySettings() {
   });
   win.show();
 }
+
+var GeoExtPopup = function() {
+  var singletonPopup = null;
+
+  function close() {
+    if (singletonPopup) singletonPopup.close()
+  }
+
+  return {
+    create: function(opts) {
+      close()
+      singletonPopup = new GeoExt.Popup(opts)
+      return singletonPopup
+    },
+    closeAll: function() {
+      close()
+      singletonPopup = null
+    }
+  }
+}()
