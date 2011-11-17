@@ -57,6 +57,12 @@ Ext.onReady(function() {
   }
 
   function createEditWfsPopup(feature) {
+
+    var propertyGrid = new Ext.grid.PropertyGrid({
+      title: feature.fid,
+      source: feature.attributes
+    })
+
     var popup = GeoExtPopup.create({
       title: "Edit WFS-T Feature",
       height: 300,
@@ -66,11 +72,7 @@ Ext.onReady(function() {
       location: feature,
       maximizable: true,
       collapsible: true,
-      items: [{
-        xtype: "propertygrid",
-        title: feature.fid,
-        source: feature.attributes
-      }],
+      items: [propertyGrid],
       buttons: [{
         text: 'Cancel',
         iconCls: 'silk_cross',
@@ -81,6 +83,7 @@ Ext.onReady(function() {
         text: 'Save',
         iconCls: 'silk_tick',
         handler: function() {
+          propertyGrid.stopEditing()
           saveVectorLayer()
           popup.close()
         }
