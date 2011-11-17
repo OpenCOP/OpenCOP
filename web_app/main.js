@@ -258,10 +258,6 @@ Ext.onReady(function() {
         // call to the browser's geolocation utility
         navigator.geolocation.getCurrentPosition( handler );
       }
-    }, {
-      text: 'Zoom to Selected Layer',
-      iconCls: 'silk_zoom_to_layer',
-      disabled: true
     }, '-', {
       text: 'Hide Side Panel(s)',
       iconCls: 'silk_arrow_out',
@@ -275,7 +271,7 @@ Ext.onReady(function() {
       iconCls: 'silk_help',
       handler: displayHelp
     }, '-', {
-      text: 'Print Map',
+      text: 'Print',
       iconCls: 'silk_printer',
       disabled: true
     }, '-', {
@@ -325,13 +321,9 @@ Ext.onReady(function() {
     containerScroll: true,
     enableDD: true,
     margins: '0 0 0 5',
-    maxSize: 400,
-    minSize: 175,
     ref: "tree_panel",
     region: 'center',
     split: true,
-    width: 200,
-    width: 200,
     xtype: "treepanel",
     root: layerTree,
     rootVisible: false,
@@ -481,13 +473,11 @@ Ext.onReady(function() {
     id: 'west-panel',
     iconCls: 'silk_layers',
     margins: '0 0 0 5',
-    maxSize: 400,
-    minSize: 175,
     split: true,
     layout: 'border',
     title: 'Active Layers',
     items: [tree_panel, selected_layer_panel],
-    width: 300
+    width: 225
   }
 
   var feature_table = {
@@ -499,7 +489,7 @@ Ext.onReady(function() {
     iconCls: 'silk_table_find',
     split: true,
     region: "south",
-    height: 300,
+    height: 200,
     sm: new GeoExt.grid.FeatureSelectionModel(),
     store: new GeoExt.data.FeatureStore({
       fields: [],
