@@ -82,7 +82,6 @@ Ext.onReady(function() {
         iconCls: 'silk_tick',
         handler: function() {
           saveVectorLayer()
-          console.log(feature)
           popup.close()
         }
       }]
