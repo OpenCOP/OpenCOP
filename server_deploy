@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# For deploying the project while on the server.  Pulls latest source.
+
+cd ~/OpenCOP/
+git pull
+cd -
+
+sh ~/OpenCOP/local_deploy
