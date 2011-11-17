@@ -937,6 +937,8 @@ function displayMySettings() {
   win.show();
 }
 
+// This "class" ensures that only a single GeoExt popup will be
+// available at a time.
 var GeoExtPopup = function() {
   var singletonPopup = null;
 
@@ -945,11 +947,16 @@ var GeoExtPopup = function() {
   }
 
   return {
+
+    // Static factory method.  Opts is the massive options hash
+    // that GeoExt.popup takes.
     create: function(opts) {
       close()
       singletonPopup = new GeoExt.Popup(opts)
       return singletonPopup
     },
+
+    // Close all GeoExt.popups on the map.
     closeAll: function() {
       close()
       singletonPopup = null
