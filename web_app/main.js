@@ -78,7 +78,10 @@ Ext.onReady(function() {
       }, {
         text: 'Save',
         iconCls: 'silk_tick',
-        handler: saveVectorLayer
+        handler: function() {
+          saveVectorLayer()
+          popup.close()
+        }
       }]
     })
     popup.on({
