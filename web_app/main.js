@@ -711,6 +711,18 @@ Ext.onReady(function() {
   // (generally meaning "including app")
   //
 
+
+  function add_SelectedAvailableLayers_To_ActiveLayers(available_layers_window) {
+    available_layers_window.available_layers_grid.getSelectionModel().each(function(record) {
+      var clone = record.clone()
+      clone.getLayer().mergeNewParams({
+        format: "image/png",
+        transparent: true
+      })
+      app.center_south_and_east_panel.map_panel.layers.add(clone)
+    })
+  }
+
   // Save all features in the scratch vector layer through the power of WFS-T,
   // and refresh everything on the screen that touches that vector layer.
   function saveVectorLayer() {
@@ -769,18 +781,8 @@ Ext.onReady(function() {
         viewConfig: {
           forceFit: true
         },
-        listeners: {
-          "rowdblclick": function() {
-            available_layers_window.available_layers_grid.getSelectionModel().each(function(record) {
-              var clone = record.clone()
-              clone.getLayer().mergeNewParams({
-                format: "image/png",
-                transparent: true
-              })
-              app.center_south_and_east_panel.map_panel.layers.add(clone)
-            })
-          }
-        },
+        listeners: { "rowdblclick": function() {
+            add_SelectedAvailableLayers_To_ActiveLayers(available_layers_window)}},
         store: new GeoExt.data.WMSCapabilitiesStore({
           url: "/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.1.1",
           autoLoad: true,
@@ -807,14 +809,7 @@ Ext.onReady(function() {
           text: "Add to Map",
           iconCls: 'silk_add',
           handler: function() {
-            available_layers_window.available_layers_grid.getSelectionModel().each(function(record) {
-              var clone = record.clone()
-              clone.getLayer().mergeNewParams({
-                format: "image/png",
-                transparent: true
-              })
-              app.center_south_and_east_panel.map_panel.layers.add(clone)
-            })
+            add_SelectedAvailableLayers_To_ActiveLayers(available_layers_window)
           }
         }, '-', {
         text: 'Done',
