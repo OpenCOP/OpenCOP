@@ -83,7 +83,7 @@ Ext.onReady(function() {
         text: 'Save',
         iconCls: 'silk_tick',
         handler: function() {
-          propertyGrid.stopEditing()
+          propertyGrid.stopEditing()  // prevent having to click off field to save in IE
           saveVectorLayer()
           popup.close()
         }
