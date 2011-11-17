@@ -752,6 +752,15 @@ Ext.onReady(function() {
       layout: "fit",
       width: 800,
       height: 600,
+      listeners: {
+        // close available layers window when user clicks on
+        // anything that isn't the window
+        show: function() {
+          Ext.select('.ext-el-mask').addListener('click', function() {
+            available_layers_window.close();
+          });
+        }
+      },
       items: [{
         xtype: "grid",
         ref: 'available_layers_grid',
