@@ -54,7 +54,6 @@ Ext.onReady(function() {
       }
     })
     popup.show()
-    feature.popup = popup  // so feature can close its popup
   }
 
   function createEditWfsPopup(feature) {
@@ -83,6 +82,7 @@ Ext.onReady(function() {
         iconCls: 'silk_tick',
         handler: function() {
           saveVectorLayer()
+          console.log(feature)
           popup.close()
         }
       }]
@@ -95,16 +95,10 @@ Ext.onReady(function() {
       }
     })
     popup.show()
-    feature.popup = popup  // so feature can close its popup
   }
 
   function vectorLayerContainsFeature(vectorLayer, feature) {
     return OpenLayers.Util.indexOf(vectorLayer.selectedFeatures, feature) > -1
-  }
-
-  function closeWfsPopup(feature) {
-    var p = feature.popup
-    if(p) p.close()
   }
 
   var controls = [
@@ -127,7 +121,7 @@ Ext.onReady(function() {
   var selectFeatureControl = new OpenLayers.Control.SelectFeature(
         vectorLayer,
         { onSelect: createWfsPopup,
-          onUnselect: closeWfsPopup })
+          onUnselect: GeoExtPopup.closeAll })
   controls.push(selectFeatureControl)
 
   // get feature info (popup)
