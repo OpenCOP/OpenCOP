@@ -77,9 +77,7 @@ Ext.onReady(function() {
       }, {
         text: 'Save',
         iconCls: 'silk_tick',
-        handler: function() {
-          alert("I don't actually save anything yet.")
-        }
+        handler: saveVectorLayer
       }]
     })
     popup.on({
@@ -702,29 +700,7 @@ Ext.onReady(function() {
     }),
     {
       text: "Save",
-      handler: function() {
-
-        // if feature has changed (and not by update or delete), change its
-        // state to reflect that
-        Ext.each(vectorLayer.features, function (n) {
-          if( !n.state && !equalAttributes(n.data, n.attributes)) {
-            n.state = "Update"
-          }})
-
-        // commit vector layer via WFS-T
-        app.center_south_and_east_panel.feature_table.store.proxy.protocol.commit(
-          vectorLayer.features,
-          {
-            callback: function() {
-              // refresh everything the user sees
-              var layers = app.center_south_and_east_panel.map_panel.map.layers
-              for (var i = layers.length - 1; i >= 0; --i) {
-                layers[i].redraw(true)
-              }
-              app.center_south_and_east_panel.feature_table.store.reload()
-            }
-          })
-      }
+      handler: saveVectorLayer
     }])
   bbar.doLayout()
 
@@ -739,6 +715,34 @@ Ext.onReady(function() {
   // Utility functions that require onReady scope
   // (generally meaning "including app")
   //
+
+  // Save all features in the scratch vector layer through the power of WFS-T,
+  // and refresh everything on the screen that touches that vector layer.
+  function saveVectorLayer() {
+
+    // if feature has changed (and not by update or delete), change its
+    // state to reflect that
+    Ext.each(vectorLayer.features, function(n) {
+      if (!n.state && !equalAttributes(n.data, n.attributes)) {
+        n.state = "Update"
+      }
+    })
+
+    // commit vector layer via WFS-T
+    app.center_south_and_east_panel.feature_table.store.proxy.protocol.commit(
+      vectorLayer.features,
+      {
+        callback: function() {
+          // refresh everything the user sees
+          var layers = app.center_south_and_east_panel.map_panel.map.layers
+          for (var i = layers.length - 1; i >= 0; --i) {
+            layers[i].redraw(true)
+          }
+          app.center_south_and_east_panel.feature_table.store.reload()
+        }
+      }
+    )
+  }
 
   function currentModePanel() { return app.west.selected_layer_panel.tabs.getActiveTab().initialConfig.ref }
   function queryFeaturesActive() { return currentModePanel() == 'query_features' }
