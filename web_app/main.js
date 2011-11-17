@@ -134,7 +134,7 @@ Ext.onReady(function() {
   var WMSGetFeatureInfoControl = new OpenLayers.Control.WMSGetFeatureInfo({
     autoActivate: true,
     infoFormat: "application/vnd.ogc.gml",
-    maxFeatures: 3,  // zach?
+    maxFeatures: 3,  // zach?  Is 3 a good number?  Is this unhardcodeable?
     eventListeners: {
       "getfeatureinfo": function(e) {
         var items = []
@@ -142,6 +142,7 @@ Ext.onReady(function() {
           items.push({
             xtype: "propertygrid",
             title: feature.fid,
+            listeners: { "beforeedit": function(e) { e.cancel = true }}, // prevent editing
             source: feature.attributes
           })
         })
