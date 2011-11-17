@@ -258,7 +258,7 @@ Ext.onReady(function() {
     }, {
       text: 'Zoom to Selected Layer',
       iconCls: 'silk_zoom_to_layer',
-      disabled: true,
+      disabled: true
     }, '-', {
       text: 'Hide Side Panel(s)',
       iconCls: 'silk_arrow_out',
