@@ -749,6 +749,122 @@ Ext.onReady(function() {
     )
   }
 
+  function displayLoginPopup() {
+    var loginPopup = new Ext.Window({
+      title: "Welcome to OpenCOP",
+      iconCls: "geocent_logo",
+      modal: true,
+      layout: "fit",
+      width: 325,
+      height: 150,
+      items: [
+        new Ext.FormPanel({
+          labelWidth: 75,
+          // label settings here cascade unless overridden
+          url: 'save-form.php',
+          frame: true,
+          bodyStyle: 'padding:5px 5px 0',
+          defaults: {
+            width: 200
+          },
+          defaultType: 'textfield',
+          items: [
+            {
+              fieldLabel: 'Username',
+              name: 'username',
+              allowBlank: false
+            }, {
+              fieldLabel: 'Password',
+              name: 'password',
+              inputType: "password"
+            }
+          ],
+          buttons: [
+            {
+              text: 'Log In',
+              iconCls: 'silk_user_go',
+              disabled: true
+            }, {
+              text: 'Enter as Guest',
+              iconCls: 'silk_door_in',
+              handler: function() {
+                loginPopup.hide() 
+                displayAvailableLayers()
+              }
+            }
+          ]
+        })
+      ]
+    })
+    loginPopup.show()
+  }
+
+  function displayAvailableLayers() {
+    var available_layers_window = new Ext.Window({
+      title: "Add Layers to the Map",
+      iconCls: 'geosilk_layers_add',
+      modal: true,
+      layout: "fit",
+      width: 800,
+      height: 600,
+      listeners: {
+        // close available layers window when user clicks on
+        // anything that isn't the window
+        show: function() {
+          Ext.select('.ext-el-mask').addListener('click', function() {
+            available_layers_window.close();
+          });
+        }
+      },
+      items: [{
+        xtype: "grid",
+        ref: 'available_layers_grid',
+        margins: '0 5 0 0',
+        layout: 'fit',
+        viewConfig: {
+          forceFit: true
+        },
+        listeners: { "rowdblclick": function() {
+            add_SelectedAvailableLayers_To_ActiveLayers(available_layers_window)}},
+        store: new GeoExt.data.WMSCapabilitiesStore({
+          url: "/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.1.1",
+          autoLoad: true,
+          sortInfo:{field: 'prefix', direction: "ASC"}
+        }),
+        columns: [{
+          header: "Layer Group",
+          dataIndex: "prefix",
+          width: 150,
+          sortable: true
+        }, {
+          header: "Title",
+          dataIndex: "title",
+          width: 250,
+          sortable: true
+        }, {
+          header: "Abstract",
+          dataIndex: "abstract",
+          width: 600,
+          sortable: true
+        }]
+      }],
+      buttons: [{
+          text: "Add to Map",
+          iconCls: 'silk_add',
+          handler: function() {
+            add_SelectedAvailableLayers_To_ActiveLayers(available_layers_window)
+          }
+        }, '-', {
+        text: 'Done',
+        iconCls: 'silk_tick',
+        handler: function() {
+          available_layers_window.hide()
+        }
+      }]
+    })
+    available_layers_window.show()
+  }
+
   function currentModePanel() { return app.west.selected_layer_panel.tabs.getActiveTab().initialConfig.ref }
   function queryFeaturesActive() { return currentModePanel() == 'query_features' }
   function editFeaturesActive()  { return currentModePanel() == 'edit_features' }
@@ -761,122 +877,6 @@ Ext.onReady(function() {
 function equalAttributes(objA, objB) {
   // Yes, I feel bad about how hacky this is.  But it seems to work.
   return Ext.encode(objA) === Ext.encode(objB)
-}
-
-function displayLoginPopup() {
-  var loginPopup = new Ext.Window({
-    title: "Welcome to OpenCOP",
-    iconCls: "geocent_logo",
-    modal: true,
-    layout: "fit",
-    width: 325,
-    height: 150,
-    items: [
-      new Ext.FormPanel({
-        labelWidth: 75,
-        // label settings here cascade unless overridden
-        url: 'save-form.php',
-        frame: true,
-        bodyStyle: 'padding:5px 5px 0',
-        defaults: {
-          width: 200
-        },
-        defaultType: 'textfield',
-        items: [
-          {
-            fieldLabel: 'Username',
-            name: 'username',
-            allowBlank: false
-          }, {
-            fieldLabel: 'Password',
-            name: 'password',
-            inputType: "password"
-          }
-        ],
-        buttons: [
-          {
-            text: 'Log In',
-            iconCls: 'silk_user_go',
-            disabled: true
-          }, {
-            text: 'Enter as Guest',
-            iconCls: 'silk_door_in',
-            handler: function() {
-              loginPopup.hide() 
-              displayAvailableLayers()
-            }
-          }
-        ]
-      })
-    ]
-  })
-  loginPopup.show()
-}
-
-function displayAvailableLayers() {
-  var available_layers_window = new Ext.Window({
-    title: "Available Layers",
-    iconCls: 'geosilk_layers_add',
-    modal: true,
-    layout: "fit",
-    width: 800,
-    height: 600,
-    listeners: {
-      // close available layers window when user clicks on
-      // anything that isn't the window
-      show: function() {
-        Ext.select('.ext-el-mask').addListener('click', function() {
-          available_layers_window.close();
-        });
-      }
-    },
-    items: [{
-      xtype: "grid",
-      ref: 'available_layers_grid',
-      margins: '0 5 0 0',
-      layout: 'fit',
-      viewConfig: {
-        forceFit: true
-      },
-      listeners: { "rowdblclick": function() {
-          add_SelectedAvailableLayers_To_ActiveLayers(available_layers_window)}},
-      store: new GeoExt.data.WMSCapabilitiesStore({
-        url: "/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.1.1",
-        autoLoad: true,
-        sortInfo:{field: 'prefix', direction: "ASC"}
-      }),
-      columns: [{
-        header: "Layer Group",
-        dataIndex: "prefix",
-        width: 150,
-        sortable: true
-      }, {
-        header: "Title",
-        dataIndex: "title",
-        width: 250,
-        sortable: true
-      }, {
-        header: "Abstract",
-        dataIndex: "abstract",
-        width: 600,
-        sortable: true
-      }]
-    }],
-    buttons: [{
-        text: "Add to Map",
-        iconCls: 'silk_add',
-        handler: function() {
-          add_SelectedAvailableLayers_To_ActiveLayers(available_layers_window)
-        }
-      }, '-', {
-      text: 'Done',
-      iconCls: 'silk_tick',
-      handler: function() {
-        available_layers_window.hide()
-      }
-    }]
-  })
-  available_layers_window.show()
 }
 
 function displayAppInfo() {
