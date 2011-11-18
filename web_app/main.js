@@ -130,7 +130,8 @@ Ext.onReady(function() {
   var WMSGetFeatureInfoControl = new OpenLayers.Control.WMSGetFeatureInfo({
     autoActivate: true,
     infoFormat: "application/vnd.ogc.gml",
-    maxFeatures: 3,  // zach?  Is 3 a good number?  Is this unhardcodeable?
+    vendorParams: { buffer: 10 },  //geoserver param, don't have to click dead center, I believe ESRI ignores it
+    maxFeatures: 3,  // zach?  Is 3 a good number?  Is this unhardcodeable?  Seems reasonable enough
     eventListeners: {
       "getfeatureinfo": function(e) {
         var items = []
