@@ -2,41 +2,35 @@ var app
 
 Ext.onReady(function() {
   app = new Ext.Viewport({
-    layout: 'border',
-    items: [getMap()]
+    items: [getMainMapPanel()]
   })
 })
 
-function getMap() {
+// main panel
 
+function getMainMapPanel() {
   var vectorLayer = new OpenLayers.Layer.Vector(
       'Editable features',
       {'displayInLayerSwitcher' : false})
-
   var controls = [
     new OpenLayers.Control.Navigation(),
     new OpenLayers.Control.Attribution(),
     new OpenLayers.Control.PanPanel(),
     new OpenLayers.Control.ZoomPanel()
   ]
-
   var modifyControl = new OpenLayers.Control.ModifyFeature(
         vectorLayer,
         { autoActivate: true })
   controls.push(modifyControl)
-
   var drawControl = new OpenLayers.Control.DrawFeature(
         vectorLayer,
         OpenLayers.Handler.Point)
   controls.push(drawControl)
-
   var selectFeatureControl = new OpenLayers.Control.SelectFeature(
         vectorLayer,
         { onSelect: createWfsPopup,
           onUnselect: GeoExtPopup.closeAll })
   controls.push(selectFeatureControl)
-
-  // get feature info (popup)
   var WMSGetFeatureInfoControl = new OpenLayers.Control.WMSGetFeatureInfo({
     autoActivate: true,
     infoFormat: "application/vnd.ogc.gml",
@@ -66,12 +60,15 @@ function getMap() {
     }
   })
   controls.push(WMSGetFeatureInfoControl)
-
   var map = {
     xtype: "gx_mappanel",
     ref: "map_panel",
     id: "map_panel",
-    region: "center",
+    tbar: [{
+      width : 90,
+      iconCls : 'opencop_logo',
+      disabled : true
+    }],
     map: {
       numZoomLevels: 19,
       projection        : new OpenLayers.Projection("EPSG:900913" ),
@@ -108,7 +105,6 @@ function getMap() {
       // })
     ]
   }
-
   return map
 }
 
