@@ -2,13 +2,29 @@ var app
 
 Ext.onReady(function() {
   app = new Ext.Viewport({
-    items: [getMainMapPanel()]
+    layout : "border",
+    defaults : {
+      autoscroll : true,
+    },
+    items: [createToolbar(), createMainMapPanel(), createLayerTree()]
   })
 })
 
-// main panel
+// main panels
 
-function getMainMapPanel() {
+function createToolbar() {
+  return new Ext.Toolbar({
+    region : "north",
+    height : 28,
+    items : [{
+      width : 90,
+      iconCls : 'opencop_logo',
+      disabled : true
+    }]
+  })
+}
+
+function createMainMapPanel() {
   var vectorLayer = new OpenLayers.Layer.Vector(
       'Editable features',
       {'displayInLayerSwitcher' : false})
@@ -64,11 +80,7 @@ function getMainMapPanel() {
     xtype: "gx_mappanel",
     ref: "map_panel",
     id: "map_panel",
-    tbar: [{
-      width : 90,
-      iconCls : 'opencop_logo',
-      disabled : true
-    }],
+    region: "center",
     map: {
       numZoomLevels: 19,
       projection        : new OpenLayers.Projection("EPSG:900913" ),
@@ -103,9 +115,56 @@ function getMainMapPanel() {
       //   type: G_SATELLITE_MAP,
       //   baselayer: true
       // })
-    ]
+    ],
   }
   return map
+}
+
+// side panels
+
+function createLayerTree() {
+  var layerTree = new Ext.tree.TreeNode({ 
+    text: "All Layers", 
+    expanded: true 
+  })
+  layerTree.appendChild(new GeoExt.tree.OverlayLayerContainer({
+    text: "Overlays",
+    expanded: true,
+    allowDrag: false,
+    iconCls: "geosilk_folder_layer"
+  }))
+  layerTree.appendChild(new GeoExt.tree.BaseLayerContainer({
+    text: "Base Layers",
+    expanded: true,
+    allowDrag: false,
+    allowDrop: false,
+    iconCls: "geosilk_folder_map"
+  }))
+  var tree_panel = {
+    xtype: "treepanel",
+    ref: "tree_panel",
+    width : 200,
+    region : "west",
+    autoScroll: true,
+    containerScroll: true,
+    animate: true,
+    enableDD: true,
+    split: true,
+    root: layerTree,
+    rootVisible: false,
+    tbar: [
+      {
+        text : 'Add',
+        iconCls : 'silk_add',
+        disabled : true
+        //handler: displayAvailableLayers
+      }, '-', {
+        text: "Delete",
+        iconCls: 'silk_delete',
+        disabled: true
+      }]
+  }
+  return tree_panel
 }
 
 // popups
