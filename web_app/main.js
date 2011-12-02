@@ -138,22 +138,36 @@ Ext.onReady(function() {
                                    -9525887.0459675, 6856095.3481128),
     layers: [
       new OpenLayers.Layer.Google("Google Streets", {
-        sphericalMercator: true,
-        transitionEffect: 'resize',
-        baselayer: true
-      })
+          sphericalMercator: true
+        }, {
+          isBaseLayer: true,
+          visible: true
+        }),
+      new OpenLayers.Layer.Yahoo("Yahoo", {
+          sphericalMercator: true
+        }, {
+          isBaseLayer: true,
+          visible: true
+        })
+      //   ,
       // new OpenLayers.Layer.Google("Google Hybrid", {
+      //   visibile: false,
+      //   visibility: false,
+      //     sphericalMercator: true,
+      //     type: google.maps.MapTypeId.HYBRID,
+      //     baselayer: true
+      //   },{isBaseLayer: true, visible: true}),
+      //
+      // new OpenLayers.Layer.Google("Google Physical", {
       //   sphericalMercator: true,
       //   transitionEffect: 'resize',
-      //   type: G_HYBRID_MAP,
-      //   baselayer: true
-      // })
-      // new OpenLayers.Layer.Google("Google Physical", {
-      //   type: G_PHYSICAL_MAP,
+      //   type: google.maps.MapTypeId.TERRAIN,
       //   baselayer: true
       // }),
       // new OpenLayers.Layer.Google("Google Satellite", {
-      //   type: G_SATELLITE_MAP,
+      //   sphericalMercator: true,
+      //   transitionEffect: 'resize',
+      //   type: google.maps.MapTypeId.SATELLITE,
       //   baselayer: true
       // })
     ]
@@ -250,17 +264,6 @@ Ext.onReady(function() {
     }, ' ']
   })
 
-  function addSelectedAvailableLayerToLayerTree() {  // apologies for long name
-    app.center_south_and_east_panel.east_panel.available_layers.getSelectionModel().each(function(record) {
-      var clone = record.clone()
-      clone.getLayer().mergeNewParams({
-        format: "image/png",
-        transparent: true
-      })
-      app.center_south_and_east_panel.map_panel.layers.add(clone)
-    })
-  }
-
   var layerTree = new Ext.tree.TreeNode({ text: "All Layers", expanded: true })
   layerTree.appendChild(new GeoExt.tree.OverlayLayerContainer({
     text: "Overlays",
@@ -280,7 +283,7 @@ Ext.onReady(function() {
     autoScroll: true,
     animate: true,
     containerScroll: true,
-    enableDD: true,
+    enableDD: true,  // messes with base layers funtionality
     margins: '0 0 0 5',
     ref: "tree_panel",
     region: 'center',
@@ -296,14 +299,13 @@ Ext.onReady(function() {
       }, '-', {
         text: "Delete",
         iconCls: 'silk_delete',
-        disabled: true
-// this was working functionality but broke at some point
-//        handler: function() {
-//          var node = currentlySelectedLayerNode()
-//          if (node && node.layer instanceof OpenLayers.Layer.WMS) {
-//            app.center_south_and_east_panel.map_panel.map.removeLayer(node.layer)
-//          }
-//        }
+        disabled: false,
+        handler: function() {
+          var node = currentlySelectedLayerNode()
+          if (node && node.layer instanceof OpenLayers.Layer.WMS) {
+            app.center_south_and_east_panel.map_panel.map.removeLayer(node.layer)
+          }
+        }
       }]
   }
 
@@ -552,6 +554,7 @@ Ext.onReady(function() {
 
   function refreshLayerDetailsPanel() {
     var layerRecord = currentlySelectedLayerRecord()
+    if( !layerRecord ) return
     Ext.get('layer-description-title').update(layerRecord.data.title)
     Ext.get('layer_description').update(layerRecord.data.abstract)
     app.west.selected_layer_panel.tabs.layer_detail.opacity_slider.setLayer(layerRecord.getLayer())
@@ -576,7 +579,7 @@ Ext.onReady(function() {
 
   function currentlySelectedLayerRecord() {
     var node = currentlySelectedLayerNode()
-    return node.layerStore.getById(node.layer.id)
+    return node ? node.layerStore.getById(node.layer.id) : null
   }
 
   function populateWfsGrid(layer) {
@@ -649,12 +652,7 @@ Ext.onReady(function() {
 
   function add_SelectedAvailableLayers_To_ActiveLayers(available_layers_window) {
     available_layers_window.available_layers_grid.getSelectionModel().each(function(record) {
-      var clone = record.clone()
-      clone.getLayer().mergeNewParams({
-        format: "image/png",
-        transparent: true
-      })
-      app.center_south_and_east_panel.map_panel.layers.add(clone)
+      app.center_south_and_east_panel.map_panel.layers.add(record)
     })
   }
 
@@ -694,6 +692,16 @@ Ext.onReady(function() {
       layout: "fit",
       width: 325,
       height: 150,
+      listeners: {
+        // close available layers window when user clicks on
+        // anything that isn't the window
+        show: function() {
+          Ext.select('.ext-el-mask').addListener('click', function() {
+            loginPopup.close()
+            displayAvailableLayers()
+          });
+        }
+      },
       items: [
         new Ext.FormPanel({
           labelWidth: 75,
