@@ -6,13 +6,19 @@ Ext.onReady(function() {
     defaults : {
       autoscroll : true,
     },
-    items: [createToolbar(), createMainMapPanel(), createLayerTree()]
+    items: [
+      getToolbar(), 
+      getMapPanel(), 
+      getLayerTree(), 
+      getFeatureTable(),
+      getLegend()
+    ]
   })
 })
 
-// main panels
+// main components
 
-function createToolbar() {
+function getToolbar() {
   return new Ext.Toolbar({
     region : "north",
     height : 28,
@@ -24,7 +30,7 @@ function createToolbar() {
   })
 }
 
-function createMainMapPanel() {
+function getMapPanel() {
   var vectorLayer = new OpenLayers.Layer.Vector(
       'Editable features',
       {'displayInLayerSwitcher' : false})
@@ -120,9 +126,7 @@ function createMainMapPanel() {
   return map
 }
 
-// side panels
-
-function createLayerTree() {
+function getLayerTree() {
   var layerTree = new Ext.tree.TreeNode({ 
     text: "All Layers", 
     expanded: true 
@@ -165,6 +169,43 @@ function createLayerTree() {
       }]
   }
   return tree_panel
+}
+
+function getFeatureTable() {
+  var feature_table = {
+    xtype: "editorgrid",
+    ref: "feature_table",
+    iconCls: 'silk_table_find',
+    split: true,
+    region: "south",
+    height: 200,
+    sm: new GeoExt.grid.FeatureSelectionModel(),
+    store: new GeoExt.data.FeatureStore({
+      fields: [],
+      proxy: new GeoExt.data.ProtocolProxy({
+        protocol: new OpenLayers.Protocol.WFS({
+          url: "/geoserver/ows",
+          version: "1.1.0"
+        })
+      })
+    }),
+    columns: [],
+  }
+  return feature_table
+}
+
+function getLegend() {
+  legend = new GeoExt.LegendPanel({
+    region: 'east',
+    split: true,
+    defaults: {
+      labelCls: 'mylabel',
+      style: 'padding:5px'
+    },
+    bodyStyle: 'padding:5px',
+    width: 200,
+  });
+  return legend
 }
 
 // popups
