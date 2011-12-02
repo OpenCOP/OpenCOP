@@ -138,16 +138,22 @@ Ext.onReady(function() {
                                    -9525887.0459675, 6856095.3481128),
     layers: [
       new OpenLayers.Layer.Google("Google Streets", {
-          sphericalMercator: true
+          sphericalMercator: true,
+          isBaseLayer: true,
+          baselayer: true
         }, {
           isBaseLayer: true,
-          visible: true
+          visible: false,
+          baselayer: true
         }),
       new OpenLayers.Layer.Yahoo("Yahoo", {
-          sphericalMercator: true
+          sphericalMercator: true,
+          isBaseLayer: true,
+          baselayer: true
         }, {
           isBaseLayer: true,
-          visible: true
+          visible: false,
+          baselayer: true
         })
       //   ,
       // new OpenLayers.Layer.Google("Google Hybrid", {
@@ -265,12 +271,19 @@ Ext.onReady(function() {
   })
 
   var layerTree = new Ext.tree.TreeNode({ text: "All Layers", expanded: true })
-  layerTree.appendChild(new GeoExt.tree.OverlayLayerContainer({
+  layerTree.appendChild(new GeoExt.tree.LayerContainer({
     text: "Overlays",
     expanded: true,
     allowDrag: false,
+    isTarget: false,
     iconCls: "geosilk_folder_layer"
-  }))
+    ,
+    loader: {
+      filter: function(record) {
+        var layer = record.get("layer")
+        return !layer.baselayer && layer.displayInLayerSwitcher
+      }}
+    }))
   layerTree.appendChild(new GeoExt.tree.BaseLayerContainer({
     text: "Base Layers",
     expanded: true,
