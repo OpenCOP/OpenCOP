@@ -432,6 +432,7 @@ Ext.onReady(function() {
   }
 
   var feature_table = {
+    hidden: true, // until we properly delete it
     xtype: "editorgrid",
     ref: "feature_table",
     title: "Features",
