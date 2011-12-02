@@ -18,13 +18,9 @@ Ext.onReady(function() {
       {'displayInLayerSwitcher' : false})
 
   function createWfsPopup(feature) {
-    if (queryFeaturesActive()) {
-      // Our current thinking says that the query panel shouldn't be opening
-      // its own popups.
-      //    createQueryWfsPopup(feature)
-    } else if (editFeaturesActive()) {
-      createEditWfsPopup(feature)
-    }
+    // the "createWfsPopup" abstraction allows for the flexibility to
+    // open other types of popups when in other modes
+    if (editFeaturesActive()) createEditWfsPopup(feature)
   }
 
   function createEditWfsPopup(feature) {
@@ -729,7 +725,7 @@ Ext.onReady(function() {
               text: 'Enter as Guest',
               iconCls: 'silk_door_in',
               handler: function() {
-                loginPopup.hide() 
+                loginPopup.hide()
                 displayAvailableLayers()
               }
             }
@@ -810,7 +806,7 @@ Ext.onReady(function() {
   function queryFeaturesActive() { return currentModePanel() == 'query_features' }
   function editFeaturesActive()  { return currentModePanel() == 'edit_features' }
   function layerDetailActive()   { return currentModePanel() == 'layer_detail' }
-    
+
 })
 
 // Objects with the same keys and values (excluding functions) are equal.
