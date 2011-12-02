@@ -10,7 +10,8 @@ Ext.onReady(function() {
       getToolbar(), 
       getMapPanel(), 
       getLayerTree(), 
-      getFeatureTable()
+      getFeatureTable(),
+      getLegend()
     ]
   })
 })
@@ -191,6 +192,20 @@ function getFeatureTable() {
     columns: [],
   }
   return feature_table
+}
+
+function getLegend() {
+  legend = new GeoExt.LegendPanel({
+    region: 'east',
+    split: true,
+    defaults: {
+      labelCls: 'mylabel',
+      style: 'padding:5px'
+    },
+    bodyStyle: 'padding:5px',
+    width: 200,
+  });
+  return legend
 }
 
 // popups
