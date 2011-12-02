@@ -141,18 +141,10 @@ Ext.onReady(function() {
           sphericalMercator: true,
           isBaseLayer: true,
           baselayer: true
-        }, {
-          isBaseLayer: true,
-          visible: false,
-          baselayer: true
         }),
       new OpenLayers.Layer.Yahoo("Yahoo", {
           sphericalMercator: true,
           isBaseLayer: true,
-          baselayer: true
-        }, {
-          isBaseLayer: true,
-          visible: false,
           baselayer: true
         })
       //   ,
