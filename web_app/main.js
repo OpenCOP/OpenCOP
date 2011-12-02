@@ -1,3 +1,6 @@
+// vim shortcut
+//   nmap R :call Send_to_Tmux("./silent_local_deploy\n")<CR>
+
 var app
 
 Ext.onReady(function() {
@@ -22,33 +25,6 @@ Ext.onReady(function() {
     } else if (editFeaturesActive()) {
       createEditWfsPopup(feature)
     }
-  }
-
-  // deprecated
-  function createQueryWfsPopup(feature) {
-    var popup = GeoExtPopup.create({
-      title: "Query WFS-T Feature",
-      height: 300,
-      width: 300,
-      layout: "fit",
-      map: app.center_south_and_east_panel.map_panel,
-      location: feature,
-      maximizable: true,
-      collapsible: true,
-      items: [{
-        xtype: "propertygrid",
-        title: feature.fid,
-        source: feature.attributes
-      }]
-    })
-    popup.on({
-      close: function() {
-        if( vectorLayerContainsFeature(vectorLayer, this.feature) ) {
-          selectCtrl.unselect(this.feature)
-        }
-      }
-    })
-    popup.show()
   }
 
   function createEditWfsPopup(feature) {
@@ -83,13 +59,6 @@ Ext.onReady(function() {
           popup.close()
         }
       }]
-    })
-    popup.on({
-      close: function() {
-        if( vectorLayerContainsFeature(vectorLayer, this.feature) ) {
-          selectCtrl.unselect(this.feature)
-        }
-      }
     })
     popup.show()
   }
@@ -391,33 +360,6 @@ Ext.onReady(function() {
     }]
   }
 
-  var queryFeaturesPanel = {
-    ref: "query_features",
-    title: 'Query',
-    autoScroll: true,
-    iconCls: "silk_find",
-    padding: '10 10 10 10',
-    frame: true,
-    listeners: {
-      "activate": function() {
-        WMSGetFeatureInfoControl.deactivate()
-        selectFeatureControl.activate()
-        refreshVectorLayerAndFeatureGrid() }},
-    items: [{
-      xtype: 'box',
-      autoEl: {
-        tag: 'h1',
-        html: 'Future Home of the Query Features Panel'
-      }
-    }, {
-      xtype: 'box',
-      autoEl: {
-        tag: 'p',
-        html: "It'll be awesome. Really, trust us. Awesome!"
-      }
-    }]
-  }
-
   var editFeaturesPanel = {
     ref: "edit_features",
     title: 'Edit',
@@ -459,7 +401,7 @@ Ext.onReady(function() {
       xtype: 'tabpanel',
       ref: "tabs",
       activeTab: 0,
-      items: [layerDetail, queryFeaturesPanel, editFeaturesPanel]
+      items: [layerDetail, editFeaturesPanel]
     }]
   }
 
@@ -629,8 +571,7 @@ Ext.onReady(function() {
       if(node && node.layer) populateWfsGrid(node.layer)
     }
     grid[queryFeaturesActive() ? "expand" : "collapse"]()  // isn't this cute?
-    vectorLayer.removeAllFeatures()
-    grid.reconfigure(new Ext.data.Store(), new Ext.grid.ColumnModel([]))
+    vectorLayer.removeAllFeatures()  // needed for query tab
   }
 
   function currentlySelectedLayerNode() {
