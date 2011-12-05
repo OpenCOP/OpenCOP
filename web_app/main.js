@@ -136,39 +136,13 @@ Ext.onReady(function() {
     },
     extent : new OpenLayers.Bounds(-10918469.080342, 2472890.3987378,
                                    -9525887.0459675, 6856095.3481128),
-    layers: [
-      new OpenLayers.Layer.Google("Google Streets", {
-          sphericalMercator: true,
-          isBaseLayer: true,
-          baselayer: true
-        }),
-      new OpenLayers.Layer.Yahoo("Yahoo", {
-          sphericalMercator: true,
-          isBaseLayer: true,
-          baselayer: true
-        })
-      //   ,
-      // new OpenLayers.Layer.Google("Google Hybrid", {
-      //   visibile: false,
-      //   visibility: false,
-      //     sphericalMercator: true,
-      //     type: google.maps.MapTypeId.HYBRID,
-      //     baselayer: true
-      //   },{isBaseLayer: true, visible: true}),
-      //
-      // new OpenLayers.Layer.Google("Google Physical", {
-      //   sphericalMercator: true,
-      //   transitionEffect: 'resize',
-      //   type: google.maps.MapTypeId.TERRAIN,
-      //   baselayer: true
-      // }),
-      // new OpenLayers.Layer.Google("Google Satellite", {
-      //   sphericalMercator: true,
-      //   transitionEffect: 'resize',
-      //   type: google.maps.MapTypeId.SATELLITE,
-      //   baselayer: true
-      // })
-    ]
+    // "layers" MUST define at least one layer.  More than one google layer
+    // CANNOT be defined here.  See addGoogleBaseLayers().
+    layers: [new OpenLayers.Layer.Yahoo("Yahoo", {
+                sphericalMercator: true,
+                isBaseLayer: true,
+                baselayer: true
+              })]
   }
 
   var menu_bar = new Ext.Toolbar({
@@ -458,7 +432,7 @@ Ext.onReady(function() {
   }
 
   // init app
-  var app = new Ext.Viewport({
+  app = new Ext.Viewport({
     layout: 'border',
     items: [menu_bar, west_panel, center_south_and_east_panel]
   })
@@ -821,6 +795,34 @@ Ext.onReady(function() {
   function editFeaturesActive()  { return currentModePanel() == 'edit_features' }
   function layerDetailActive()   { return currentModePanel() == 'layer_detail' }
 
+
+  function addLayer(olLayer) {
+    var record = new GeoExt.data.LayerRecord()
+    record.setLayer(olLayer)
+    app.center_south_and_east_panel.map_panel.layers.add(record)
+  }
+
+  function addGoogleBaseLayers() {
+    var settings = {
+      sphericalMercator: true,
+      transitionEffect: 'resize',
+      baselayer: true
+    }
+    var typeId = google.maps.MapTypeId
+
+    addLayer(new OpenLayers.Layer.Google("Google Streets", settings))
+
+    settings.type = typeId.HYBRID
+    addLayer(new OpenLayers.Layer.Google("Google Hybrid", settings))
+
+    settings.type = typeId.TERRAIN
+    addLayer(new OpenLayers.Layer.Google("Google Physical", settings))
+
+    settings.type = typeId.SATELLITE
+    addLayer(new OpenLayers.Layer.Google("Google Satellite", settings))
+  }
+
+  addGoogleBaseLayers()
 })
 
 // Objects with the same keys and values (excluding functions) are equal.
