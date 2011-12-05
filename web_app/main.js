@@ -230,9 +230,14 @@ Ext.onReady(function() {
       iconCls: 'silk_user_edit',
       handler: displayMySettings
     }, '-', {
-      text: 'Log In',
+      text: 'Log Out',
       iconCls: 'silk_user_go',
-      disabled: true
+      handler: function () {
+        Ext.Ajax.request({
+          url: "http://localhost/geoserver/j_spring_security_logout"
+        })
+        location.reload(true);
+      }
     }, ' ']
   })
 
