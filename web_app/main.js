@@ -802,27 +802,48 @@ Ext.onReady(function() {
     app.center_south_and_east_panel.map_panel.layers.add(record)
   }
 
-  function addGoogleBaseLayers() {
-    var settings = {
-      sphericalMercator: true,
-      transitionEffect: 'resize',
-      baselayer: true
-    }
-    var typeId = google.maps.MapTypeId
+  //// load base layers
 
-    addLayer(new OpenLayers.Layer.Google("Google Streets", settings))
-
-    settings.type = typeId.HYBRID
-    addLayer(new OpenLayers.Layer.Google("Google Hybrid", settings))
-
-    settings.type = typeId.TERRAIN
-    addLayer(new OpenLayers.Layer.Google("Google Physical", settings))
-
-    settings.type = typeId.SATELLITE
-    addLayer(new OpenLayers.Layer.Google("Google Satellite", settings))
+  function loadConfiguredBaseLayers() {
+    var baselayerJsonUrl = '/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:baselayers&outputFormat=JSON'
+    Ext.Ajax.request({
+     url: baselayerJsonUrl,
+     success: function(response) {
+       var features = Ext.util.JSON.decode(response.responseText).features
+       Ext.each(features, function(n) {addBaseLayer(n.properties)})
+     }
+    })
   }
 
-  addGoogleBaseLayers()
+  function addBaseLayer(opts) {
+    switch(opts.brand.toLowerCase().trim()) {
+      case "google":
+        addGoogleBaseLayer(opts); break
+      case "yahoo":
+          break
+    }
+  }
+
+  function addGoogleBaseLayer(opts) {
+    var type
+    switch(opts.type.toLowerCase().trim()) {
+      case "streets"   : type = google.maps.MapTypeId.STREETS   ; break
+      case "hybrid"    : type = google.maps.MapTypeId.HYBRID    ; break
+      case "satellite" : type = google.maps.MapTypeId.SATELLITE ; break
+      case "physical"  : type = google.maps.MapTypeId.TERRAIN   ; break
+    }
+    addLayer(new OpenLayers.Layer.Google(opts.name, {
+      sphericalMercator: true,
+      transitionEffect: 'resize',
+      type: type,
+      isBaseLayer: true,
+      baselayer: true,  // change to 'group'
+      visibile: opts.isdefault, // check that this actually works
+      zoomlevelcount: opts.zoomlevelcount // check this one, too
+    }))
+  }
+
+  loadConfiguredBaseLayers()
 })
 
 // Objects with the same keys and values (excluding functions) are equal.
