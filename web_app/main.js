@@ -674,6 +674,9 @@ Ext.onReady(function() {
   }
 
   function displayLoginPopup() {
+    // This is hacky, but the j_security_check returns a valid response, regardless
+    // of the legitimacy of the credentials, so the only way to determine successful
+    // login is to actually scrape the response page sent back.
     var loginPopup = new Ext.Window({
       title: "Welcome to OpenCOP",
       iconCls: "geocent_logo",
@@ -722,13 +725,24 @@ Ext.onReady(function() {
               text: 'Log In',
               iconCls: 'silk_user_go',
               handler: function() {
-                Ext.Ajax.request({
+                var response = Ext.Ajax.request({
                   url: "http://localhost/geoserver/j_spring_security_check",
                   params: "username=" + loginPopup.loginForm.username.getValue() +
-                    "&password=" + loginPopup.loginForm.password.getValue()
+                    "&password=" + loginPopup.loginForm.password.getValue(),
+                  callback: function(options, success, response) {
+                    // Hack alert: The security check returns a success code regardless of whether
+                    // the user successfully authenticated. The only way to determine success or
+                    // failure is to inspect the contents of the response and see if it redirected
+                    // back to a login page.
+                    if(response.responseText.search("GeoServer: User login") > -1){
+                      loginPopup.hide()
+                      displayFailedLoginPopup()
+                    } else {
+                      loginPopup.hide()
+                      displayAvailableLayers()
+                    }
+                  }
                 });
-                loginPopup.hide()
-                displayAvailableLayers()
               }
             }, {
               text: 'Enter as Guest',
@@ -743,6 +757,10 @@ Ext.onReady(function() {
       ]
     })
     loginPopup.show()
+  }
+
+  function displayFailedLoginPopup() {
+    alert("fail")
   }
 
   function displayAvailableLayers() {
