@@ -690,6 +690,7 @@ Ext.onReady(function() {
           labelWidth: 75,
           // label settings here cascade unless overridden
           url: 'save-form.php',
+          ref: "loginForm",
           frame: true,
           bodyStyle: 'padding:5px 5px 0',
           defaults: {
@@ -700,18 +701,40 @@ Ext.onReady(function() {
             {
               fieldLabel: 'Username',
               name: 'username',
+              ref: "username",
               allowBlank: false
             }, {
               fieldLabel: 'Password',
               name: 'password',
-              inputType: "password"
+              ref: "password",
+              inputType: "password",
+              allowBlank: false
             }
           ],
           buttons: [
             {
               text: 'Log In',
               iconCls: 'silk_user_go',
-              disabled: true
+              handler: function() {
+                var response = Ext.Ajax.request({
+                  url: "http://localhost/geoserver/j_spring_security_check",
+                  params: "username=" + loginPopup.loginForm.username.getValue() +
+                    "&password=" + loginPopup.loginForm.password.getValue(),
+                  callback: function(options, success, response) {
+                    // Hack alert: The security check returns a success code regardless of whether
+                    // the user successfully authenticated. The only way to determine success or
+                    // failure is to inspect the contents of the response and see if it redirected
+                    // back to a login page.
+                    if(response.responseText.search("GeoServer: User login") > -1){
+                      loginPopup.hide()
+                      displayFailedLoginPopup()
+                    } else {
+                      loginPopup.hide()
+                      displayAvailableLayers()
+                    }
+                  }
+                });
+              }
             }, {
               text: 'Enter as Guest',
               iconCls: 'silk_door_in',
@@ -725,6 +748,50 @@ Ext.onReady(function() {
       ]
     })
     loginPopup.show()
+  }
+
+  function displayFailedLoginPopup() {
+    var failedLoginPopup = new Ext.Window({
+      title: "Log In Failed",
+      iconCls: "silk_exclamation",
+      modal: true,
+      layout: "fit",
+      width: 325,
+      height: 150,
+      listeners: {
+        // close available layers window when user clicks on
+        // anything that isn't the window
+        show: function() {
+          Ext.select('.ext-el-mask').addListener('click', function() {
+            failedLoginPopup.close()
+            displayAvailableLayers()
+          });
+        }
+      },
+      items: [{
+        html: '<p style="text-align: center; font-size: 120%">Invalid Username and/or Password.</p>',
+        frame: true,
+        padding: '20 20 20 20'
+      }],
+      buttons: [
+        {
+          text: 'Try Again',
+          iconCls: 'silk_user_go',
+          handler: function() {
+            failedLoginPopup.hide()
+            displayLoginPopup()
+          }
+        }, {
+          text: 'Enter as Guest',
+          iconCls: 'silk_door_in',
+          handler: function() {
+            failedLoginPopup.hide()
+            displayAvailableLayers()
+          }
+        }
+      ]
+    })
+    failedLoginPopup.show()
   }
 
   function displayAvailableLayers() {
