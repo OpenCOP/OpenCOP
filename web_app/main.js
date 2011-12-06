@@ -696,6 +696,7 @@ Ext.onReady(function() {
           labelWidth: 75,
           // label settings here cascade unless overridden
           url: 'save-form.php',
+          ref: "loginForm",
           frame: true,
           bodyStyle: 'padding:5px 5px 0',
           defaults: {
@@ -705,12 +706,14 @@ Ext.onReady(function() {
           items: [
             {
               fieldLabel: 'Username',
-              name: 'a_username',
+              name: 'username',
+              ref: "username",
               allowBlank: false
             }, {
               fieldLabel: 'Password',
               name: 'password',
-              inputType: "a_password",
+              ref: "password",
+              inputType: "password",
               allowBlank: false
             }
           ],
@@ -721,7 +724,8 @@ Ext.onReady(function() {
               handler: function() {
                 Ext.Ajax.request({
                   url: "http://localhost/geoserver/j_spring_security_check",
-                  params: 'username=admin&password=geoserver'
+                  params: "username=" + loginPopup.loginForm.username.getValue() +
+                    "&password=" + loginPopup.loginForm.password.getValue()
                 });
                 loginPopup.hide()
                 displayAvailableLayers()
