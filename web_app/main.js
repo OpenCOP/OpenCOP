@@ -701,19 +701,27 @@ Ext.onReady(function() {
           items: [
             {
               fieldLabel: 'Username',
-              name: 'username',
+              name: 'a_username',
               allowBlank: false
             }, {
               fieldLabel: 'Password',
               name: 'password',
-              inputType: "password"
+              inputType: "a_password"
+              allowBlank: false
             }
           ],
           buttons: [
             {
               text: 'Log In',
               iconCls: 'silk_user_go',
-              disabled: true
+              handler: function() {
+                Ext.Ajax.request({
+                  url: "http://localhost/geoserver/j_spring_security_check",
+                  params: 'username=admin&password=geoserver'
+                });
+                loginPopup.hide()
+                displayAvailableLayers()
+              }
             }, {
               text: 'Enter as Guest',
               iconCls: 'silk_door_in',
