@@ -5,7 +5,6 @@ var app
 
 Ext.onReady(function() {
 
-  //  displayAvailableLayers()
   displayLoginPopup()
 
   // Construct all the stuff:
@@ -91,7 +90,7 @@ Ext.onReady(function() {
     autoActivate: true,
     infoFormat: "application/vnd.ogc.gml",
     vendorParams: { buffer: 10 },  //geoserver param, don't have to click dead center, I believe ESRI ignores it
-    maxFeatures: 3,  // zach?  Is 3 a good number?  Is this unhardcodeable?  Seems reasonable enough
+    maxFeatures: 3,  // Zach says this is a reasonable number [t06dec'11]ish
     eventListeners: {
       "getfeatureinfo": function(e) {
         var items = []
@@ -117,6 +116,16 @@ Ext.onReady(function() {
   })
   controls.push(WMSGetFeatureInfoControl)
 
+  var defaultLayer = new OpenLayers.Layer.Google("Google Hybrid", {
+    sphericalMercator: true,
+    transitionEffect: 'resize',
+    type: google.maps.MapTypeId.HYBRID,
+    isBaseLayer: true,
+    baselayer: true,
+    visibile: true,
+    numZoomLevels: 20
+  })
+
   var map_panel = {
     xtype: "gx_mappanel",
     ref: "map_panel",
@@ -137,12 +146,8 @@ Ext.onReady(function() {
     extent : new OpenLayers.Bounds(-10918469.080342, 2472890.3987378,
                                    -9525887.0459675, 6856095.3481128),
     // "layers" MUST define at least one layer.  More than one google layer
-    // CANNOT be defined here.  See addGoogleBaseLayers().
-    layers: [new OpenLayers.Layer.Yahoo("Yahoo", {
-                sphericalMercator: true,
-                isBaseLayer: true,
-                baselayer: true
-              })]
+    // CANNOT be defined here.
+    layers: [defaultLayer]
   }
 
   var menu_bar = new Ext.Toolbar({
@@ -634,7 +639,6 @@ Ext.onReady(function() {
   // (generally meaning "including app")
   //
 
-
   function add_SelectedAvailableLayers_To_ActiveLayers(available_layers_window) {
     available_layers_window.available_layers_grid.getSelectionModel().each(function(record) {
       app.center_south_and_east_panel.map_panel.layers.add(record)
@@ -808,7 +812,6 @@ Ext.onReady(function() {
   function editFeaturesActive()  { return currentModePanel() == 'edit_features' }
   function layerDetailActive()   { return currentModePanel() == 'layer_detail' }
 
-
   function addLayer(olLayer) {
     var record = new GeoExt.data.LayerRecord()
     record.setLayer(olLayer)
@@ -830,10 +833,8 @@ Ext.onReady(function() {
 
   function addBaseLayer(opts) {
     switch(opts.brand.toLowerCase().trim()) {
-      case "google":
-        addGoogleBaseLayer(opts); break
-      case "yahoo":
-          break
+      case "google" : addGoogleBaseLayer(opts) ; break
+      case "yahoo"  : addYahooBaseLayer(opts)  ; break
     }
   }
 
@@ -846,13 +847,21 @@ Ext.onReady(function() {
       case "physical"  : type = google.maps.MapTypeId.TERRAIN   ; break
     }
     addLayer(new OpenLayers.Layer.Google(opts.name, {
+        sphericalMercator: true,
+        transitionEffect: 'resize',
+        type: type,
+        isBaseLayer: true,
+        baselayer: true,  // change to 'group'
+        visibile: opts.isdefault,  // this doesn't seem to have an effect
+        numZoomLevels: opts.numzoomlevels
+      }))
+  }
+
+  function addYahooBaseLayer(opts) {
+    addLayer(new OpenLayers.Layer.Yahoo(opts.name, {
       sphericalMercator: true,
-      transitionEffect: 'resize',
-      type: type,
       isBaseLayer: true,
-      baselayer: true,  // change to 'group'
-      visibile: opts.isdefault, // check that this actually works
-      zoomlevelcount: opts.zoomlevelcount // check this one, too
+      baselayer: true
     }))
   }
 

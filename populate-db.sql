@@ -16,13 +16,15 @@ create table baselayers (
   type character varying(20),
   name character varying(100),
   isdefault boolean,
-  zoomlevelcount integer
+  numzoomlevels integer
 );
 
-insert into baselayers values (0, 'google', 'streets', 'Google Streets', true, 22);
-insert into baselayers values (1, 'google', 'physical', 'Google Physical', false, 22);
-insert into baselayers values (2, 'google', 'hybrid', 'Google Hybrid', false, 22);
-insert into baselayers values (3, 'google', 'satellite', 'Google Satellite', false, 22);
+insert into baselayers values (0, 'yahoo' , ''         , 'Yahoo'           , false, 0)  ; -- zoom level not used
+insert into baselayers values (1, 'google', 'satellite', 'Google Satellite', false, 22) ;
+insert into baselayers values (2, 'google', 'physical' , 'Google Physical' , true , 22) ; -- zoom level not confirmed
+insert into baselayers values (3, 'google', 'streets'  , 'Google Streets'  , false, 20) ;
+-- // google hybrid is the default layer, and doesn't need to be defined in the database
+-- insert into baselayers values (1, 'google', 'hybrid'   , 'Google Hybrid'   , false, 20);
 
--- url to retrieve base layers from geoserver
+-- // url to retrieve base layers from geoserver
 --   localhost/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:baselayers&outputFormat=JSON
