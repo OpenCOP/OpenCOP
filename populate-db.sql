@@ -6,11 +6,14 @@
 --
 -- destroy, recreate, and populate the tables in the opencop database
 
+
+------------------------------------------------------------
 ---- base layers
 
-drop table baselayers;
 
-create table baselayers (
+drop table baselayer;
+
+create table baselayer (
   id integer primary key,
   brand character varying(20),
   type character varying(20),
@@ -19,12 +22,31 @@ create table baselayers (
   numzoomlevels integer
 );
 
-insert into baselayers values (0, 'yahoo' , ''         , 'Yahoo'           , false, 0)  ; -- zoom level not used
-insert into baselayers values (1, 'google', 'satellite', 'Google Satellite', false, 22) ;
-insert into baselayers values (2, 'google', 'physical' , 'Google Physical' , true , 22) ; -- zoom level not confirmed
-insert into baselayers values (3, 'google', 'streets'  , 'Google Streets'  , false, 20) ;
+insert into baselayer values (0, 'yahoo' , ''         , 'Yahoo'           , false, 0)  ; -- zoom level not used
+insert into baselayer values (1, 'google', 'satellite', 'Google Satellite', false, 22) ;
+insert into baselayer values (2, 'google', 'physical' , 'Google Physical' , true , 22) ; -- zoom level not confirmed
+insert into baselayer values (3, 'google', 'streets'  , 'Google Streets'  , false, 20) ;
 -- // google hybrid is the default layer, and doesn't need to be defined in the database
--- insert into baselayers values (1, 'google', 'hybrid'   , 'Google Hybrid'   , false, 20);
+-- insert into baselayer values (1, 'google', 'hybrid'   , 'Google Hybrid'   , false, 20);
 
 -- // url to retrieve base layers from geoserver
---   localhost/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:baselayers&outputFormat=JSON
+--   localhost/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:baselayer&outputFormat=JSON
+
+
+------------------------------------------------------------
+---- layergroup
+
+
+drop table layergroup;
+
+create table layergroup (
+  id integer primary key,
+  name character varying(50),
+  url character varying(300)
+);
+
+insert into layergroup values (0, 'All local layers', '/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.1.1');
+insert into layergroup values (1, 'topp only', '/geoserver/wms?request=getCapabilities&namespace=topp');
+
+-- // url to retrieve base layers from geoserver
+--   localhost/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:layergroup&outputFormat=JSON

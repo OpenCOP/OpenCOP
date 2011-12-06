@@ -796,70 +796,64 @@ Ext.onReady(function() {
 
   function displayAvailableLayers() {
 
-    function addSelectedLayers() {  // relies on tabsOpts
-      Ext.each(tabsOpts, function(opts) {
-        layersPopup[opts.refName].getSelectionModel().each( function(record) {
-          app.center_south_and_east_panel.map_panel.layers.add(record) })
-      })
-    }
+    var layerGroupsJsonUrl = '/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:layergroup&outputFormat=JSON'
+    Ext.Ajax.request({
+      url: layerGroupsJsonUrl,
+      success: function(response) {
 
-    function createTabs(tabsOpts) {
-      var tabs = []
-      Ext.each(tabsOpts, function(opts) { tabs.push(createGrid(opts))})
-      return tabs
-    }
+        // options:
+        // - refName
+        // - name
+        // - url
+        function createGrid(opts) {
+          return {
+            xtype: "grid",
+            ref: opts.refName,
+            title: opts.name,
+            margins: '0 5 0 0',
+            layout: 'fit',
+            viewConfig: { forceFit: true },
+            listeners: { "rowdblclick": function() { addSelectedLayers()}},
+            store: new GeoExt.data.WMSCapabilitiesStore({
+              url: opts.url,
+              autoLoad: true,
+              sortInfo: {field: 'prefix', direction: "ASC"} }),
+            columns: [
+              { header: "Layer Group", dataIndex: "prefix"  , width: 150, sortable: true },
+              { header: "Title"      , dataIndex: "title"   , width: 250, sortable: true },
+              { header: "Abstract"   , dataIndex: "abstract", width: 600, sortable: true }]}}
 
-    // options:
-    // - refName
-    // - title
-    // - url
-    function createGrid(opts) {
-      return {
-        xtype: "grid",
-        ref: opts.refName,
-        title: opts.title,
-        margins: '0 5 0 0',
-        layout: 'fit',
-        viewConfig: { forceFit: true },
-        listeners: { "rowdblclick": function() { addSelectedLayers()}},
-        store: new GeoExt.data.WMSCapabilitiesStore({
-          url: opts.url,
-          autoLoad: true,
-          sortInfo: {field: 'prefix', direction: "ASC"} }),
-        columns: [
-          { header: "Layer Group", dataIndex: "prefix"  , width: 150, sortable: true },
-          { header: "Title"      , dataIndex: "title"   , width: 250, sortable: true },
-          { header: "Abstract"   , dataIndex: "abstract", width: 600, sortable: true }]}}
 
-    var tabsOpts  =
-      [{ title: "Local Geoserver Layers",
-         url: "/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.1.1" },
-       { title: "Other Available Layers",
-         url: "/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.1.1" },
-       { title: "Filter test",
-         url: "/geoserver/wms?request=getCapabilities&namespace=topp" }]
+        function addSelectedLayers() {  // relies on tabsOpts
+          Ext.each(tabsOpts, function(opts) {
+            layersPopup[opts.refName].getSelectionModel().each( function(record) {
+              app.center_south_and_east_panel.map_panel.layers.add(record) })
+          })
+        }
 
-    Ext.each(tabsOpts, function(elem, i) { elem.refName = "availableLayerGroup" + i })
+        var tabsOpts = Ext.pluck(
+          Ext.util.JSON.decode(response.responseText).features,
+          "properties")
+        Ext.each(tabsOpts, function(elem, i) { elem.refName = "availableLayerGroup" + i })
 
-    var tabs = createTabs(tabsOpts)
-
-    var layersPopup = new Ext.Window({
-      title: "Add Layers to the Map",
-      iconCls: 'geosilk_layers_add',
-      layout: "accordion",
-      modal: true,
-      width: 800,
-      height: 600,
-      items: tabs,
-      listeners: {
-        // close popup when user clicks on anything else
-        show: function() { Ext.select('.ext-el-mask').addListener('click',
-                function() { layersPopup.close() })}},
-      buttons: [
-        { text: "Add to Map", iconCls: 'silk_add' , handler: addSelectedLayers },
-        { text: 'Done'      , iconCls: 'silk_tick', handler: function() { layersPopup.hide() }}]})
-
-    layersPopup.show()
+        var layersPopup = new Ext.Window({
+          title: "Add Layers to the Map",
+          iconCls: 'geosilk_layers_add',
+          layout: "accordion",
+          modal: true,
+          width: 800,
+          height: 600,
+          items: map(createGrid, tabsOpts),
+          listeners: {
+            // close popup when user clicks on anything else
+            show: function() { Ext.select('.ext-el-mask').addListener('click',
+                    function() { layersPopup.close() })}},
+          buttons: [
+            { text: "Add to Map", iconCls: 'silk_add' , handler: addSelectedLayers },
+            { text: 'Done'      , iconCls: 'silk_tick', handler: function() { layersPopup.hide() }}]})
+        layersPopup.show()
+      }
+    })
   }
 
   function currentModePanel() { return app.west.selected_layer_panel.tabs.getActiveTab().initialConfig.ref }
@@ -876,7 +870,7 @@ Ext.onReady(function() {
   //// load base layers
 
   function loadConfiguredBaseLayers() {
-    var baselayerJsonUrl = '/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:baselayers&outputFormat=JSON'
+    var baselayerJsonUrl = '/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:baselayer&outputFormat=JSON'
     Ext.Ajax.request({
      url: baselayerJsonUrl,
      success: function(response) {
@@ -1054,3 +1048,9 @@ var GeoExtPopup = function() {
     }
   }
 }()
+
+function map(fn, arr) {
+  var a = []
+  Ext.each(arr, function(n) { a.push(fn(n))})
+  return a
+}

@@ -1,4 +1,5 @@
 #!/bin/sh
 
+date
 ./local_deploy > /dev/null
 echo "Silent deploy complete\n"

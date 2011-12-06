@@ -1,0 +1,2 @@
+#!/bin/sh
+psql -U opencop opencop -f populate-db.sql
