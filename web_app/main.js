@@ -688,10 +688,9 @@ Ext.onReady(function() {
       items: [
         new Ext.FormPanel({
           labelWidth: 75,
-          // label settings here cascade unless overridden
-          url: 'save-form.php',
           ref: "loginForm",
           frame: true,
+          monitorValid: true,
           bodyStyle: 'padding:5px 5px 0',
           defaults: {
             width: 200
@@ -715,6 +714,7 @@ Ext.onReady(function() {
             {
               text: 'Log In',
               iconCls: 'silk_user_go',
+              formBind: true,
               handler: function() {
                 var response = Ext.Ajax.request({
                   url: "http://localhost/geoserver/j_spring_security_check",
