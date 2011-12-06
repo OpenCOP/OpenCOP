@@ -5,7 +5,6 @@ var app
 
 Ext.onReady(function() {
 
-  //  displayAvailableLayers()
   displayLoginPopup()
 
   // Construct all the stuff:
@@ -91,7 +90,7 @@ Ext.onReady(function() {
     autoActivate: true,
     infoFormat: "application/vnd.ogc.gml",
     vendorParams: { buffer: 10 },  //geoserver param, don't have to click dead center, I believe ESRI ignores it
-    maxFeatures: 3,  // zach?  Is 3 a good number?  Is this unhardcodeable?  Seems reasonable enough
+    maxFeatures: 3,  // Zach says this is a reasonable number [t06dec'11]ish
     eventListeners: {
       "getfeatureinfo": function(e) {
         var items = []
@@ -639,7 +638,6 @@ Ext.onReady(function() {
   // Utility functions that require onReady scope
   // (generally meaning "including app")
   //
-
 
   function add_SelectedAvailableLayers_To_ActiveLayers(available_layers_window) {
     available_layers_window.available_layers_grid.getSelectionModel().each(function(record) {
