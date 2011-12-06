@@ -674,9 +674,6 @@ Ext.onReady(function() {
   }
 
   function displayLoginPopup() {
-    // This is hacky, but the j_security_check returns a valid response, regardless
-    // of the legitimacy of the credentials, so the only way to determine successful
-    // login is to actually scrape the response page sent back.
     var loginPopup = new Ext.Window({
       title: "Welcome to OpenCOP",
       iconCls: "geocent_logo",
@@ -760,7 +757,47 @@ Ext.onReady(function() {
   }
 
   function displayFailedLoginPopup() {
-    alert("fail")
+    var failedLoginPopup = new Ext.Window({
+      title: "Log In Failed",
+      iconCls: "silk_exclamation",
+      modal: true,
+      layout: "fit",
+      width: 325,
+      height: 150,
+      listeners: {
+        // close available layers window when user clicks on
+        // anything that isn't the window
+        show: function() {
+          Ext.select('.ext-el-mask').addListener('click', function() {
+            failedLoginPopup.close()
+            displayAvailableLayers()
+          });
+        }
+      },
+      items: [{
+        html: '<p style="text-align: center; font-size: 120%">Invalid Username and/or Password.</p>',
+        frame: true,
+        padding: '20 20 20 20'
+      }],
+      buttons: [
+        {
+          text: 'Try Again',
+          iconCls: 'silk_user_go',
+          handler: function() {
+            failedLoginPopup.hide()
+            displayLoginPopup()
+          }
+        }, {
+          text: 'Enter as Guest',
+          iconCls: 'silk_door_in',
+          handler: function() {
+            failedLoginPopup.hide()
+            displayAvailableLayers()
+          }
+        }
+      ]
+    })
+    failedLoginPopup.show()
   }
 
   function displayAvailableLayers() {
