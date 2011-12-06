@@ -710,7 +710,7 @@ Ext.onReady(function() {
             }, {
               fieldLabel: 'Password',
               name: 'password',
-              inputType: "a_password"
+              inputType: "a_password",
               allowBlank: false
             }
           ],
