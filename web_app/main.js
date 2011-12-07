@@ -7,8 +7,6 @@ Ext.onReady(function() {
 
   displayLoginPopup()
 
-  // Construct all the stuff:
-
   Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
   Ext.state.Manager.setProvider(new Ext.state.CookieProvider())
 
@@ -116,16 +114,6 @@ Ext.onReady(function() {
   })
   controls.push(WMSGetFeatureInfoControl)
 
-  var defaultLayer = new OpenLayers.Layer.Google("Google Hybrid", {
-    sphericalMercator: true,
-    transitionEffect: 'resize',
-    type: google.maps.MapTypeId.HYBRID,
-    isBaseLayer: true,
-    baselayer: true,
-    visibile: true,
-    numZoomLevels: 20
-  })
-
   var map_panel = {
     xtype: "gx_mappanel",
     ref: "map_panel",
@@ -145,9 +133,7 @@ Ext.onReady(function() {
     },
     extent : new OpenLayers.Bounds(-10918469.080342, 2472890.3987378,
                                    -9525887.0459675, 6856095.3481128),
-    // "layers" MUST define at least one layer.  More than one google layer
-    // CANNOT be defined here.
-    layers: [defaultLayer]
+    layers: [vectorLayer]
   }
 
   var menu_bar = new Ext.Toolbar({
@@ -407,6 +393,7 @@ Ext.onReady(function() {
     width: 225
   }
 
+  // ON THE CUTTING BLOCK
   var feature_table = {
     hidden: true, // until we properly delete it
     xtype: "editorgrid",
@@ -446,11 +433,6 @@ Ext.onReady(function() {
     layout: 'border',
     items: [menu_bar, west_panel, center_south_and_east_panel]
   })
-
-  // build scratch, vector layer
-  app.center_south_and_east_panel.map_panel.map.addLayer(vectorLayer)
-  app.center_south_and_east_panel.feature_table.store.bind(vectorLayer)
-  app.center_south_and_east_panel.feature_table.getSelectionModel().bind(vectorLayer)
 
   // necessary to populate south panel attributes
   var rawAttributeData
@@ -595,6 +577,7 @@ Ext.onReady(function() {
 
   app.west.tree_panel.getSelectionModel().on("selectionchange", setLayer)
 
+  // ON THE CUTTING BLOCK
   var bbar = app.center_south_and_east_panel.feature_table.getBottomToolbar()
   bbar.add([
     {
@@ -861,15 +844,48 @@ Ext.onReady(function() {
   function editFeaturesActive()  { return currentModePanel() == 'edit_features' }
   function layerDetailActive()   { return currentModePanel() == 'layer_detail' }
 
-  function addLayer(olLayer) {
-    var record = new GeoExt.data.LayerRecord()
-    record.setLayer(olLayer)
-    app.center_south_and_east_panel.map_panel.layers.add(record)
-  }
+  function loadBaselayers() {
 
-  //// load base layers
+    function addLayer(olLayer) {
+      var record = new GeoExt.data.LayerRecord()
+      record.setLayer(olLayer)
+      app.center_south_and_east_panel.map_panel.layers.add(record)
+    }
 
-  function loadConfiguredBaseLayers() {
+    function addBaseLayer(opts) {
+      switch(opts.brand.toLowerCase().trim()) {
+        case "google" : addGoogleBaseLayer(opts) ; break
+        case "yahoo"  : addYahooBaseLayer(opts)  ; break
+      }
+    }
+
+    function addGoogleBaseLayer(opts) {
+      var type
+      switch(opts.type.toLowerCase().trim()) {
+        case "streets"   : type = google.maps.MapTypeId.STREETS   ; break
+        case "hybrid"    : type = google.maps.MapTypeId.HYBRID    ; break
+        case "satellite" : type = google.maps.MapTypeId.SATELLITE ; break
+        case "physical"  : type = google.maps.MapTypeId.TERRAIN   ; break
+      }
+      addLayer(new OpenLayers.Layer.Google(opts.name, {
+          sphericalMercator: true,
+          transitionEffect: 'resize',
+          type: type,
+          isBaseLayer: true,
+          baselayer: true,  // change to 'group'
+          visibile: opts.isdefault,  // this doesn't seem to have an effect
+          numZoomLevels: opts.numzoomlevels
+        }))
+    }
+
+    function addYahooBaseLayer(opts) {
+      addLayer(new OpenLayers.Layer.Yahoo(opts.name, {
+        sphericalMercator: true,
+        isBaseLayer: true,
+        baselayer: true
+      }))
+    }
+
     var baselayerJsonUrl = '/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:baselayer&outputFormat=JSON'
     Ext.Ajax.request({
      url: baselayerJsonUrl,
@@ -880,41 +896,7 @@ Ext.onReady(function() {
     })
   }
 
-  function addBaseLayer(opts) {
-    switch(opts.brand.toLowerCase().trim()) {
-      case "google" : addGoogleBaseLayer(opts) ; break
-      case "yahoo"  : addYahooBaseLayer(opts)  ; break
-    }
-  }
-
-  function addGoogleBaseLayer(opts) {
-    var type
-    switch(opts.type.toLowerCase().trim()) {
-      case "streets"   : type = google.maps.MapTypeId.STREETS   ; break
-      case "hybrid"    : type = google.maps.MapTypeId.HYBRID    ; break
-      case "satellite" : type = google.maps.MapTypeId.SATELLITE ; break
-      case "physical"  : type = google.maps.MapTypeId.TERRAIN   ; break
-    }
-    addLayer(new OpenLayers.Layer.Google(opts.name, {
-        sphericalMercator: true,
-        transitionEffect: 'resize',
-        type: type,
-        isBaseLayer: true,
-        baselayer: true,  // change to 'group'
-        visibile: opts.isdefault,  // this doesn't seem to have an effect
-        numZoomLevels: opts.numzoomlevels
-      }))
-  }
-
-  function addYahooBaseLayer(opts) {
-    addLayer(new OpenLayers.Layer.Yahoo(opts.name, {
-      sphericalMercator: true,
-      isBaseLayer: true,
-      baselayer: true
-    }))
-  }
-
-  loadConfiguredBaseLayers()
+  loadBaselayers()
 })
 
 // Objects with the same keys and values (excluding functions) are equal.
