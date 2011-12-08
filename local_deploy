@@ -9,10 +9,13 @@ mkdir ~/OpenCOP/build/
 echo "-- build war\n"
 cd ~/OpenCOP/web_app/
 jar cvf ../build/opencop.war .
-cd -
 
 # copy new opencop war to tomcat
-echo "-- copy war to tomcat\n"
+# Note:
+#   For reasons passing understanding, this echo MUST be
+#   commented out in order for this script to run
+#   correctly in a cronjob on the server.
+#echo "-- copy war to tomcat\n"
 cp ~/OpenCOP/build/opencop.war /var/lib/tomcat6/webapps
 
 echo "==================="

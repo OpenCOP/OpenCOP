@@ -4,6 +4,5 @@
 
 cd ~/OpenCOP/
 git pull
-cd -
 
 sh ~/OpenCOP/local_deploy
