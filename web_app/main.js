@@ -809,7 +809,7 @@ Ext.onReady(function() {
 
         function addSelectedLayers() {  // relies on tabsOpts
           Ext.each(tabsOpts, function(opts) {
-            layersPopup[opts.refName].getSelectionModel().each( function(record) {
+            layersPopup.tabPanel[opts.refName].getSelectionModel().each( function(record) {
               app.center_south_and_east_panel.map_panel.layers.add(record) })
           })
         }
@@ -822,11 +822,15 @@ Ext.onReady(function() {
         var layersPopup = new Ext.Window({
           title: "Add Layers to the Map",
           iconCls: 'geosilk_layers_add',
-          layout: "accordion",
+          layout: "fit",
           modal: true,
           width: 800,
           height: 600,
-          items: map(createGrid, tabsOpts),
+          items: new Ext.TabPanel({
+            ref: "tabPanel",
+            items: map(createGrid, tabsOpts),
+            activeTab: 0
+          }),
           listeners: {
             // close popup when user clicks on anything else
             show: function() { Ext.select('.ext-el-mask').addListener('click',

@@ -67,7 +67,7 @@ create table layergroup (
   url character varying(300)
 );
 
-insert into layergroup values (0, 'All local layers', '/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.1.1');
+insert into layergroup values (0, 'All local layers', '/geoserver/wms?request=getCapabilities');
 insert into layergroup values (1, 'topp only', '/geoserver/wms?request=getCapabilities&namespace=topp');
 
 -- // url to retrieve base layers from geoserver
