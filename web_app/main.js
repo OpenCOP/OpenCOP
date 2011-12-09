@@ -104,10 +104,15 @@ Ext.onReady(function() {
           title: "Feature Info",
           width: 300,
           height: 300,
-          layout: "accordion",
+          layout: "fit",
           map: app.center_south_and_east_panel.map_panel,
           location: e.xy,
-          items: items
+          items: [{
+            xtype: 'tabpanel',
+            ref: "tabs",
+            activeTab: 0,
+            items: items
+          }]
         }).show()
       }
     }
@@ -809,7 +814,7 @@ Ext.onReady(function() {
 
         function addSelectedLayers() {  // relies on tabsOpts
           Ext.each(tabsOpts, function(opts) {
-            layersPopup.tabPanel[opts.refName].getSelectionModel().each( function(record) {
+            layersPopup.tabs[opts.refName].getSelectionModel().each( function(record) {
               app.center_south_and_east_panel.map_panel.layers.add(record) })
           })
         }
@@ -826,11 +831,12 @@ Ext.onReady(function() {
           modal: true,
           width: 800,
           height: 600,
-          items: new Ext.TabPanel({
-            ref: "tabPanel",
+          items: [{
+            xtype: "tabpanel",
+            ref: "tabs",
             items: map(createGrid, tabsOpts),
             activeTab: 0
-          }),
+          }],
           listeners: {
             // close popup when user clicks on anything else
             show: function() { Ext.select('.ext-el-mask').addListener('click',
