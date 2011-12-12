@@ -563,11 +563,17 @@ Ext.onReady(function() {
     if( !layerRecord ) return
     var available_icons_div = Ext.get('available_icons')
     if(!available_icons_div) return // div is "lazy loaded first time" edit panel is viewed; prior to that, the div won't exist
-    available_icons_div.update(getIconsFor(layerRecord.data.name))
+    displayIconsFor(layerRecord.data.name)
   }
 
-  function getIconsFor(layerName) {
-    return "icons for " +  getIconsJsonFor(layerName) + " will go here."
+  function displayIconsFor(layerName) {
+    getIconInfo(
+      layerName, 
+      function(listOfHashes) {
+        console.log("here")
+        Ext.get('available_icons').update(listOfHashes)
+      }
+    )
   }
 
   function getIconsJsonFor(layerName) {
