@@ -85,13 +85,13 @@ create table iconstolayers (
   layer character varying(100)  -- defined as namespace:name
 );
 
-insert into iconstolayers values (1, 1, 'namespace::name');
-insert into iconstolayers values (2, 2, 'namespace::name');
-insert into iconstolayers values (3, 3, 'namespace::name');
-insert into iconstolayers values (4, 4, 'namespace::name');
-insert into iconstolayers values (5, 5, 'namespace::name');
-insert into iconstolayers values (6, 6, 'namespace::name');
-insert into iconstolayers values (7, 7, 'namespace::name');
+insert into iconstolayers values (1, 1, 'topp:example');
+insert into iconstolayers values (2, 2, 'topp:example');
+insert into iconstolayers values (3, 3, 'topp:example');
+insert into iconstolayers values (4, 4, 'topp:example');
+insert into iconstolayers values (5, 5, 'topp:example');
+insert into iconstolayers values (6, 6, 'topp:example');
+insert into iconstolayers values (7, 7, 'topp:example');
 
 
 ------------------------------------------------------------
