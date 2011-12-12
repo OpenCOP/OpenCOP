@@ -570,22 +570,21 @@ Ext.onReady(function() {
     getIconInfo(
       layerName, 
       function(listOfHashes) {
-        console.log("here")
-        Ext.get('available_icons').update(listOfHashes)
+        Ext.get('available_icons').update(Ext.util.JSON.encode(listOfHashes))
       }
     )
   }
 
-  function getIconsJsonFor(layerName) {
-    // make whatever sort of wfs-t call I need to make; stubbing it out for now
-    return [{
-      name: "Amphibious Warfare Ship",
-      url: "http://geo-dev.geocent.com/opencop-icons/2525b/suspca---------.png"
-    }, {
-      name: "Military Armory S1",
-      url: "http://geo-dev.geocent.com/opencop-icons/HSWG/Military_Armory_S1.png"
-    }]
-  }
+//  function getIconsJsonFor(layerName) {
+//    // make whatever sort of wfs-t call I need to make; stubbing it out for now
+//    return [{
+//      name: "Amphibious Warfare Ship",
+//      url: "http://geo-dev.geocent.com/opencop-icons/2525b/suspca---------.png"
+//    }, {
+//      name: "Military Armory S1",
+//      url: "http://geo-dev.geocent.com/opencop-icons/HSWG/Military_Armory_S1.png"
+//    }]
+//  }
 
   function refreshVectorLayerAndFeatureGrid() {
     if(!app) return  // app isn't defined until later
