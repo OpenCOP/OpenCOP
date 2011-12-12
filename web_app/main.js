@@ -563,7 +563,22 @@ Ext.onReady(function() {
     if( !layerRecord ) return
     var available_icons_div = Ext.get('available_icons')
     if(!available_icons_div) return // div is "lazy loaded first time" edit panel is viewed; prior to that, the div won't exist
-    available_icons_div.update(layerRecord.data.title)
+    available_icons_div.update(getIconsFor(layerRecord.data.name))
+  }
+
+  function getIconsFor(layerName) {
+    return "icons for " +  getIconsJsonFor(layerName) + " will go here."
+  }
+
+  function getIconsJsonFor(layerName) {
+    // make whatever sort of wfs-t call I need to make; stubbing it out for now
+    return [{
+      name: "some layer name",
+      url: "some layer url"
+    }, {
+      name: "some other layer name",
+      url: "some other layer url"
+    }]
   }
 
   function refreshVectorLayerAndFeatureGrid() {
