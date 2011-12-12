@@ -19,7 +19,6 @@ fillOpacity: 0.25,
 
 Ext.onReady(function() {
 
-
   displayLoginPopup()
 
   Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
@@ -366,6 +365,7 @@ Ext.onReady(function() {
     frame: 'true',
     listeners: {
       "activate": function() {
+        populateIcons()
         WMSGetFeatureInfoControl.deactivate()
         selectFeatureControl.activate()
         refreshVectorLayerAndFeatureGrid() }},
@@ -373,7 +373,7 @@ Ext.onReady(function() {
       xtype: 'box',
       autoEl: {
         tag: 'h1',
-        html: 'Future Home of the Edit Features Panel'
+        html: 'Some header'
       }
     }, {
       xtype: 'box',
@@ -381,6 +381,9 @@ Ext.onReady(function() {
         tag: 'p',
         html: "It'll <em>also</em> be awesome. Really, trust us <em>again</em>. Awesome!"
       }
+    }, {
+      xtype: "box",
+      id: "available_icons"
     }]
   }
 
@@ -555,6 +558,15 @@ Ext.onReady(function() {
     Ext.get('layer_description').update(layerRecord.data.abstract)
     app.west.selected_layer_panel.tabs.layer_detail.opacity_slider.setLayer(layerRecord.getLayer())
     app.west.selected_layer_panel.expand()
+    populateIcons()
+  }
+
+  function populateIcons() {
+    var layerRecord = currentlySelectedLayerRecord()
+    if( !layerRecord ) return
+    var available_icons_div = Ext.get('available_icons')
+    if(!available_icons_div) return // div is "lazy loaded first time" edit panel is viewed; prior to that, the div won't exist
+    available_icons_div.update(layerRecord.data.title)
   }
 
   function refreshVectorLayerAndFeatureGrid() {
@@ -1065,3 +1077,4 @@ function map(fn, arr) {
   Ext.each(arr, function(n) { a.push(fn(n))})
   return a
 }
+
