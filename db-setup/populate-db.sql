@@ -72,3 +72,40 @@ insert into layergroup values (1, 'topp only', '/geoserver/wms?request=getCapabi
 
 -- // url to retrieve base layers from geoserver
 --   localhost/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:layergroup&outputFormat=JSON
+
+
+------------------------------------------------------------
+---- icons to layers
+
+drop table iconstolayers;
+
+create table iconstolayers (
+  id integer primary key,
+  iconid integer references icon,
+  layer character varying(100)  -- defined as namespace:name
+);
+
+insert into iconstolayers values (1, 1, 'namespace::name');
+insert into iconstolayers values (2, 2, 'namespace::name');
+insert into iconstolayers values (3, 3, 'namespace::name');
+insert into iconstolayers values (4, 4, 'namespace::name');
+insert into iconstolayers values (5, 5, 'namespace::name');
+insert into iconstolayers values (6, 6, 'namespace::name');
+insert into iconstolayers values (7, 7, 'namespace::name');
+
+
+------------------------------------------------------------
+---- iconmaster (view)
+
+drop view iconmaster;
+
+create view iconmaster as
+  select
+    i.id,
+    i.name,
+    i.url,
+    s.layer
+  from
+    icon as i,
+    iconstolayers as s
+  where i.id = s.iconid;
