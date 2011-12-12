@@ -852,7 +852,7 @@ Ext.onReady(function() {
             store: new GeoExt.data.WMSCapabilitiesStore({
               url: opts.url,
               autoLoad: true,
-              sortInfo: {field: 'prefix', direction: "ASC"} }),
+              sortInfo: {field: 'prefix', direction: "ASC"}}),
             columns: [
               { header: "Layer Group", dataIndex: "prefix"  , width: 150, sortable: true },
               { header: "Title"      , dataIndex: "title"   , width: 250, sortable: true },
@@ -914,17 +914,17 @@ Ext.onReady(function() {
               { header: "Layer Name" , dataIndex: "layername", sortable: true },
               { header: "Description", dataIndex: "description"}]}}
 
-        var createGrid = createGrid_new
-
         function addSelectedLayers() {  // relies on tabsOpts
           Ext.each(tabsOpts, function(opts) {
-            layersPopup[opts.refName].getSelectionModel().each(addLayer)})}
+            layersPopup.tabs[opts.refName].getSelectionModel().each(addLayer)})}
 
         function parseTabOpts(response) {
           var tabsOpts = parseGeoserverJson(response)
           Ext.each(tabsOpts, function(elem, i) { elem.refName = "availableLayerGroup" + i })
           return tabsOpts
         }
+
+        var createGrid = createGrid_old
 
         var tabsOpts = parseTabOpts(response)
 
@@ -939,8 +939,7 @@ Ext.onReady(function() {
             xtype: "tabpanel",
             ref: "tabs",
             items: map(createGrid, tabsOpts),
-            activeTab: 0
-          }],
+            activeTab: 0}],
           listeners: {
             // close popup when user clicks on anything else
             show: function() { Ext.select('.ext-el-mask').addListener('click',
