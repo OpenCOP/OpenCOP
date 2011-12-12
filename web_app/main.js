@@ -834,7 +834,7 @@ Ext.onReady(function() {
         // - refName
         // - name
         // - url
-        function createGrid(opts) {
+        function createGrid_old(opts) {
           return {
             xtype: "grid",
             ref: opts.refName,
@@ -843,6 +843,7 @@ Ext.onReady(function() {
             layout: 'fit',
             viewConfig: { forceFit: true },
             listeners: { "rowdblclick": function() { addSelectedLayers()}},
+            stripeRows: true,
             store: new GeoExt.data.WMSCapabilitiesStore({
               url: opts.url,
               autoLoad: true,
@@ -852,16 +853,75 @@ Ext.onReady(function() {
               { header: "Title"      , dataIndex: "title"   , width: 250, sortable: true },
               { header: "Abstract"   , dataIndex: "abstract", width: 600, sortable: true }]}}
 
+        var wms = new OpenLayers.Layer.WMS(
+            "OpenLayers WMS",
+            "http://vmap0.tiles.osgeo.org/wms/vmap0",
+            {'layers':'basic'})
+
+        // var kml = new OpenLayers.Layer.GML(
+        //   "some kind of id",
+        //   "http://demo.geocent.com/neplo/neplo.kml",
+        //   { projection: new OpenLayers.Projection("EPSG:900913"),
+        //     format: OpenLayers.Format.KML,
+        //     formatOptions: {
+        //       extractStyles: true,
+        //       extractAttributes: true,
+        //       maxDepth: 2 }})
+
+        var kml = new OpenLayers.Layer.Vector("KML", {
+          strategies: [new OpenLayers.Strategy.Fixed()],
+          protocol: new OpenLayers.Protocol.HTTP({
+            url: "http://openlayers.org/dev/examples/kml/lines.kml",
+            format: new OpenLayers.Format.KML({
+                extractStyles: true,
+                extractAttributes: true,
+                maxDepth: 2 })})})
+
+        var data = [
+          ["layer name 1", "some description 1", kml],
+          // ["layer name 2", "some description 2", kml],
+          ["layer name 3", "some description 3", wms],
+          ["layer name 4", "some description 4", wms]]
+
+        var store = new Ext.data.ArrayStore({
+          fields: [
+            {name: "layername"},
+            {name: "description"},
+            {name: "layer"}]})
+        store.loadData(data)
+
+        // options:
+        // - refName
+        // - name
+        // - url
+        function createGrid_new(opts) {
+          return {
+            xtype: "grid",
+            ref: opts.refName,
+            title: opts.name,
+            margins: '0 5 0 0',
+            layout: 'fit',
+            viewConfig: { forceFit: true },
+            listeners: { "rowdblclick": function() { addSelectedLayers()}},
+            store: store,
+            stripeRows: true,
+            columns: [
+              { header: "Layer Name" , dataIndex: "layername", sortable: true },
+              { header: "Description", dataIndex: "description"}]}}
+
+        var createGrid = createGrid_new
 
         function addSelectedLayers() {  // relies on tabsOpts
           Ext.each(tabsOpts, function(opts) {
-            layersPopup.tabs[opts.refName].getSelectionModel().each( function(record) {
-              app.center_south_and_east_panel.map_panel.layers.add(record) })
-          })
+            layersPopup[opts.refName].getSelectionModel().each(addLayer)})}
+
+        function parseTabOpts(response) {
+          var tabsOpts = parseGeoserverJson(response)
+          Ext.each(tabsOpts, function(elem, i) { elem.refName = "availableLayerGroup" + i })
+          return tabsOpts
         }
 
-        var tabsOpts = parseGeoserverJson(response)
-        Ext.each(tabsOpts, function(elem, i) { elem.refName = "availableLayerGroup" + i })
+        var tabsOpts = parseTabOpts(response)
 
         var layersPopup = new Ext.Window({
           title: "Add Layers to the Map",
@@ -893,13 +953,28 @@ Ext.onReady(function() {
   function editFeaturesActive()  { return currentModePanel() == 'edit_features' }
   function layerDetailActive()   { return currentModePanel() == 'layer_detail' }
 
-  function loadBaselayers() {
+  // add any kind of layer to the map
+  //   - base layer
+  //   - record
+  //   - olLayer
+  function addLayer(obj) {
 
-    function addLayer(olLayer) {
-      var record = new GeoExt.data.LayerRecord()
+    function layer_to_record(olLayer) {
+      record = new GeoExt.data.LayerRecord()
       record.setLayer(olLayer)
-      app.center_south_and_east_panel.map_panel.layers.add(record)
+      return record
     }
+
+    function forceToRecord(obj) {
+      if(obj.isBaseLayer) return layer_to_record(obj)
+      if(obj.getLayer) return obj
+      return layer_to_record(obj.data.layer)
+    }
+
+    app.center_south_and_east_panel.map_panel.layers.add(forceToRecord(obj))
+  }
+
+  function loadBaselayers() {
 
     function addBaseLayer(opts) {
       switch(opts.brand.toLowerCase().trim()) {
