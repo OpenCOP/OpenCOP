@@ -568,7 +568,7 @@ Ext.onReady(function() {
 
   function displayIconsFor(layerName) {
     getIconInfo(
-      layerName, 
+      layerName,
       function(listOfHashes) {
         Ext.get('available_icons').update(Ext.util.JSON.encode(listOfHashes))
       }
@@ -1161,8 +1161,12 @@ var GeoExtPopup = function() {
 }()
 
 function getIconInfo(namespace_name, callback) {
-  var specialurl = "/geoserver/wfs?request=GetFeature&version=1.1.0&outputFormat=JSON&typeName="
+  var typeName = "opencop:iconmaster"
+  var specialurl = "/geoserver/wfs?request=GetFeature&typeName="
+    + typeName
+    + "&version=1.0.0&outputFormat=JSON&CQL_FILTER=layer%20=%20'"
     + namespace_name
+    + "'"
   Ext.Ajax.request({
     url: specialurl,
     success: comp(callback, parseGeoserverJson)})
