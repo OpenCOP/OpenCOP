@@ -2,20 +2,6 @@
 //   nmap R :call Send_to_Tmux("./silent_local_deploy\n")<CR>
 
 var app
-var myStyles = new OpenLayers.StyleMap({
-  "default": new OpenLayers.Style({
-    pointRadius: 16, // sized according to type attribute
-                    fillColor: "66CCFF",
-                    strokeColor: "blue",
-//graphicName: "square",
-                    strokeWidth: 3,
-fillOpacity: 0.25,
- }),
-  "select": new OpenLayers.Style({
-    externalGraphic: "http://"+"${default_graphic}",
-    pointRadius: "${default_graphic_size}",
-    graphicOpacity : "1"})
-})
 
 Ext.onReady(function() {
 
@@ -25,13 +11,24 @@ Ext.onReady(function() {
   Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
   Ext.state.Manager.setProvider(new Ext.state.CookieProvider())
 
-
-
-  var vectorLayer = new OpenLayers.Layer.Vector(
-    'Editable features',
-      {'styleMap' : myStyles,
-      'displayInLayerSwitcher' : false
+  var vectorLayer = new OpenLayers.Layer.Vector('Editable features', {
+    'styleMap': new OpenLayers.StyleMap({
+      "default": new OpenLayers.Style({
+        pointRadius: 16,  // sized according to type attribute
+        fillColor: "66CCFF",
+        strokeColor: "blue",
+        //graphicName: "square",
+        strokeWidth: 3,
+        fillOpacity: 0.25,
+      }),
+      "select": new OpenLayers.Style({
+        externalGraphic: "http://" + "${default_graphic}",
+        pointRadius: "${default_graphic_size}",
+        graphicOpacity: "1"
       })
+    }),
+    'displayInLayerSwitcher': false
+  })
 
   function createWfsPopup(feature) {
     // the "createWfsPopup" abstraction allows for the flexibility to
