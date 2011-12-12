@@ -5,7 +5,6 @@ var app
 
 Ext.onReady(function() {
 
-
   displayLoginPopup()
 
   Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
@@ -833,9 +832,7 @@ Ext.onReady(function() {
           })
         }
 
-        var tabsOpts = Ext.pluck(
-          Ext.util.JSON.decode(response.responseText).features,
-          "properties")
+        var tabsOpts = parseGeoserverJson(response)
         Ext.each(tabsOpts, function(elem, i) { elem.refName = "availableLayerGroup" + i })
 
         var layersPopup = new Ext.Window({
@@ -1055,8 +1052,30 @@ var GeoExtPopup = function() {
   }
 }()
 
+function getIconInfo(namespace_name, callback) {
+  var specialurl = "/geoserver/wfs?request=GetFeature&version=1.1.0&outputFormat=JSON&typeName="
+    + namespace_name
+  Ext.Ajax.request({
+    url: specialurl,
+    success: comp(callback, parseGeoserverJson)})
+}
+
+function parseGeoserverJson(response) {
+  return Ext.pluck(
+    Ext.util.JSON.decode(response.responseText).features,
+    "properties")
+}
+
+
+// ---------------------------------------------------------------
+// FUNCTIONAL UTILITIES
+
 function map(fn, arr) {
   var a = []
-  Ext.each(arr, function(n) { a.push(fn(n))})
+  Ext.each(arr, function(n){a.push(fn(n))})
   return a
+}
+
+function comp(f, g){
+  return function(x){return f(g(x))}
 }
