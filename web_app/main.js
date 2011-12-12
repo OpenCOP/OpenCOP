@@ -573,11 +573,11 @@ Ext.onReady(function() {
   function getIconsJsonFor(layerName) {
     // make whatever sort of wfs-t call I need to make; stubbing it out for now
     return [{
-      name: "some layer name",
-      url: "some layer url"
+      name: "Amphibious Warfare Ship",
+      url: "http://geo-dev.geocent.com/opencop-icons/2525b/suspca---------.png"
     }, {
-      name: "some other layer name",
-      url: "some other layer url"
+      name: "Military Armory S1",
+      url: "http://geo-dev.geocent.com/opencop-icons/HSWG/Military_Armory_S1.png"
     }]
   }
 
