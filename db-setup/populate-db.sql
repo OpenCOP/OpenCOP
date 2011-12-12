@@ -89,9 +89,9 @@ insert into iconstolayers values (1, 1, 'topp:example');
 insert into iconstolayers values (2, 2, 'topp:example');
 insert into iconstolayers values (3, 3, 'topp:example');
 insert into iconstolayers values (4, 4, 'topp:example');
-insert into iconstolayers values (5, 5, 'topp:example');
-insert into iconstolayers values (6, 6, 'topp:example');
-insert into iconstolayers values (7, 7, 'topp:example');
+insert into iconstolayers values (5, 5, 'topp:taz_shapes');
+insert into iconstolayers values (6, 6, 'topp:taz_shapes');
+insert into iconstolayers values (7, 7, 'topp:taz_shapes');
 
 
 ------------------------------------------------------------
