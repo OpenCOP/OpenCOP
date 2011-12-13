@@ -824,18 +824,16 @@ Ext.onReady(function() {
       success: function(response) {
 
         // options:
-        // - refName
         // - name
         // - url
         function createGrid_old(opts) {
           return {
             xtype: "grid",
-            ref: opts.refName,
             title: opts.name,
             margins: '0 5 0 0',
             layout: 'fit',
             viewConfig: { forceFit: true },
-            listeners: { "rowdblclick": function() { addSelectedLayers()}},
+            listeners: { "rowdblclick": addSelectedLayers },
             stripeRows: true,
             store: new GeoExt.data.WMSCapabilitiesStore({
               url: opts.url,
@@ -882,37 +880,28 @@ Ext.onReady(function() {
         store.loadData(data)
 
         // options:
-        // - refName
         // - name
         // - url
         function createGrid_new(opts) {
           return {
             xtype: "grid",
-            ref: opts.refName,
             title: opts.name,
             margins: '0 5 0 0',
             layout: 'fit',
             viewConfig: { forceFit: true },
-            listeners: { "rowdblclick": function() { addSelectedLayers()}},
+            listeners: { "rowdblclick": addSelectedLayers },
             store: store,
             stripeRows: true,
             columns: [
               { header: "Layer Name" , dataIndex: "layername", sortable: true },
               { header: "Description", dataIndex: "description"}]}}
 
-        function addSelectedLayers() {  // relies on tabsOpts
-          Ext.each(tabsOpts, function(opts) {
-            layersPopup.tabs[opts.refName].getSelectionModel().each(addLayer)})}
-
-        function parseTabOpts(response) {
-          var tabsOpts = parseGeoserverJson(response)
-          Ext.each(tabsOpts, function(elem, i) { elem.refName = "availableLayerGroup" + i })
-          return tabsOpts
+        function addSelectedLayers() {
+          _(layersPopup.tabs.items.items).each(function(grid) {
+            grid.getSelectionModel().each(addLayer)})
         }
 
         var createGrid = createGrid_old
-
-        var tabsOpts = parseTabOpts(response)
 
         var layersPopup = new Ext.Window({
           title: "Add Layers to the Map",
@@ -924,7 +913,7 @@ Ext.onReady(function() {
           items: [{
             xtype: "tabpanel",
             ref: "tabs",
-            items: map(createGrid, tabsOpts),
+            items: _(parseGeoserverJson(response)).map(createGrid),
             activeTab: 0}],
           listeners: {
             // close popup when user clicks on anything else
@@ -1145,6 +1134,8 @@ var GeoExtPopup = function() {
   }
 }()
 
+// call callback with list of all icon-join-table objects that exist in
+// the namespace_name
 function getIconInfo(namespace_name, callback) {
   var typeName = "opencop:iconmaster"
   var specialurl = "/geoserver/wfs?request=GetFeature&typeName="
@@ -1154,25 +1145,13 @@ function getIconInfo(namespace_name, callback) {
     + "'"
   Ext.Ajax.request({
     url: specialurl,
-    success: comp(callback, parseGeoserverJson)})
+    success: _.compose(callback, parseGeoserverJson)})
 }
 
+// take a geoserver ajax response object and convert it into what
+// you'd expect: a list of javascript objects
 function parseGeoserverJson(response) {
   return Ext.pluck(
     Ext.util.JSON.decode(response.responseText).features,
     "properties")
-}
-
-
-// ---------------------------------------------------------------
-// FUNCTIONAL UTILITIES
-
-function map(fn, arr) {
-  var a = []
-  Ext.each(arr, function(n){a.push(fn(n))})
-  return a
-}
-
-function comp(f, g){
-  return function(x){return f(g(x))}
 }
