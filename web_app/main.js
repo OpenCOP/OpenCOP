@@ -581,7 +581,7 @@ Ext.onReady(function() {
     getIconInfo(
       layerName,
       function(listOfHashes) {
-        Ext.DomHelper.append("available_icons", {tag: "table", id: "available_icons_table"})
+        Ext.DomHelper.overwrite("available_icons", {tag: "table", id: "available_icons_table"})
         var templateHtml = "<tr>" +
           "<td><img src='{url}' alt='{name}' onclick='drawControl.activate();'/></td>" +
           "<td>{name}</td>" +
