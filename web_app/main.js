@@ -577,11 +577,14 @@ Ext.onReady(function() {
     getIconInfo(
       layerName,
       function(listOfHashes) {
-        Ext.get('available_icons').update(Ext.util.JSON.encode(listOfHashes))
-        var html = '<img src="{url}" alt="{name}"/>';
-        var tpl = new Ext.Template(html);
+        Ext.DomHelper.append("available_icons", {tag: "table", id: "available_icons_table"})
+        var templateHtml = "<tr>" + 
+          "<td><img src='{url}' alt='{name}'/></td>" + 
+          "<td>{name}</td>" + 
+          "</tr>";
+        var tpl = new Ext.Template(templateHtml);
         tpl.compile();
-        listOfHashes.forEach(function(item) { tpl.append('available_icons', item) })
+        listOfHashes.forEach(function(item) { tpl.append('available_icons_table', item) })
       }
     )
   }
