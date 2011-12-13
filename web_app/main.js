@@ -16,7 +16,6 @@ Ext.onReady(function() {
         pointRadius: 16,  // sized according to type attribute
         fillColor: "66CCFF",
         strokeColor: "blue",
-        //graphicName: "square",
         strokeWidth: 3,
         fillOpacity: 0.25,
       }),
@@ -575,17 +574,6 @@ Ext.onReady(function() {
     )
   }
 
-//  function getIconsJsonFor(layerName) {
-//    // make whatever sort of wfs-t call I need to make; stubbing it out for now
-//    return [{
-//      name: "Amphibious Warfare Ship",
-//      url: "http://geo-dev.geocent.com/opencop-icons/2525b/suspca---------.png"
-//    }, {
-//      name: "Military Armory S1",
-//      url: "http://geo-dev.geocent.com/opencop-icons/HSWG/Military_Armory_S1.png"
-//    }]
-//  }
-
   function refreshVectorLayerAndFeatureGrid() {
     if(!app) return  // app isn't defined until later
     GeoExtPopup.closeAll()
@@ -863,30 +851,28 @@ Ext.onReady(function() {
             "http://vmap0.tiles.osgeo.org/wms/vmap0",
             {'layers':'basic'})
 
-        // var kml = new OpenLayers.Layer.GML(
-        //   "some kind of id",
-        //   "http://demo.geocent.com/neplo/neplo.kml",
-        //   { projection: new OpenLayers.Projection("EPSG:900913"),
-        //     format: OpenLayers.Format.KML,
-        //     formatOptions: {
-        //       extractStyles: true,
-        //       extractAttributes: true,
-        //       maxDepth: 2 }})
+        var kml = new OpenLayers.Layer.GML(
+          "some kind of id",
+          "/geoserver/rest/proxy?url=http://demo.geocent.com/neplo/neplo.kml",
+          { projection: new OpenLayers.Projection("EPSG:4326"),
+            format: OpenLayers.Format.KML,
+            formatOptions: {
+              extractStyles: true,
+              extractAttributes: true,
+              maxDepth: 2 }})
 
-        var kml = new OpenLayers.Layer.Vector("KML", {
-          strategies: [new OpenLayers.Strategy.Fixed()],
-          protocol: new OpenLayers.Protocol.HTTP({
-            url: "http://openlayers.org/dev/examples/kml/lines.kml",
-            format: new OpenLayers.Format.KML({
-                extractStyles: true,
-                extractAttributes: true,
-                maxDepth: 2 })})})
+        // var kml = new OpenLayers.Layer.Vector("this title", {
+        //   strategies: [new OpenLayers.Strategy.Fixed()],
+        //   protocol: new OpenLayers.Protocol.HTTP({
+        //     url: "/geoserver/rest/proxy?url=http://demo.geocent.com/neplo/neplo.kml",
+        //     format: new OpenLayers.Format.KML({
+        //         extractStyles: true,
+        //         extractAttributes: true,
+        //         maxDepth: 2 })})})
 
         var data = [
-          ["layer name 1", "some description 1", kml],
-          // ["layer name 2", "some description 2", kml],
-          ["layer name 3", "some description 3", wms],
-          ["layer name 4", "some description 4", wms]]
+          ["kml example", "some description 1", kml],
+          ["wms example", "some description 2", wms]]
 
         var store = new Ext.data.ArrayStore({
           fields: [
