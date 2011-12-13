@@ -36,6 +36,14 @@ Ext.onReady(function() {
 
   function createEditWfsPopup(feature) {
 
+    ;(function ensureFeatureHasAllFields() {
+      var allFields = _(vectorLayer.store.data.items).map(function(n) {return n.data.name})
+      var missingFields = _(allFields).difference(
+        _(feature.attributes).keys(),
+        ["the_geom", "version"])
+      _(missingFields).each(function(name) { feature.attributes[name] = "" })
+    }())
+
     var propertyGrid = new Ext.grid.PropertyGrid({
       title: feature.fid,
       source: feature.attributes
@@ -604,9 +612,9 @@ Ext.onReady(function() {
   }
 
   function populateWfsGrid(layer) {
-    var url = layer.url.split("?")[0] // the base url without params
-    var schema = new GeoExt.data.AttributeStore({
-      url: url,
+    var baseUrl = layer.url.split("?")[0] // the base url without params
+    new GeoExt.data.AttributeStore({
+      url: baseUrl,
       // request specific params
       baseParams: {
         "SERVICE": "WFS",
@@ -617,8 +625,9 @@ Ext.onReady(function() {
       autoLoad: true,
       listeners: {
         "load": function(store) {
+          vectorLayer.store = store  // make DescribeFeatureType results available to vectorLayer
           app.center_south_and_east_panel.feature_table.setTitle(layer.name)
-          makeWfsGridHeadersDynamic(store, url)
+          makeWfsGridHeadersDynamic(store, baseUrl)
         }
       }
     })
