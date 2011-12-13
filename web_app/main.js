@@ -56,6 +56,7 @@ Ext.onReady(function() {
         iconCls: 'silk_cross',
         handler: function() {
           popup.close()
+          drawControl.deactivate()
         }
       }, {
         text: 'Save',
@@ -64,6 +65,7 @@ Ext.onReady(function() {
           propertyGrid.stopEditing()  // prevent having to click off field to save in IE
           saveVectorLayer()
           popup.close()
+          drawControl.deactivate()
         }
       }]
     })
@@ -88,7 +90,8 @@ Ext.onReady(function() {
 
   var drawControl = new OpenLayers.Control.DrawFeature(
         vectorLayer,
-        OpenLayers.Handler.Point)
+        OpenLayers.Handler.Point,
+        {featureAdded: createWfsPopup})
   controls.push(drawControl)
 
   var selectFeatureControl = new OpenLayers.Control.SelectFeature(
@@ -366,6 +369,11 @@ Ext.onReady(function() {
         selectFeatureControl.activate()
         refreshVectorLayerAndFeatureGrid() }},
     items: [{
+      xtype: 'checkbox',
+      name: 'create_button',
+      boxLabel: 'Add Feature',
+      handler: function() { drawControl.activate()}
+    }, {
       xtype: 'box',
       autoEl: {
         tag: 'h1',
