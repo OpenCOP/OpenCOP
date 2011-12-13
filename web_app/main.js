@@ -2,6 +2,7 @@
 //   nmap R :call Send_to_Tmux("./silent_local_deploy\n")<CR>
 
 var app
+var drawControl
 
 Ext.onReady(function() {
 
@@ -21,7 +22,7 @@ Ext.onReady(function() {
       }),
       "select": new OpenLayers.Style({
         externalGraphic: "http://" + "${default_graphic}",
-        pointRadius: "${default_graphic_size}",
+        pointRadius: "12",
         graphicOpacity: "1"
       })
     }),
@@ -88,7 +89,7 @@ Ext.onReady(function() {
         { autoActivate: true })
   controls.push(modifyControl)
 
-  var drawControl = new OpenLayers.Control.DrawFeature(
+  drawControl = new OpenLayers.Control.DrawFeature(
         vectorLayer,
         OpenLayers.Handler.Point,
         {featureAdded: createWfsPopup})
@@ -372,7 +373,9 @@ Ext.onReady(function() {
       xtype: 'checkbox',
       name: 'create_button',
       boxLabel: 'Add Feature',
-      handler: function() { drawControl.activate()}
+      handler: function() { 
+        drawControl.activate()
+      }
     }, {
       xtype: 'box',
       autoEl: {
@@ -579,7 +582,7 @@ Ext.onReady(function() {
       function(listOfHashes) {
         Ext.DomHelper.append("available_icons", {tag: "table", id: "available_icons_table"})
         var templateHtml = "<tr>" + 
-          "<td><img src='{url}' alt='{name}'/></td>" + 
+          "<td><img src='{url}' alt='{name}' onclick='drawControl.activate();'/></td>" + 
           "<td>{name}</td>" + 
           "</tr>";
         var tpl = new Ext.Template(templateHtml);
