@@ -578,6 +578,10 @@ Ext.onReady(function() {
       layerName,
       function(listOfHashes) {
         Ext.get('available_icons').update(Ext.util.JSON.encode(listOfHashes))
+        var html = '<img src="{url}" alt="{name}"/>';
+        var tpl = new Ext.Template(html);
+        tpl.compile();
+        listOfHashes.forEach(function(item) { tpl.append('available_icons', item) })
       }
     )
   }
