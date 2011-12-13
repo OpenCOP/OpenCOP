@@ -378,13 +378,6 @@ Ext.onReady(function() {
         selectFeatureControl.activate()
         refreshVectorLayerAndFeatureGrid() }},
     items: [{
-      xtype: 'checkbox',
-      name: 'create_button',
-      boxLabel: 'Add Feature',
-      handler: function() { 
-        drawControl.activate()
-      }
-    }, {
       xtype: 'box',
       autoEl: {
         tag: 'h1',
@@ -589,9 +582,9 @@ Ext.onReady(function() {
       layerName,
       function(listOfHashes) {
         Ext.DomHelper.append("available_icons", {tag: "table", id: "available_icons_table"})
-        var templateHtml = "<tr>" + 
-          "<td><img src='{url}' alt='{name}' onclick='drawControl.activate();'/></td>" + 
-          "<td>{name}</td>" + 
+        var templateHtml = "<tr>" +
+          "<td><img src='{url}' alt='{name}' onclick='drawControl.activate();'/></td>" +
+          "<td>{name}</td>" +
           "</tr>";
         var tpl = new Ext.Template(templateHtml);
         tpl.compile();
