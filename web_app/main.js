@@ -470,7 +470,7 @@ var cop = (function() {
           disabled: false,
           handler: function() {
             var node = currentlySelectedLayerNode()
-            if (node && node.layer instanceof OpenLayers.Layer.WMS) {
+            if (node) {
               app.center_south_and_east_panel.map_panel.map.removeLayer(node.layer)
             }
           }
@@ -1135,6 +1135,7 @@ var cop = (function() {
       function layer_to_record(olLayer) {
         record = new GeoExt.data.LayerRecord()
         record.setLayer(olLayer)
+        record.id = olLayer.id
         return record
       }
 
