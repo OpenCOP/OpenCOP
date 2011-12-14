@@ -1015,7 +1015,9 @@ var cop = (function() {
               margins: '0 5 0 0',
               layout: 'fit',
               viewConfig: { forceFit: true },
-              listeners: { "rowdblclick": addAllSelectedLayers },
+              listeners: {
+                "rowdblclick": addAllSelectedLayers,
+                "activate": deselectAllLayers },
               stripeRows: true,
               store: new GeoExt.data.WMSCapabilitiesStore({
                 url: opts.url,
@@ -1033,7 +1035,9 @@ var cop = (function() {
               margins: '0 5 0 0',
               layout: 'fit',
               viewConfig: { forceFit: true },
-              listeners: { "rowdblclick": addAllSelectedLayers },
+              listeners: {
+                "rowdblclick": addAllSelectedLayers,
+                "activate": deselectAllLayers },
               store: store,
               stripeRows: true,
               columns: [
@@ -1042,7 +1046,15 @@ var cop = (function() {
 
           function addAllSelectedLayers() {  // from all tabs
             _(layersPopup.tabs.items.items).each(function(grid) {
-              grid.getSelectionModel().each(addLayer)})
+              grid.getSelectionModel().each(addLayer)
+            })
+            deselectAllLayers()
+          }
+
+          function deselectAllLayers() {  // from all tabs that have been rendered
+            _(layersPopup.tabs.items.items).chain()
+              .filter(function(g) { return g.rendered })
+              .each(function(g) { g.getSelectionModel().clearSelections() })
           }
 
           function createStore(data) {  // for exteral/other layers only
