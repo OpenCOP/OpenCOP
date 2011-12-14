@@ -1072,24 +1072,15 @@ var cop = (function() {
               "http://vmap0.tiles.osgeo.org/wms/vmap0",
               {'layers':'basic'})
 
-          var kml = new OpenLayers.Layer.GML(
-            "some kind of id",
-            "/geoserver/rest/proxy?url=http://demo.geocent.com/neplo/neplo.kml",
-            { projection: new OpenLayers.Projection("EPSG:4326"),
-              format: OpenLayers.Format.KML,
-              formatOptions: {
-                extractStyles: true,
-                extractAttributes: true,
-                maxDepth: 2 }})
-
-          // var kml = new OpenLayers.Layer.Vector("this title", {
-          //   strategies: [new OpenLayers.Strategy.Fixed()],
-          //   protocol: new OpenLayers.Protocol.HTTP({
-          //     url: "/geoserver/rest/proxy?url=http://demo.geocent.com/neplo/neplo.kml",
-          //     format: new OpenLayers.Format.KML({
-          //         extractStyles: true,
-          //         extractAttributes: true,
-          //         maxDepth: 2 })})})
+          var kml = new OpenLayers.Layer.Vector("this title", {
+            projection: new OpenLayers.Projection("EPSG:4326"),
+            strategies: [new OpenLayers.Strategy.Fixed()],
+            protocol: new OpenLayers.Protocol.HTTP({
+              url: "/geoserver/rest/proxy?url=http://demo.geocent.com/neplo/neplo.kml",
+              format: new OpenLayers.Format.KML({
+                  extractStyles: true,
+                  extractAttributes: true,
+                  maxDepth: 2 })})})
 
           var data = [
             ["kml example", "some description 1", kml],
