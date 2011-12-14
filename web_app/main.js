@@ -1008,14 +1008,14 @@ var cop = (function() {
           // options:
           // - name
           // - url
-          function createGrid_old(opts) {
+          function createGeoserverGrid(opts) {
             return {
               xtype: "grid",
               title: opts.name,
               margins: '0 5 0 0',
               layout: 'fit',
               viewConfig: { forceFit: true },
-              listeners: { "rowdblclick": addSelectedLayers },
+              listeners: { "rowdblclick": addAllSelectedLayers },
               stripeRows: true,
               store: new GeoExt.data.WMSCapabilitiesStore({
                 url: opts.url,
@@ -1025,6 +1025,35 @@ var cop = (function() {
                 { header: "Layer Group", dataIndex: "prefix"  , width: 150, sortable: true },
                 { header: "Title"      , dataIndex: "title"   , width: 250, sortable: true },
                 { header: "Abstract"   , dataIndex: "abstract", width: 600, sortable: true }]}}
+
+          function createOthersGrid(store) {
+            return {
+              xtype: "grid",
+              title: "External Layers",
+              margins: '0 5 0 0',
+              layout: 'fit',
+              viewConfig: { forceFit: true },
+              listeners: { "rowdblclick": addAllSelectedLayers },
+              store: store,
+              stripeRows: true,
+              columns: [
+                { header: "Layer Name" , dataIndex: "layername", sortable: true },
+                { header: "Description", dataIndex: "description"}]}}
+
+          function addAllSelectedLayers() {  // from all tabs
+            _(layersPopup.tabs.items.items).each(function(grid) {
+              grid.getSelectionModel().each(addLayer)})
+          }
+
+          function createStore(data) {  // for exteral/other layers only
+            var store = new Ext.data.ArrayStore({
+              fields: [
+                {name: "layername"},
+                {name: "description"},
+                {name: "layer"}]})
+            store.loadData(data)
+            return store
+          }
 
           var wms = new OpenLayers.Layer.WMS(
               "OpenLayers WMS",
@@ -1054,37 +1083,6 @@ var cop = (function() {
             ["kml example", "some description 1", kml],
             ["wms example", "some description 2", wms]]
 
-          var store = new Ext.data.ArrayStore({
-            fields: [
-              {name: "layername"},
-              {name: "description"},
-              {name: "layer"}]})
-          store.loadData(data)
-
-          // options:
-          // - name
-          // - url
-          function createGrid_new(opts) {
-            return {
-              xtype: "grid",
-              title: opts.name,
-              margins: '0 5 0 0',
-              layout: 'fit',
-              viewConfig: { forceFit: true },
-              listeners: { "rowdblclick": addSelectedLayers },
-              store: store,
-              stripeRows: true,
-              columns: [
-                { header: "Layer Name" , dataIndex: "layername", sortable: true },
-                { header: "Description", dataIndex: "description"}]}}
-
-          function addSelectedLayers() {
-            _(layersPopup.tabs.items.items).each(function(grid) {
-              grid.getSelectionModel().each(addLayer)})
-          }
-
-          var createGrid = createGrid_old
-
           var layersPopup = new Ext.Window({
             title: "Add Layers to the Map",
             iconCls: 'geosilk_layers_add',
@@ -1095,14 +1093,16 @@ var cop = (function() {
             items: [{
               xtype: "tabpanel",
               ref: "tabs",
-              items: _(parseGeoserverJson(response)).map(createGrid),
-              activeTab: 0}],
+              activeTab: 0,
+              items: _.union(
+                _(parseGeoserverJson(response)).map(createGeoserverGrid),
+                createOthersGrid(createStore(data)))}],
             listeners: {
               // close popup when user clicks on anything else
               show: function() { Ext.select('.ext-el-mask').addListener('click',
                       function() { layersPopup.close() })}},
             buttons: [
-              { text: "Add to Map", iconCls: 'silk_add' , handler: addSelectedLayers },
+              { text: "Add to Map", iconCls: 'silk_add' , handler: addAllSelectedLayers },
               { text: 'Done'      , iconCls: 'silk_tick', handler: function() { layersPopup.hide() }}]})
           layersPopup.show()
         }
