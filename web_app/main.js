@@ -1126,7 +1126,13 @@ var cop = (function() {
       function layer_to_record(olLayer) {
         record = new GeoExt.data.LayerRecord()
         record.setLayer(olLayer)
+
+        // Not sure why this has to be set by hand.  If it isn't the user
+        // can't:
+        // 1.  Bring up the layer info box
+        // 2.  Delete the layer from the layer tree
         record.id = olLayer.id
+
         return record
       }
 
