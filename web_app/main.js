@@ -5,8 +5,8 @@ var cop = (function() {
 
   var selectedIconUrl
 
-  // Return url to make query to opencop database for table name. If the
-  // need strikes you, you can throw a CQL_FILTER on the end.
+  // Return url to query opencop database for table name. If the need
+  // strikes you, you can throw a CQL_FILTER on the end.
   function jsonUrl(tableName) {
     return "/geoserver/wfs"
       + "?request=GetFeature"
