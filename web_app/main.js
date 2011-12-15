@@ -15,6 +15,40 @@ var cop = (function() {
       + "&typeName=opencop:" + tableName
   }
 
+  // always returns the next id in sequence
+  var uniqueId = (function () {
+    var id = 0
+    return function() { return ++id}
+  }())
+
+  function buildOlLayer(opts) {
+
+    function buildKmlLayer(opts) {
+      return new OpenLayers.Layer.Vector(opts.name, {
+        projection: new OpenLayers.Projection("EPSG:4326"),
+        strategies: [new OpenLayers.Strategy.Fixed()],
+        protocol: new OpenLayers.Protocol.HTTP({
+          url: "/geoserver/rest/proxy?url=" + opts.url,
+          format: new OpenLayers.Format.KML({
+              extractStyles: true,
+              extractAttributes: true,
+              maxDepth: 2 })})})
+    }
+
+    function buildWmsLayer(opts) {
+      return new OpenLayers.Layer.WMS(
+        opts.name,
+        opts.url,
+        {layers: opts.layers,
+         transparent: "true",
+         format: "image/png"},
+        {isBaseLayer: false})
+    }
+
+    if(opts.type == "KML") return buildKmlLayer(opts)
+    if(opts.type == "WMS") return buildWmsLayer(opts)
+  }
+
   // Objects with the same keys and values (excluding functions) are equal.
   //   Example: {a: 1, :b: 2} == {a: 1, :b: 2} != {a: 1, b: 2, c: 3}.
   function equalAttributes(objA, objB) {
@@ -158,9 +192,13 @@ var cop = (function() {
   // take a geoserver ajax response object and convert it into what
   // you'd expect: a list of javascript objects
   function parseGeoserverJson(response) {
-    return Ext.pluck(
-      Ext.util.JSON.decode(response.responseText).features,
-      "properties")
+    function parseId(idStr) {
+      return idStr.match(/\d*$/)[0]  // ex: "layergroup.24" -> "24"
+    }
+    var features = Ext.util.JSON.decode(response.responseText).features
+    return _(features).map(function(feature) {
+      return _(feature.properties).defaults({id: parseId(feature.id)})
+    })
   }
 
   var selectIcon = function(obj) {
@@ -1009,12 +1047,13 @@ var cop = (function() {
         success: function(response) {
 
           // options:
+          // - layergroup id
           // - layergroup name
           // - layergroup url (with filter)
-          function createGeoserverGrid(opts) {
+          function createGeoserverGrid(gridOpts) {
             return {
               xtype: "grid",
-              title: opts.name,
+              title: gridOpts.name,
               margins: '0 5 0 0',
               layout: 'fit',
               viewConfig: { forceFit: true },
@@ -1023,40 +1062,29 @@ var cop = (function() {
                 "activate": deselectAllLayers },
               stripeRows: true,
               store: new GeoExt.data.WMSCapabilitiesStore({
-                url: opts.url,
+                url: gridOpts.url,
                 autoLoad: true,
                 sortInfo: {field: 'prefix', direction: "ASC"},
                 listeners: {
                   "load": function(store, records, options) {
-                    store.add(new store.recordType({
-                      id: 9872,
-                      prefix: "foobar",
-                      title: "some bad title",
-                      "abstract": "and my fancy abstract",
-                      layer: new OpenLayers.Layer.WMS(
-                        "OpenLayers WMS",
-                        "http://vmap0.tiles.osgeo.org/wms/vmap0",
-                        {'layers':'basic'})}))}}}),
+                    loadAdditionalLayers(store, gridOpts.id)}}}),
               columns: [
                 { header: "Layer Group", dataIndex: "prefix"  , width: 150, sortable: true },
                 { header: "Title"      , dataIndex: "title"   , width: 250, sortable: true },
                 { header: "Abstract"   , dataIndex: "abstract", width: 600, sortable: true }]}}
 
-          function createOthersGrid(store) {
-            return {
-              xtype: "grid",
-              title: "External Layers",
-              margins: '0 5 0 0',
-              layout: 'fit',
-              viewConfig: { forceFit: true },
-              listeners: {
-                "rowdblclick": addAllSelectedLayers,
-                "activate": deselectAllLayers },
-              store: store,
-              stripeRows: true,
-              columns: [
-                { header: "Layer Name" , dataIndex: "layername", sortable: true },
-                { header: "Description", dataIndex: "description"}]}}
+          function loadAdditionalLayers(store, layerGroupId) {
+            Ext.Ajax.request({
+              url: jsonUrl("layer") + "&CQL_FILTER=layergroup='" + layerGroupId + "'",
+              success: function(response) {
+                _(parseGeoserverJson(response)).each(function(layerOpts) {
+                  store.add(new store.recordType({
+                    id: uniqueId(),
+                    prefix: layerOpts.prefix,
+                    title: layerOpts.name,
+                    abstract: layerOpts.abstract,
+                    layer: buildOlLayer(layerOpts)}))})}})
+          }
 
           function addAllSelectedLayers() {  // from all tabs
             _(layersPopup.tabs.items.items).each(function(grid) {
@@ -1071,35 +1099,6 @@ var cop = (function() {
               .each(function(g) { g.getSelectionModel().clearSelections() })
           }
 
-          function createStore(data) {  // for exteral/other layers only
-            var store = new Ext.data.ArrayStore({
-              fields: [
-                {name: "layername"},
-                {name: "description"},
-                {name: "layer"}]})
-            store.loadData(data)
-            return store
-          }
-
-          var wms = new OpenLayers.Layer.WMS(
-              "OpenLayers WMS",
-              "http://vmap0.tiles.osgeo.org/wms/vmap0",
-              {'layers':'basic'})
-
-          var kml = new OpenLayers.Layer.Vector("this title", {
-            projection: new OpenLayers.Projection("EPSG:4326"),
-            strategies: [new OpenLayers.Strategy.Fixed()],
-            protocol: new OpenLayers.Protocol.HTTP({
-              url: "/geoserver/rest/proxy?url=http://demo.geocent.com/neplo/neplo.kml",
-              format: new OpenLayers.Format.KML({
-                  extractStyles: true,
-                  extractAttributes: true,
-                  maxDepth: 2 })})})
-
-          var data = [
-            ["kml example", "some description 1", kml],
-            ["wms example", "some description 2", wms]]
-
           var layersPopup = new Ext.Window({
             title: "Add Layers to the Map",
             iconCls: 'geosilk_layers_add',
@@ -1111,9 +1110,7 @@ var cop = (function() {
               xtype: "tabpanel",
               ref: "tabs",
               activeTab: 0,
-              items: _.union(
-                _(parseGeoserverJson(response)).map(createGeoserverGrid),
-                createOthersGrid(createStore(data)))}],
+              items: _(parseGeoserverJson(response)).map(createGeoserverGrid)}],
             listeners: {
               // close popup when user clicks on anything else
               show: function() { Ext.select('.ext-el-mask').addListener('click',

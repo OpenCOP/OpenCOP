@@ -80,13 +80,18 @@ drop table if exists layer;
 create table layer (
   id integer primary key,
   layergroup integer references layergroup,
+  prefix character varying(15),
+  layers character varying(50),
   name character varying(50),
   type character varying(20),
+  url character varying(200),
+  abstract character varying(500),
   numzoomlevels integer
 );
 
-insert into layer values (0, 1, '1st layer', 'WMS', 20);
-insert into layer values (1, 2, '2nd layer', 'KML', 20);
+insert into layer values (0, 1, 'external', 'topp:example', 'our example WMS', 'WMS', '/geoserver/wms', 'Our favorite example layer', 20);
+insert into layer values (1, 2, 'external', 'basic', 'some WMS test', 'WMS', 'http://vmap0.tiles.osgeo.org/wms/vmap0', 'Try this WMS; you will find you like it.', 20);
+insert into layer values (2, 2, 'external', 'neplo', 'some KML test', 'KML', 'http://demo.geocent.com/neplo/neplo.kml', 'A really very nice KML layer.', 20);
 
 ------------------------------------------------------------
 ---- icons to layers
