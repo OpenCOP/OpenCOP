@@ -67,7 +67,7 @@ create table layergroup (
 
 insert into layergroup values (0, 'All local layers', '/geoserver/wms?request=getCapabilities');
 insert into layergroup values (1, 'topp only', '/geoserver/wms?request=getCapabilities&namespace=topp');
-insert into layergroup values (2, 'cannotexist', '/geoserver/wms?request=getCapabilities&namespace=cannotexist');
+insert into layergroup values (2, 'empty', '/geoserver/wms?request=getCapabilities&namespace=empty');
 
 -- // url to retrieve base layers from geoserver
 --   localhost/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:layergroup&outputFormat=JSON
