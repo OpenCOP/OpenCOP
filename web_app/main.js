@@ -1022,7 +1022,18 @@ var cop = (function() {
               store: new GeoExt.data.WMSCapabilitiesStore({
                 url: opts.url,
                 autoLoad: true,
-                sortInfo: {field: 'prefix', direction: "ASC"}}),
+                sortInfo: {field: 'prefix', direction: "ASC"},
+                listeners: {
+                  "load": function(store, records, options) {
+                    store.add(new store.recordType({
+                      id: 9872,
+                      prefix: "foobar",
+                      title: "some bad title",
+                      "abstract": "and my fancy abstract",
+                      layer: new OpenLayers.Layer.WMS(
+                        "OpenLayers WMS",
+                        "http://vmap0.tiles.osgeo.org/wms/vmap0",
+                        {'layers':'basic'})}))}}}),
               columns: [
                 { header: "Layer Group", dataIndex: "prefix"  , width: 150, sortable: true },
                 { header: "Title"      , dataIndex: "title"   , width: 250, sortable: true },
