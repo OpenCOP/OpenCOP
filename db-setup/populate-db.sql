@@ -35,8 +35,7 @@
 ------------------------------------------------------------
 ---- base layers
 
-drop table baselayer;
-
+drop table if exists baselayer;
 create table baselayer (
   id integer primary key,
   brand character varying(20),
@@ -59,8 +58,7 @@ insert into baselayer values (4, 'google', 'streets'  , 'Google Streets'  , fals
 ------------------------------------------------------------
 ---- layergroup
 
-drop table layergroup;
-
+drop table if exists layergroup cascade;
 create table layergroup (
   id integer primary key,
   name character varying(50),
@@ -69,16 +67,31 @@ create table layergroup (
 
 insert into layergroup values (0, 'All local layers', '/geoserver/wms?request=getCapabilities');
 insert into layergroup values (1, 'topp only', '/geoserver/wms?request=getCapabilities&namespace=topp');
+insert into layergroup values (2, 'cannotexist', '/geoserver/wms?request=getCapabilities&namespace=cannotexist');
 
 -- // url to retrieve base layers from geoserver
 --   localhost/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:layergroup&outputFormat=JSON
 
 
 ------------------------------------------------------------
+---- layer
+
+drop table if exists layer;
+create table layer (
+  id integer primary key,
+  layergroup integer references layergroup,
+  name character varying(50),
+  type character varying(20),
+  numzoomlevels integer
+);
+
+insert into layer values (0, 1, '1st layer', 'WMS', 20);
+insert into layer values (1, 2, '2nd layer', 'KML', 20);
+
+------------------------------------------------------------
 ---- icons to layers
 
-drop table iconstolayers;
-
+drop table if exists iconstolayers;
 create table iconstolayers (
   id integer primary key,
   iconid integer references icon,
@@ -98,8 +111,7 @@ insert into iconstolayers values (8, 800, 'topp:example');
 ------------------------------------------------------------
 ---- iconmaster (view)
 
-drop view iconmaster;
-
+drop view if exists iconmaster;
 create view iconmaster as
   select
     i.id,

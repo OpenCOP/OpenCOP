@@ -5,6 +5,16 @@ var cop = (function() {
 
   var selectedIconUrl
 
+  // Return url to make query to opencop database for table name. If the
+  // need strikes you, you can throw a CQL_FILTER on the end.
+  function jsonUrl(tableName) {
+    return "/geoserver/wfs"
+      + "?request=GetFeature"
+      + "&version=1.1.0"
+      + "&outputFormat=JSON"
+      + "&typeName=opencop:" + tableName
+  }
+
   // Objects with the same keys and values (excluding functions) are equal.
   //   Example: {a: 1, :b: 2} == {a: 1, :b: 2} != {a: 1, b: 2, c: 3}.
   function equalAttributes(objA, objB) {
@@ -140,14 +150,8 @@ var cop = (function() {
   // call callback with list of all icon-join-table objects that exist in
   // the namespace_name
   function getIconInfo(namespace_name, callback) {
-    var typeName = "opencop:iconmaster"
-    var specialurl = "/geoserver/wfs?request=GetFeature&typeName="
-      + typeName
-      + "&version=1.0.0&outputFormat=JSON&CQL_FILTER=layer%20=%20'"
-      + namespace_name
-      + "'"
     Ext.Ajax.request({
-      url: specialurl,
+      url: jsonUrl("iconmaster") + "&CQL_FILTER=layer='" + namespace_name + "'",
       success: _.compose(callback, parseGeoserverJson)})
   }
 
@@ -1000,14 +1004,13 @@ var cop = (function() {
 
     function displayAvailableLayers() {
 
-      var layerGroupsJsonUrl = '/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:layergroup&outputFormat=JSON'
       Ext.Ajax.request({
-        url: layerGroupsJsonUrl,
+        url: jsonUrl("layergroup"),
         success: function(response) {
 
           // options:
-          // - name
-          // - url
+          // - layergroup name
+          // - layergroup url (with filter)
           function createGeoserverGrid(opts) {
             return {
               xtype: "grid",
@@ -1192,9 +1195,8 @@ var cop = (function() {
         }))
       }
 
-      var baselayerJsonUrl = '/geoserver/wfs?request=GetFeature&version=1.1.0&typeName=opencop:baselayer&outputFormat=JSON'
       Ext.Ajax.request({
-       url: baselayerJsonUrl,
+       url: jsonUrl("baselayer"),
        success: function(response) {
          var features = Ext.util.JSON.decode(response.responseText).features
          Ext.each(features, function(n) {addBaseLayer(n.properties)})
