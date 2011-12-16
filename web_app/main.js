@@ -8,6 +8,7 @@ var cop = (function() {
   // Return url to query opencop database for table name. If the need
   // strikes you, you can throw a CQL_FILTER on the end.
   function jsonUrl(tableName) {
+    msg.info("Fetch", "Fetching configuration for <code>" + tableName + "</code")
     return "/geoserver/wfs"
       + "?request=GetFeature"
       + "&version=1.1.0"
