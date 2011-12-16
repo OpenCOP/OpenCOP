@@ -1,14 +1,13 @@
 var msg = (function() {
-  function makePopup(title, html, icon) {
-    new Ext.ux.Notification({
-      iconCls: icon,
-      title: title,
-      html: html,
-      autoDestroy: true,
-      hideDelay: 3000
-    }).show(document)
-  }
-  function builder(icon) {return function(title, html) {makePopup(title, html, icon)}}
+  function builder(icon) {
+    return function(title, html) {
+      new Ext.ux.Notification({
+        iconCls: icon,
+        title: title,
+        html: html,
+        autoDestroy: true,
+        hideDelay: 3000
+      }).show(document)}}
   return { err:  builder("silk_cross")
     , info: builder("silk_lightbulb")
   }
