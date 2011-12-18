@@ -1160,22 +1160,24 @@ var cop = (function() {
     //   - olLayer
     function addLayer(obj) {
 
+      // In the following, the record id MUST be set to the layer id by hand.
+      // The automatic value is incorrect.  If this isn't done:
+      // 1.  Bring up the layer info box
+      // 2.  Delete the layer from the layer tree
+
       function layer_to_record(olLayer) {
         record = new GeoExt.data.LayerRecord()
         record.setLayer(olLayer)
-
-        // Not sure why this has to be set by hand.  If it isn't the user
-        // can't:
-        // 1.  Bring up the layer info box
-        // 2.  Delete the layer from the layer tree
         record.id = olLayer.id
-
         return record
       }
 
       function forceToRecord(obj) {
         if(obj.isBaseLayer) return layer_to_record(obj)
-        if(obj.getLayer) return obj
+        if(obj.getLayer) {
+          obj.id = obj.data.layer.id
+          return obj
+        }
         return layer_to_record(obj.data.layer)
       }
 
