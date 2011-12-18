@@ -286,6 +286,33 @@ var cop = (function() {
       popup.show()
     }
 
+    function createKmlPopup(feature) {
+      console.log(feature)
+
+      //var propertyGrid = new Ext.grid.PropertyGrid({
+      //  title: feature.fid,
+      //  source: feature.attributes
+      //})
+
+      var popup = GeoExtPopup.create({
+        title: "View KML Feature",
+        height: 300,
+        width: 300,
+        layout: "fit",
+        map: app.center_south_and_east_panel.map_panel,
+        location: feature,
+        maximizable: true,
+        collapsible: true,
+        //items: [propertyGrid],
+        buttons: [{
+          text: 'Close',
+          iconCls: 'silk_cross',
+          handler: function() { popup.close()}}]
+      })
+      feature.popup = popup  // so we can close the popup on unselect
+      popup.show()
+    }
+
     function vectorLayerContainsFeature(vectorLayer, feature) {
       return OpenLayers.Util.indexOf(vectorLayer.selectedFeatures, feature) > -1
     }
@@ -1163,8 +1190,8 @@ var cop = (function() {
       // add a select control so that KML OBJECTS can get popups
       function addSelectControl(kml) {
         var selectControl = new OpenLayers.Control.SelectFeature(kml, {
-          onSelect:   function() {console.log("selected feature!")},
-          onUnselect: function() {console.log("unselected feature!")}})
+          onSelect:   createKmlPopup,
+          onUnselect: function(feature) {feature.popup.close()}})
         app.center_south_and_east_panel.map_panel.map.addControl(selectControl)
         selectControl.activate()
       }
