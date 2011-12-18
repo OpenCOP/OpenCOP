@@ -1074,6 +1074,7 @@ var cop = (function() {
                 { header: "Title"      , dataIndex: "title"   , width: 250, sortable: true },
                 { header: "Abstract"   , dataIndex: "abstract", width: 600, sortable: true }]}}
 
+          // load layers that are not part of the GetCapabilities
           function loadAdditionalLayers(store, layerGroupId) {
             Ext.Ajax.request({
               url: jsonUrl("layer") + "&CQL_FILTER=layergroup='" + layerGroupId + "'",
@@ -1082,6 +1083,7 @@ var cop = (function() {
                   store.add(new store.recordType({
                     id: uniqueId(),
                     prefix: layerOpts.prefix,
+                    type: layerOpts.type,
                     title: layerOpts.name,
                     abstract: layerOpts.abstract,
                     layer: buildOlLayer(layerOpts)}))})}})
@@ -1154,6 +1156,20 @@ var cop = (function() {
         return layer_to_record(obj.data.layer)
       }
 
+      function isKml(obj) {
+        return obj && obj.data && obj.data.type == "KML"
+      }
+
+      // add a select control so that KML OBJECTS can get popups
+      function addSelectControl(kml) {
+        var selectControl = new OpenLayers.Control.SelectFeature(kml, {
+          onSelect:   function() {console.log("selected feature!")},
+          onUnselect: function() {console.log("unselected feature!")}})
+        app.center_south_and_east_panel.map_panel.map.addControl(selectControl)
+        selectControl.activate()
+      }
+
+      if(isKml(obj)) addSelectControl(obj.data.layer)
       app.center_south_and_east_panel.map_panel.layers.add(forceToRecord(obj))
     }
 
