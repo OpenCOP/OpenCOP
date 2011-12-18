@@ -287,13 +287,6 @@ var cop = (function() {
     }
 
     function createKmlPopup(feature) {
-      console.log(feature)
-
-      //var propertyGrid = new Ext.grid.PropertyGrid({
-      //  title: feature.fid,
-      //  source: feature.attributes
-      //})
-
       var popup = GeoExtPopup.create({
         title: "View KML Feature",
         height: 300,
@@ -303,7 +296,10 @@ var cop = (function() {
         location: feature,
         maximizable: true,
         collapsible: true,
-        //items: [propertyGrid],
+        items: [new Ext.grid.PropertyGrid({
+          listeners: { "beforeedit": function(e) { e.cancel = true }}, // prevent editing
+          title: feature.fid,
+          source: feature.attributes })],
         buttons: [{
           text: 'Close',
           iconCls: 'silk_cross',
