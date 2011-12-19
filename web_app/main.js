@@ -1249,6 +1249,8 @@ var cop = (function() {
 
   return { init:init
     , selectIcon:selectIcon
+    , viewMap:      function() {return app.center_south_and_east_panel.map_panel.map}
+    , viewControls: function() {return app.center_south_and_east_panel.map_panel.map.controls}
   }
 }())
 
