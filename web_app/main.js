@@ -345,6 +345,7 @@ var cop = (function() {
       maxFeatures: 3,  // Zach says this is a reasonable number [t06dec'11]ish
       eventListeners: {
         "getfeatureinfo": function(e) {
+          if(e.features.length == 0) return GeoExtPopup.closeAll()  // prevent empty popups
           var items = []
           Ext.each(e.features, function(feature) {
             items.push({
