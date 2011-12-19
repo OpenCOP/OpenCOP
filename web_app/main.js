@@ -2,6 +2,7 @@ var cop = (function() {
 
   var app
   var drawControl
+  var kmlSelectControls = []
 
   var selectedIconUrl
 
@@ -786,6 +787,30 @@ var cop = (function() {
     function setLayer() {
       refreshLayerDetailsPanel()
       refreshVectorLayerAndFeatureGrid()
+      refreshControl()
+    }
+
+    // Sometimes which controls are activated gets pretty messed up.
+    // This function attempts to set everything back to something
+    // stable.
+    function refreshControl() {
+
+      function layerType(record) {
+        if(record.id.match("WMS")) return "WMS"
+        return "KML"
+      }
+
+      var layerRecord = currentlySelectedLayerRecord()
+      if( !layerRecord ) return
+
+      if(layerType(layerRecord) == "WMS") {
+        WMSGetFeatureInfoControl.activate()
+        _(kmlSelectControls).invoke("deactivate")
+      }
+      if(layerType(layerRecord) == "KML") {
+        WMSGetFeatureInfoControl.deactivate()
+        _(kmlSelectControls).invoke("activate")
+      }
     }
 
     function refreshLayerDetailsPanel() {
@@ -1192,6 +1217,7 @@ var cop = (function() {
           onSelect:   createKmlPopup,
           onUnselect: function(feature) {feature.popup.close()}})
         app.center_south_and_east_panel.map_panel.map.addControl(selectControl)
+        kmlSelectControls.push(selectControl)
         selectControl.activate()
       }
 
@@ -1249,6 +1275,7 @@ var cop = (function() {
 
   return { init:init
     , selectIcon:selectIcon
+    , viewApp:      function() {return app}
     , viewMap:      function() {return app.center_south_and_east_panel.map_panel.map}
     , viewControls: function() {return app.center_south_and_east_panel.map_panel.map.controls}
   }
