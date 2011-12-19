@@ -14,7 +14,8 @@ var msg = (function() {
 }())
 
 // ------------------------------------------------------------
-// some blackbox zach found on the internets
+// some blackbox zach found on the internets 
+//http://www.sencha.com/forum/showthread.php?32365-Ext.ux.Notification/page11
 
 Ext.namespace("Ext.ux");
 Ext.ux.NotificationMgr = {
