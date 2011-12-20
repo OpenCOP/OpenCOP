@@ -410,14 +410,6 @@ var cop = (function() {
         iconCls: 'opencop_logo',
         handler: displayAppInfo
       }, '-', {
-        text: 'Load View',
-          iconCls: 'silk_map_go',
-        disabled: true
-      }, {
-        text: 'Save View',
-        iconCls: 'geosilk_map_save',
-        disabled: true
-      }, '-', {
         text: 'Zoom In',
         iconCls: 'silk_zoom_in',
         handler: function() {
