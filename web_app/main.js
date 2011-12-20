@@ -455,31 +455,19 @@ var cop = (function() {
           navigator.geolocation.getCurrentPosition( handler )
         }
       }, '-', {
-        text: 'Hide Side Panel(s)',
-        iconCls: 'silk_arrow_out',
+        text: 'Hide Side Panel',
+        iconCls: 'silk_arrow_left',
         toggle: true,
         handler: function() {
           app.west.collapse(true)
-          this.setText("Show Side Panel(s)")
+          this.setText("Show Side Panel")
         }
       }, '->', {
-        text: 'Help',
-        iconCls: 'silk_help',
-        handler: displayHelp
-      }, '-', {
-        text: 'Print',
-        iconCls: 'silk_printer',
-        disabled: true
-      }, '-', {
         text: 'Application Settings',
         iconCls: 'silk_cog_edit',
         handler: displayApplicationSettings
       }, '-', {
-        text: 'My Settings',
-        iconCls: 'silk_user_edit',
-        handler: displayMySettings
-      }, '-', {
-        text: 'Log Out',
+        text: 'Log Out (Enter as Guest)',
         iconCls: 'silk_user_go',
         handler: function () {
           Ext.Ajax.request({
