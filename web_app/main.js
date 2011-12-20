@@ -3,7 +3,7 @@ var cop = (function() {
   var app
   var drawControl
   var kmlSelectControls = []
-
+  var vectorLayer
   var selectedIconUrl
 
   // Return url to query opencop database for table name. If the need
@@ -205,6 +205,11 @@ var cop = (function() {
 
   var selectIcon = function(obj) {
     selectedIconUrl = obj.src
+    vectorLayer.styleMap.styles["temporary"].setDefaultStyle({
+      externalGraphic:selectedIconUrl,
+      pointRadius: "12",
+      graphicOpacity: "1"
+    })
     drawControl.activate()
   }
 
@@ -214,7 +219,7 @@ var cop = (function() {
     Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
     Ext.state.Manager.setProvider(new Ext.state.CookieProvider())
 
-    var vectorLayer = new OpenLayers.Layer.Vector('Editable features', {
+    vectorLayer = new OpenLayers.Layer.Vector('Editable features', {
       'styleMap': new OpenLayers.StyleMap({
         "default": new OpenLayers.Style({
           pointRadius: 16,  // sized according to type attribute
@@ -611,13 +616,13 @@ var cop = (function() {
         xtype: 'box',
         autoEl: {
           tag: 'h1',
-          html: 'Some header'
+          html: 'Click on a Highlighted Feature to Edit'
         }
       }, {
         xtype: 'box',
         autoEl: {
           tag: 'p',
-          html: "It'll <em>also</em> be awesome. Really, trust us <em>again</em>. Awesome!"
+          html: "Click on an Icon Below and then Click on the map to place it"
         }
       }, {
         xtype: "box",
