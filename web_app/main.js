@@ -1258,11 +1258,16 @@ var cop = (function() {
     loadBaselayers()
   }
 
+  var debug = (function(){
+    return { app: function() {return app}
+      , map: function() {return app.center_south_and_east_panel.map_panel.map}
+      , controls: function() {return app.center_south_and_east_panel.map_panel.map.controls}
+    }
+  }())
+
   return { init:init
+    , debug:debug
     , selectIcon:selectIcon
-    , viewApp:      function() {return app}
-    , viewMap:      function() {return app.center_south_and_east_panel.map_panel.map}
-    , viewControls: function() {return app.center_south_and_east_panel.map_panel.map.controls}
   }
 }())
 
