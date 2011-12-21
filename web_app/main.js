@@ -346,7 +346,7 @@ var cop = (function() {
     var selectFeatureControl = new OpenLayers.Control.SelectFeature(
           vectorLayer,
           { onSelect: createWfsPopup,
-            onUnselect: GeoExtPopup.closeAll })
+            onUnselect: function(feature) { if(feature.popup) feature.popup.close() }})
     controls.push(selectFeatureControl)
 
     // get feature info (popup)
