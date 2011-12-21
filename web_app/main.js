@@ -281,6 +281,7 @@ var cop = (function() {
           text: 'Cancel',
           iconCls: 'silk_cross',
           handler: function() {
+            if(feature.state == "Insert") vectorLayer.removeFeatures([feature])
             popup.close()
           }
         }, {
