@@ -545,9 +545,8 @@ var cop = (function() {
       padding: '10 10 10 10',
       listeners: {
         "activate": function() {
-          WMSGetFeatureInfoControl.activate()
-          selectFeatureControl.deactivate()
           refreshVectorLayerAndFeatureGrid()
+          refreshControl()
         }},
       items: [{
         xtype: 'box',
@@ -594,9 +593,8 @@ var cop = (function() {
       listeners: {
         "activate": function() {
           populateIcons()
-          WMSGetFeatureInfoControl.deactivate()
-          selectFeatureControl.activate()
-          refreshVectorLayerAndFeatureGrid() }},
+          refreshVectorLayerAndFeatureGrid()
+          refreshControl()}},
       items: [{
         xtype: 'box',
         autoEl: {
@@ -784,7 +782,6 @@ var cop = (function() {
     // This function attempts to set everything back to something
     // stable.
     function refreshControl() {
-      console.log("current mode is " + currentModePanel())
 
       function currentLayerType() {
         var layerRecord = currentlySelectedLayerRecord()
@@ -795,18 +792,56 @@ var cop = (function() {
         return "KML"
       }
 
+      function wms_on() {WMSGetFeatureInfoControl.activate()}
+      function vec_on() {selectFeatureControl.activate()}
+      function kml_on() {_(kmlSelectControls).invoke("activate")}
+
+      function wms_off() {WMSGetFeatureInfoControl.deactivate()}
+      function vec_off() {selectFeatureControl.deactivate()}
+      function kml_off() {_(kmlSelectControls).invoke("deactivate")}
+
+      function all_off() {
+        wms_off()
+        vec_off()
+        kml_off()
+      }
+
+      var mode = currentModePanel()
       var type = currentLayerType()
-      if(!type) return
+      if(!mode || !type) return all_off()
 
       console.log("current type is " + type)
+      console.log("current mode is " + mode)
 
-      if(type == "WMS") {
-        WMSGetFeatureInfoControl.activate()
-        _(kmlSelectControls).invoke("deactivate")
+      if(mode == "layer_detail" ) {
+        if(type == "WMS") {
+          wms_on()
+          vec_off()
+          kml_off()
+        } else if (type == "KML") {
+          wms_off()
+          vec_off()
+          kml_on()
+        } else if (type == "Google" || type == "yahoo") {
+          all_off()
+        } else {
+          all_off()
+        }
       }
-      if(type == "KML") {
-        WMSGetFeatureInfoControl.deactivate()
-        _(kmlSelectControls).invoke("activate")
+      if(mode == "edit_features") {
+        if(type == "WMS") {
+          wms_off()
+          vec_on()
+          kml_off()
+        } else if(type == "KML") {
+          console.log("bad scene!")
+          wms_off()
+          vec_off()
+          kml_on()
+        } else if(type == "Google" || type == "Yahoo") {
+          console.log("bad scene!")
+          all_off()
+        }
       }
     }
 
@@ -872,6 +907,7 @@ var cop = (function() {
     }
 
     function currentlySelectedLayerNode() {
+      if(!app) return
       return app.west.tree_panel.getSelectionModel().getSelectedNode()
     }
 
@@ -881,6 +917,7 @@ var cop = (function() {
     }
 
     function populateWfsGrid(layer) {
+      if(!layer.url) return  // basically, not really a WFS layer -- probably KML
       var baseUrl = layer.url.split("?")[0] // the base url without params
       new GeoExt.data.AttributeStore({
         url: baseUrl,
@@ -1187,7 +1224,9 @@ var cop = (function() {
       })
     }
 
-    function currentModePanel() { return app.west.selected_layer_panel.tabs.getActiveTab().initialConfig.ref }
+    function currentModePanel() {
+      if(!app) return
+      return app.west.selected_layer_panel.tabs.getActiveTab().initialConfig.ref }
     function queryFeaturesActive() { return currentModePanel() == 'query_features' }
     function editFeaturesActive()  { return currentModePanel() == 'edit_features' }
     function layerDetailActive()   { return currentModePanel() == 'layer_detail' }
