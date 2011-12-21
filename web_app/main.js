@@ -460,19 +460,21 @@ var cop = (function() {
           navigator.geolocation.getCurrentPosition( handler )
         }
       }, '-', {
-        text: 'Hide Side Panel',
-        iconCls: 'silk_arrow_left',
-        toggle: true,
-        handler: function() {
-          app.west.collapse(true)
-          this.setText("Show Side Panel")
-        }
+          //Doesn't work
+    //    text: 'Hide Side Panel',
+    //    iconCls: 'silk_arrow_left',
+    //    toggle: true,
+    //    handler: function() {
+    //      app.west.collapse(true)
+    //      this.setText("Show Side Panel")
+    //    }
       }, '->', {
-        text: 'Application Settings',
-        iconCls: 'silk_cog_edit',
-        handler: displayApplicationSettings
-      }, '-', {
-        text: 'Log Out (Enter as Guest)',
+    //    Doesn't do anything
+    //    text: 'Application Settings',
+    //    iconCls: 'silk_cog_edit',
+    //    handler: displayApplicationSettings
+    //  }, '-', {
+        text: 'Log Out',
         iconCls: 'silk_user_go',
         handler: function () {
           Ext.Ajax.request({
