@@ -813,17 +813,19 @@ var cop = (function() {
       }
 
       function moveToDetailsTab() {
+        if(!app) return
         app.west.selected_layer_panel.tabs.setActiveTab(0)
       }
 
       var mode = currentModePanel()
       var type = currentLayerType()
-      if(!mode || !type) return all_off()
 
-      console.log("current type is " + type)
-      console.log("current mode is " + mode)
-
-      if(mode == "layer_detail" ) {
+      if(!mode || !type) {
+        moveToDetailsTab()
+        wms_on()
+        vec_off()
+        kml_on()
+      } else if(mode == "layer_detail" ) {
         if(type == "WMS") {
           wms_on()
           vec_off()
