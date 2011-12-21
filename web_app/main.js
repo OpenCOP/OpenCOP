@@ -794,6 +794,10 @@ var cop = (function() {
         return "KML"
       }
 
+      function isBaseLayer(type) {
+        return type == "Google" || type == "Yahoo"
+      }
+
       function wms_on() {WMSGetFeatureInfoControl.activate()}
       function vec_on() {selectFeatureControl.activate()}
       function kml_on() {_(kmlSelectControls).invoke("activate")}
@@ -808,6 +812,10 @@ var cop = (function() {
         kml_off()
       }
 
+      function moveToDetailsTab() {
+        app.west.selected_layer_panel.tabs.setActiveTab(0)
+      }
+
       var mode = currentModePanel()
       var type = currentLayerType()
       if(!mode || !type) return all_off()
@@ -820,28 +828,27 @@ var cop = (function() {
           wms_on()
           vec_off()
           kml_off()
-        } else if (type == "KML") {
+        } else if(type == "KML") {
           wms_off()
           vec_off()
           kml_on()
-        } else if (type == "Google" || type == "yahoo") {
+        } else if(isBaseLayer(type)) {
           all_off()
         } else {
           all_off()
         }
-      }
-      if(mode == "edit_features") {
+      } else if(mode == "edit_features") {
         if(type == "WMS") {
           wms_off()
           vec_on()
           kml_off()
         } else if(type == "KML") {
-          console.log("bad scene!")
+          moveToDetailsTab()
           wms_off()
           vec_off()
           kml_on()
-        } else if(type == "Google" || type == "Yahoo") {
-          console.log("bad scene!")
+        } else if(isBaseLayer(type)) {
+          moveToDetailsTab()
           all_off()
         }
       }
