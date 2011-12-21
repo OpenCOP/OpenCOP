@@ -784,20 +784,27 @@ var cop = (function() {
     // This function attempts to set everything back to something
     // stable.
     function refreshControl() {
+      console.log("current mode is " + currentModePanel())
 
-      function layerType(record) {
-        if(record.id.match("WMS")) return "WMS"
+      function currentLayerType() {
+        var layerRecord = currentlySelectedLayerRecord()
+        if( !layerRecord ) return null
+        if(layerRecord.id.match("WMS")) return "WMS"
+        if(layerRecord.id.match("Google")) return "Google"
+        if(layerRecord.id.match("Yahoo")) return "Yahoo"
         return "KML"
       }
 
-      var layerRecord = currentlySelectedLayerRecord()
-      if( !layerRecord ) return
+      var type = currentLayerType()
+      if(!type) return
 
-      if(layerType(layerRecord) == "WMS") {
+      console.log("current type is " + type)
+
+      if(type == "WMS") {
         WMSGetFeatureInfoControl.activate()
         _(kmlSelectControls).invoke("deactivate")
       }
-      if(layerType(layerRecord) == "KML") {
+      if(type == "KML") {
         WMSGetFeatureInfoControl.deactivate()
         _(kmlSelectControls).invoke("activate")
       }
