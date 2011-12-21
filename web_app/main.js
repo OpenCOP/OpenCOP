@@ -294,6 +294,7 @@ var cop = (function() {
           }
         }]
       })
+      feature.popup = popup  // so we can close the popup through the feature later
       popup.show()
       drawControl.deactivate()
     }
@@ -346,7 +347,7 @@ var cop = (function() {
     var selectFeatureControl = new OpenLayers.Control.SelectFeature(
           vectorLayer,
           { onSelect: createWfsPopup,
-            onUnselect: function(feature) { if(feature.popup) feature.popup.close() }})
+            onUnselect: function(feature) { feature.popup.close() }})
     controls.push(selectFeatureControl)
 
     // get feature info (popup)
