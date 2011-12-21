@@ -282,7 +282,6 @@ var cop = (function() {
           iconCls: 'silk_cross',
           handler: function() {
             popup.close()
-            drawControl.deactivate()
           }
         }, {
           text: 'Save',
@@ -291,11 +290,11 @@ var cop = (function() {
             propertyGrid.stopEditing()  // prevent having to click off field to save in IE
             saveVectorLayer()
             popup.close()
-            drawControl.deactivate()
           }
         }]
       })
       popup.show()
+      drawControl.deactivate()
     }
 
     function createKmlPopup(feature) {
@@ -826,14 +825,29 @@ var cop = (function() {
       getIconInfo(
         layerName,
         function(listOfHashes) {
-          Ext.DomHelper.overwrite("available_icons", {tag: "table", id: "available_icons_table"})
-          var templateHtml = "<tr>" +
-            "<td><img src='{url}' alt='{name}' onclick='cop.selectIcon(this)'/></td>" +
-            "<td>{name}</td>" +
-            "</tr>"
-          var tpl = new Ext.Template(templateHtml)
-          tpl.compile()
-          listOfHashes.forEach(function(item) { tpl.append('available_icons_table', item) })
+
+          function icons(listOfHashes) {
+            Ext.DomHelper.overwrite("available_icons", {tag: "table", id: "available_icons_table"})
+            var templateHtml = "<tr>" +
+              "<td><img src='{url}' alt='{name}' onclick='cop.selectIcon(this)'/></td>" +
+              "<td>{name}</td>" +
+              "</tr>"
+            var tpl = new Ext.Template(templateHtml)
+            tpl.compile()
+            listOfHashes.forEach(function(item) { tpl.append('available_icons_table', item) })
+          }
+
+          function noIcons() {
+            var img = "<img src='/opencop/images/silk/add.png' onclick='cop.selectIcon(this)' />"
+            Ext.DomHelper.overwrite("available_icons",
+              {tag: "p", id: "available_icons_table", html: img})
+          }
+
+          if(_(listOfHashes).isEmpty()) {
+            noIcons()
+          } else {
+            icons(listOfHashes)
+          }
         }
       )
     }
