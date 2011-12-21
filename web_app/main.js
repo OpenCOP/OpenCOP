@@ -243,6 +243,10 @@ var cop = (function() {
       if (editFeaturesActive()) createEditWfsPopup(feature)
     }
 
+    function hasAttribute(obj, attribute) {
+      return _(obj).chain().keys().include(attribute).value()
+    }
+
     function createEditWfsPopup(feature) {
 
       ;(function ensureFeatureHasAllFields() {
@@ -253,8 +257,10 @@ var cop = (function() {
         _(missingFields).each(function(name) { feature.attributes[name] = "" })
       }())
 
-      ;(feature.attributes.default_graphic =
-        feature.attributes.default_graphic || selectedIconUrl)
+      if( hasAttribute(feature.attributes, "default_graphic")) {
+        ;(feature.attributes.default_graphic =
+          feature.attributes.default_graphic || selectedIconUrl)
+      }
 
       var propertyGrid = new Ext.grid.PropertyGrid({
         title: feature.fid,
