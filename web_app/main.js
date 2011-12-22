@@ -9,7 +9,6 @@ var cop = (function() {
   // Return url to query opencop database for table name. If the need
   // strikes you, you can throw a CQL_FILTER on the end.
   function jsonUrl(tableName) {
-    msg.info("Fetch", "Fetching configuration for <code>" + tableName + "</code")
     return "/geoserver/wfs"
       + "?request=GetFeature"
       + "&version=1.1.0"
@@ -1009,11 +1008,23 @@ var cop = (function() {
         }
       })
 
+      function echoResult(response) {
+        if(response.error.success) {
+          msg.info("Save Successful", "Vector features saved.")
+        } else {
+          // warning: fragile array-indexing code. Fix later.
+          var e = response.error.exceptionReport.exceptions[0]
+          msg.err("Save Failed",
+            "<b>" + e.code + "</b>\n" + e.texts[0])
+        }
+      }
+
       // commit vector layer via WFS-T
       app.center_south_and_east_panel.feature_table.store.proxy.protocol.commit(
         vectorLayer.features,
         {
-          callback: function() {
+          callback: function(response) {
+            echoResult(response)
             // refresh everything the user sees
             var layers = app.center_south_and_east_panel.map_panel.map.layers
             for (var i = layers.length - 1; i >= 0; --i) {
