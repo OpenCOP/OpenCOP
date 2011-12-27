@@ -1,20 +1,20 @@
 var msg = (function() {
-  function builder(icon) {
+  function builder(icon, delay) {
     return function(title, html) {
       new Ext.ux.Notification({
         iconCls: icon,
         title: title,
         html: html,
         autoDestroy: true,
-        hideDelay: 3000
+        hideDelay: delay
       }).show(document)}}
-  return { err:  builder("silk_cross")
-    , info: builder("silk_lightbulb")
+  return { err:  builder("silk_cross", 30000)
+    , info: builder("silk_lightbulb", 4000)
   }
 }())
 
 // ------------------------------------------------------------
-// some blackbox zach found on the internets 
+// some blackbox zach found on the internets
 //http://www.sencha.com/forum/showthread.php?32365-Ext.ux.Notification/page11
 
 Ext.namespace("Ext.ux");
@@ -33,7 +33,7 @@ Ext.ux.Notification = Ext.extend(Ext.Window, {
       plain: false,
       draggable: false,
       shadow: false,
-      bodyStyle: 'text-align:center'
+      bodyStyle: 'text-align:left'
     });
     if (this.autoDestroy) {
       this.task = new Ext.util.DelayedTask(this.hide, this);

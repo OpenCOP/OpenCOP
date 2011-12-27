@@ -9,7 +9,6 @@ var cop = (function() {
   // Return url to query opencop database for table name. If the need
   // strikes you, you can throw a CQL_FILTER on the end.
   function jsonUrl(tableName) {
-    msg.info("Fetch", "Fetching configuration for <code>" + tableName + "</code")
     return "/geoserver/wfs"
       + "?request=GetFeature"
       + "&version=1.1.0"
@@ -243,6 +242,10 @@ var cop = (function() {
       if (editFeaturesActive()) createEditWfsPopup(feature)
     }
 
+    function hasAttribute(obj, attribute) {
+      return _(obj).chain().keys().include(attribute).value()
+    }
+
     function createEditWfsPopup(feature) {
 
       ;(function ensureFeatureHasAllFields() {
@@ -253,8 +256,10 @@ var cop = (function() {
         _(missingFields).each(function(name) { feature.attributes[name] = "" })
       }())
 
-      ;(feature.attributes.default_graphic =
-        feature.attributes.default_graphic || selectedIconUrl)
+      if( hasAttribute(feature.attributes, "default_graphic")) {
+        ;(feature.attributes.default_graphic =
+          feature.attributes.default_graphic || selectedIconUrl)
+      }
 
       var propertyGrid = new Ext.grid.PropertyGrid({
         title: feature.fid,
@@ -275,8 +280,8 @@ var cop = (function() {
           text: 'Cancel',
           iconCls: 'silk_cross',
           handler: function() {
+            if(feature.state == "Insert") vectorLayer.removeFeatures([feature])
             popup.close()
-            drawControl.deactivate()
           }
         }, {
           text: 'Save',
@@ -285,11 +290,12 @@ var cop = (function() {
             propertyGrid.stopEditing()  // prevent having to click off field to save in IE
             saveVectorLayer()
             popup.close()
-            drawControl.deactivate()
           }
         }]
       })
+      feature.popup = popup  // so we can close the popup through the feature later
       popup.show()
+      drawControl.deactivate()
     }
 
     function createKmlPopup(feature) {
@@ -340,7 +346,7 @@ var cop = (function() {
     var selectFeatureControl = new OpenLayers.Control.SelectFeature(
           vectorLayer,
           { onSelect: createWfsPopup,
-            onUnselect: GeoExtPopup.closeAll })
+            onUnselect: function(feature) { feature.popup.close() }})
     controls.push(selectFeatureControl)
 
     // get feature info (popup)
@@ -455,19 +461,21 @@ var cop = (function() {
           navigator.geolocation.getCurrentPosition( handler )
         }
       }, '-', {
-        text: 'Hide Side Panel',
-        iconCls: 'silk_arrow_left',
-        toggle: true,
-        handler: function() {
-          app.west.collapse(true)
-          this.setText("Show Side Panel")
-        }
+          //Doesn't work
+    //    text: 'Hide Side Panel',
+    //    iconCls: 'silk_arrow_left',
+    //    toggle: true,
+    //    handler: function() {
+    //      app.west.collapse(true)
+    //      this.setText("Show Side Panel")
+    //    }
       }, '->', {
-        text: 'Application Settings',
-        iconCls: 'silk_cog_edit',
-        handler: displayApplicationSettings
-      }, '-', {
-        text: 'Log Out (Enter as Guest)',
+    //    Doesn't do anything
+    //    text: 'Application Settings',
+    //    iconCls: 'silk_cog_edit',
+    //    handler: displayApplicationSettings
+    //  }, '-', {
+        text: 'Log Out',
         iconCls: 'silk_user_go',
         handler: function () {
           Ext.Ajax.request({
@@ -540,9 +548,8 @@ var cop = (function() {
       padding: '10 10 10 10',
       listeners: {
         "activate": function() {
-          WMSGetFeatureInfoControl.activate()
-          selectFeatureControl.deactivate()
           refreshVectorLayerAndFeatureGrid()
+          refreshControl()
         }},
       items: [{
         xtype: 'box',
@@ -589,9 +596,8 @@ var cop = (function() {
       listeners: {
         "activate": function() {
           populateIcons()
-          WMSGetFeatureInfoControl.deactivate()
-          selectFeatureControl.activate()
-          refreshVectorLayerAndFeatureGrid() }},
+          refreshVectorLayerAndFeatureGrid()
+          refreshControl()}},
       items: [{
         xtype: 'box',
         autoEl: {
@@ -780,21 +786,74 @@ var cop = (function() {
     // stable.
     function refreshControl() {
 
-      function layerType(record) {
-        if(record.id.match("WMS")) return "WMS"
+      function currentLayerType() {
+        var layerRecord = currentlySelectedLayerRecord()
+        if( !layerRecord ) return null
+        if(layerRecord.id.match("WMS")) return "WMS"
+        if(layerRecord.id.match("Google")) return "Google"
+        if(layerRecord.id.match("Yahoo")) return "Yahoo"
         return "KML"
       }
 
-      var layerRecord = currentlySelectedLayerRecord()
-      if( !layerRecord ) return
-
-      if(layerType(layerRecord) == "WMS") {
-        WMSGetFeatureInfoControl.activate()
-        _(kmlSelectControls).invoke("deactivate")
+      function isBaseLayer(type) {
+        return type == "Google" || type == "Yahoo"
       }
-      if(layerType(layerRecord) == "KML") {
-        WMSGetFeatureInfoControl.deactivate()
-        _(kmlSelectControls).invoke("activate")
+
+      function wms_on() {WMSGetFeatureInfoControl.activate()}
+      function vec_on() {selectFeatureControl.activate()}
+      function kml_on() {_(kmlSelectControls).invoke("activate")}
+
+      function wms_off() {WMSGetFeatureInfoControl.deactivate()}
+      function vec_off() {selectFeatureControl.deactivate()}
+      function kml_off() {_(kmlSelectControls).invoke("deactivate")}
+
+      function all_off() {
+        wms_off()
+        vec_off()
+        kml_off()
+      }
+
+      function moveToDetailsTab() {
+        if(!app) return
+        app.west.selected_layer_panel.tabs.setActiveTab(0)
+      }
+
+      var mode = currentModePanel()
+      var type = currentLayerType()
+
+      if(!mode || !type) {
+        moveToDetailsTab()
+        wms_on()
+        vec_off()
+        kml_on()
+      } else if(mode == "layer_detail" ) {
+        if(type == "WMS") {
+          wms_on()
+          vec_off()
+          kml_off()
+        } else if(type == "KML") {
+          wms_off()
+          vec_off()
+          kml_on()
+        } else if(isBaseLayer(type)) {
+          all_off()
+        } else {
+          all_off()
+        }
+      } else if(mode == "edit_features") {
+        if(type == "WMS") {
+          wms_off()
+          vec_on()
+          kml_off()
+        } else if(type == "KML") {
+          moveToDetailsTab()
+          wms_off()
+          vec_off()
+          kml_on()
+        } else if(isBaseLayer(type)) {
+          moveToDetailsTab()
+          all_off()
+        }
       }
     }
 
@@ -820,14 +879,29 @@ var cop = (function() {
       getIconInfo(
         layerName,
         function(listOfHashes) {
-          Ext.DomHelper.overwrite("available_icons", {tag: "table", id: "available_icons_table"})
-          var templateHtml = "<tr>" +
-            "<td><img src='{url}' alt='{name}' onclick='cop.selectIcon(this)'/></td>" +
-            "<td>{name}</td>" +
-            "</tr>"
-          var tpl = new Ext.Template(templateHtml)
-          tpl.compile()
-          listOfHashes.forEach(function(item) { tpl.append('available_icons_table', item) })
+
+          function icons(listOfHashes) {
+            Ext.DomHelper.overwrite("available_icons", {tag: "table", id: "available_icons_table"})
+            var templateHtml = "<tr>" +
+              "<td><img src='{url}' alt='{name}' onclick='cop.selectIcon(this)'/></td>" +
+              "<td>{name}</td>" +
+              "</tr>"
+            var tpl = new Ext.Template(templateHtml)
+            tpl.compile()
+            listOfHashes.forEach(function(item) { tpl.append('available_icons_table', item) })
+          }
+
+          function noIcons() {
+            var img = "<img src='/opencop/images/silk/add.png' onclick='cop.selectIcon(this)' />"
+            Ext.DomHelper.overwrite("available_icons",
+              {tag: "p", id: "available_icons_table", html: img})
+          }
+
+          if(_(listOfHashes).isEmpty()) {
+            noIcons()
+          } else {
+            icons(listOfHashes)
+          }
         }
       )
     }
@@ -845,6 +919,7 @@ var cop = (function() {
     }
 
     function currentlySelectedLayerNode() {
+      if(!app) return
       return app.west.tree_panel.getSelectionModel().getSelectedNode()
     }
 
@@ -854,6 +929,7 @@ var cop = (function() {
     }
 
     function populateWfsGrid(layer) {
+      if(!layer.url) return  // basically, not really a WFS layer -- probably KML
       var baseUrl = layer.url.split("?")[0] // the base url without params
       new GeoExt.data.AttributeStore({
         url: baseUrl,
@@ -932,11 +1008,23 @@ var cop = (function() {
         }
       })
 
+      function echoResult(response) {
+        if(response.error.success) {
+          msg.info("Save Successful", "Vector features saved.")
+        } else {
+          // warning: fragile array-indexing code. Fix later.
+          var e = response.error.exceptionReport.exceptions[0]
+          msg.err("Save Failed",
+            "<b>" + e.code + "</b>\n" + e.texts[0])
+        }
+      }
+
       // commit vector layer via WFS-T
       app.center_south_and_east_panel.feature_table.store.proxy.protocol.commit(
         vectorLayer.features,
         {
-          callback: function() {
+          callback: function(response) {
+            echoResult(response)
             // refresh everything the user sees
             var layers = app.center_south_and_east_panel.map_panel.map.layers
             for (var i = layers.length - 1; i >= 0; --i) {
@@ -1160,7 +1248,9 @@ var cop = (function() {
       })
     }
 
-    function currentModePanel() { return app.west.selected_layer_panel.tabs.getActiveTab().initialConfig.ref }
+    function currentModePanel() {
+      if(!app) return
+      return app.west.selected_layer_panel.tabs.getActiveTab().initialConfig.ref }
     function queryFeaturesActive() { return currentModePanel() == 'query_features' }
     function editFeaturesActive()  { return currentModePanel() == 'edit_features' }
     function layerDetailActive()   { return currentModePanel() == 'layer_detail' }
@@ -1258,11 +1348,16 @@ var cop = (function() {
     loadBaselayers()
   }
 
+  var debug = (function(){
+    return { app: function() {return app}
+      , map: function() {return app.center_south_and_east_panel.map_panel.map}
+      , controls: function() {return app.center_south_and_east_panel.map_panel.map.controls}
+    }
+  }())
+
   return { init:init
+    , debug:debug
     , selectIcon:selectIcon
-    , viewApp:      function() {return app}
-    , viewMap:      function() {return app.center_south_and_east_panel.map_panel.map}
-    , viewControls: function() {return app.center_south_and_east_panel.map_panel.map.controls}
   }
 }())
 
