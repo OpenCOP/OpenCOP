@@ -423,7 +423,13 @@ var cop = (function() {
       },
       extent : new OpenLayers.Bounds(-10918469.080342, 2472890.3987378,
                                      -9525887.0459675, 6856095.3481128),
-      layers: [vectorLayer]
+      layers: [vectorLayer],
+      items: [{
+        xtype: "gx_zoomslider",
+        aggressive: true,
+        vertical: true,
+        height: 100,
+      }],
     }
 
     var menu_bar = new Ext.Toolbar({
