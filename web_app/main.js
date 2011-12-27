@@ -440,18 +440,6 @@ var cop = (function() {
         iconCls: 'opencop_logo',
         handler: displayAppInfo
       }, '-', {
-        text: 'Zoom In',
-        iconCls: 'silk_zoom_in',
-        handler: function() {
-          app.center_south_and_east_panel.map_panel.map.zoomIn()
-        }
-      }, {
-        text: 'Zoom Out',
-        iconCls: 'silk_zoom_out',
-        handler: function() {
-          app.center_south_and_east_panel.map_panel.map.zoomOut()
-        }
-      }, {
         text: 'Zoom to Me',
         iconCls: 'silk_zoom_to_me',
         handler: function() {
