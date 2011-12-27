@@ -28,7 +28,7 @@ Ext.ux.Notification = Ext.extend(Ext.Window, {
     Ext.apply(this, {
       iconCls: this.iconCls || 'x-icon-information',
       cls: 'x-notification',
-      width: 200,
+      width: 400,
       autoHeight: true,
       plain: false,
       draggable: false,
@@ -74,7 +74,6 @@ Ext.ux.Notification = Ext.extend(Ext.Window, {
     if (document.body.clientHeight == document.body.scrollHeight) {
       document.body.style.overflowY = 'hidden';
     }
-    this.setSize(200, 100);
     pos = -5;
     for (var i = 0; i < Ext.ux.NotificationMgr.notifications.length; i++) {
       pos -= Ext.ux.NotificationMgr.notifications[i].getSize().height + 15;

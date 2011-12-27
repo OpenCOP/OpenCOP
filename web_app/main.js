@@ -161,24 +161,27 @@ var cop = (function() {
     var singletonPopup = null
 
     function close() {
-      if (singletonPopup) singletonPopup.close()
+      if (singletonPopup) {
+        singletonPopup.close()
+        singletonPopup = null
+      }
     }
 
     return {
-
       // Static factory method.  Opts is the massive options hash
       // that GeoExt.popup takes.
       create: function(opts) {
         close()
         singletonPopup = new GeoExt.Popup(opts)
         return singletonPopup
-      },
+      }
+
+      , anyOpen: function() {return singletonPopup && !singletonPopup.hidden}
 
       // Close all GeoExt.popups on the map.
-      closeAll: function() {
-        close()
-        singletonPopup = null
-      }
+      , closeAll: function() { close() }
+
+      , currentPopup: function() {return singletonPopup}
     }
   }())
 
@@ -202,14 +205,29 @@ var cop = (function() {
     })
   }
 
+  // select an icon for a feature while in edit mode
   var selectIcon = function(obj) {
+
+    function createFeature(obj) {
+      vectorLayer.styleMap.styles["temporary"].setDefaultStyle({
+        externalGraphic:selectedIconUrl,
+        pointRadius: "12",
+        graphicOpacity: "1"
+      })
+      drawControl.activate()
+    }
+
+    function updateFeature(obj) {
+      var popupPropertyGrid = GeoExtPopup.currentPopup().items.items[0]
+      popupPropertyGrid.setProperty("default_graphic", obj.src)
+      msg.info("Default_graphic changed",
+          h.img(obj.src) + h.br() + h.code(obj.src))
+    }
+
     selectedIconUrl = obj.src
-    vectorLayer.styleMap.styles["temporary"].setDefaultStyle({
-      externalGraphic:selectedIconUrl,
-      pointRadius: "12",
-      graphicOpacity: "1"
-    })
-    drawControl.activate()
+    ;(GeoExtPopup.anyOpen()
+      ? updateFeature(obj)
+      : createFeature(obj))
   }
 
   var init = function() {
@@ -1009,13 +1027,12 @@ var cop = (function() {
       })
 
       function echoResult(response) {
-        if(response.error.success) {
-          msg.info("Save Successful", "Vector features saved.")
-        } else {
+        if(response.error) {
           // warning: fragile array-indexing code. Fix later.
           var e = response.error.exceptionReport.exceptions[0]
-          msg.err("Save Failed",
-            "<b>" + e.code + "</b>\n" + e.texts[0])
+          msg.err("Save Failed", h.b(e.code) + h.p(h.code(e.texts[0])))
+        } else {
+          msg.info("Save Successful", "Vector features saved.")
         }
       }
 
@@ -1348,10 +1365,21 @@ var cop = (function() {
     loadBaselayers()
   }
 
+  // make rendering html in javascript stupid simple
+  var h = (function() {
+    return { img: function(src) { return "<img src='" + src + "' />" }
+      , br: function() { return "<br />" }
+      , code: function(text) { return "<code>" + text + "<code/>" }
+      , b: function(text) { return "<b>" + text + "<b/>" }
+      , p: function(text) { return "<p>" + text + "<p/>" }
+    }
+  }())
+
   var debug = (function(){
     return { app: function() {return app}
       , map: function() {return app.center_south_and_east_panel.map_panel.map}
       , controls: function() {return app.center_south_and_east_panel.map_panel.map.controls}
+      , popupClass: function() {return GeoExtPopup}
     }
   }())
 
