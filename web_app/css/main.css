@@ -65,14 +65,14 @@ p {
 }
 
 .olControlZoomPanel div {
-    background-image:url(../../externals/ext/resources/images/gray/panel/tool-sprites.gif);
+    background-image:url(/opencop/images/gray/panel/tool-sprites.gif);
     height:15px;
     width:15px;
     /* workaround for button height in IE */
     font-size:0px;
 }
 
-.olControlZoomPanel .olControlZoomInItemInactive {
+.olContronlZoomPanel .olControlZoomInItemInactive {
     background-position:15px -240px;
 }
 
