@@ -293,7 +293,7 @@ var cop = (function() {
       // 2. prevent selecting/moving other points
       // 3. unselecting point closes popup
 
-      modifyControl.selectFeature(feature)
+      // modifyControl.selectFeature(feature)
       // modifyControl.onModificationStart = function(feature) {
       //   // var id = feature.id
       //   // var fid = feature.fid
@@ -319,7 +319,7 @@ var cop = (function() {
         maximizable: true,
         collapsible: true,
         items: [propertyGrid],
-        listeners: { "close": function(e) { console.log("about to close!") }},
+        // listeners: { "close": function(e) { console.log("about to close!") }},
         buttons: [{
           text: 'Cancel',
           iconCls: 'silk_cross',
@@ -1410,7 +1410,6 @@ var cop = (function() {
       , map: function() {return app.center_south_and_east_panel.map_panel.map}
       , controls: function() {return app.center_south_and_east_panel.map_panel.map.controls}
       , popupClass: function() {return GeoExtPopup}
-      , objDiff: function(a, b) {return objDiff(a, b)}
     }
   }())
 
