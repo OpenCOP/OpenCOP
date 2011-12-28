@@ -175,12 +175,8 @@ var cop = (function() {
         singletonPopup = new GeoExt.Popup(opts)
         return singletonPopup
       }
-
       , anyOpen: function() {return singletonPopup && !singletonPopup.hidden}
-
-      // Close all GeoExt.popups on the map.
-      , closeAll: function() { close() }
-
+      , closeAll: function() { close() }  // Close all GeoExt.popups on the map.
       , currentPopup: function() {return singletonPopup}
     }
   }())
@@ -293,19 +289,40 @@ var cop = (function() {
       // 2. prevent selecting/moving other points
       // 3. unselecting point closes popup
 
+
       // modifyControl.selectFeature(feature)
-      // modifyControl.onModificationStart = function(feature) {
-      //   // var id = feature.id
-      //   // var fid = feature.fid
-      //   console.log("returning false")
-      //   return false
+      // modifyControl.onModificationStart = function(f) {
+      //   console.log("onModificationStart")
+      //   if(f != feature) {
+      //     console.log("not equal")
+      //     modifyControl.deactivate()
+      //     // modifyControl.selectFeature(feature)
+      //   }
       // }
 
 
-
-      var onclose = function(a,b,c,d) {
-      }
-
+      //  activate
+      //  beforeSelectFeature
+      //  collectDragHandle
+      //  collectRadiusHandle
+      //  collectVertices
+      //  deactivate
+      //  destroy
+      //  dragComplete
+      //  dragStart
+      //  dragVertex
+      //  draw
+      //  handleKeypress
+      //  initialize
+      //  moveTo
+      //  onModification
+      //  onModificationEnd
+      //  onModificationStart
+      //  resetVertices
+      //  selectFeature
+      //  setFeatureState
+      //  setMap
+      //  unselectFeature
 
 
 
@@ -319,7 +336,7 @@ var cop = (function() {
         maximizable: true,
         collapsible: true,
         items: [propertyGrid],
-        // listeners: { "close": function(e) { console.log("about to close!") }},
+        listeners: {"close": function(feature) {modifyControl.unselectFeature(feature)}},
         buttons: [{
           text: 'Cancel',
           iconCls: 'silk_cross',
