@@ -16,12 +16,6 @@ var cop = (function() {
       + "&typeName=opencop:" + tableName
   }
 
-  // always returns the next id in sequence
-  var uniqueId = (function () {
-    var id = 0
-    return function() { return ++id}
-  }())
-
   function buildOlLayer(opts) {
 
     function buildKmlLayer(opts) {
@@ -1268,7 +1262,7 @@ var cop = (function() {
               success: function(response) {
                 _(parseGeoserverJson(response)).each(function(layerOpts) {
                   store.add(new store.recordType({
-                    id: uniqueId(),
+                    id: _.uniqueId(),
                     prefix: layerOpts.prefix,
                     type: layerOpts.type,
                     title: layerOpts.name,
