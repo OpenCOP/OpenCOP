@@ -293,7 +293,7 @@ var cop = (function() {
       // 2. prevent selecting/moving other points
       // 3. unselecting point closes popup
 
-      // modifyControl.selectFeature(feature)
+      modifyControl.selectFeature(feature)
       // modifyControl.onModificationStart = function(feature) {
       //   // var id = feature.id
       //   // var fid = feature.fid
@@ -303,6 +303,8 @@ var cop = (function() {
 
 
 
+      var onclose = function(a,b,c,d) {
+      }
 
 
 
@@ -317,6 +319,7 @@ var cop = (function() {
         maximizable: true,
         collapsible: true,
         items: [propertyGrid],
+        listeners: { "close": function(e) { console.log("about to close!") }},
         buttons: [{
           text: 'Cancel',
           iconCls: 'silk_cross',
@@ -1035,14 +1038,6 @@ var cop = (function() {
     // and refresh everything on the screen that touches that vector layer.
     function saveVectorLayer() {
 
-      // if feature has changed (and not by update or delete), change its
-      // state to reflect that
-      Ext.each(vectorLayer.features, function(n) {
-        if (!n.state && !equalAttributes(n.data, n.attributes)) {
-          n.state = "Update"
-        }
-      })
-
       function echoResult(response) {
         if(response.error) {
           // warning: fragile array-indexing code. Fix later.
@@ -1052,6 +1047,23 @@ var cop = (function() {
           msg.info("Save Successful", "Vector features saved.")
         }
       }
+
+      // Take two objects. Return a new hash of b's attributes only where
+      // b's attributes don't match a's.
+      function objDiff(a, b) {
+        var n = {}
+        _(a).chain().keys().each(function(k) { if(a[k] != b[k]) n[k] = b[k]})
+        return n
+      }
+
+      // if feature has changed (and not by update or delete), change its
+      // state to reflect that
+      Ext.each(vectorLayer.features, function(feature) {
+        if (!feature.state && !equalAttributes(feature.data, feature.attributes)) {
+          feature.state = "Update"
+          feature.attributes = objDiff(feature.data, feature.attributes)
+        }
+      })
 
       // commit vector layer via WFS-T
       app.center_south_and_east_panel.feature_table.store.proxy.protocol.commit(
@@ -1398,6 +1410,7 @@ var cop = (function() {
       , map: function() {return app.center_south_and_east_panel.map_panel.map}
       , controls: function() {return app.center_south_and_east_panel.map_panel.map.controls}
       , popupClass: function() {return GeoExtPopup}
+      , objDiff: function(a, b) {return objDiff(a, b)}
     }
   }())
 
