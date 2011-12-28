@@ -428,7 +428,7 @@ var cop = (function() {
         xtype: "gx_zoomslider",
         aggressive: false,
         vertical: true,
-        height: 100,
+        height: 100
       }]
     }
 
