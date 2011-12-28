@@ -334,7 +334,17 @@ var cop = (function() {
           text: 'Cancel',
           iconCls: 'silk_cross',
           handler: function() {
-            if(feature.state == "Insert") vectorLayer.removeFeatures([feature])
+            if(feature.state == "Insert") {
+              vectorLayer.removeFeatures([feature])
+            } else {
+              // reset attributes and position
+              //
+              // All that really needs to happen here is resetting the
+              // attributes and geometry.  Attributes can be reset with
+              // "feature.data = feature.attributes".  If we knew how to reset
+              // the geom, this could be more efficient.
+              refreshAllLayers()
+            }
             popup.close()
           }
         }, {
@@ -1023,6 +1033,13 @@ var cop = (function() {
     // (generally meaning "including app")
     //
 
+    function refreshAllLayers() {
+      var layers = app.center_south_and_east_panel.map_panel.map.layers
+      for (var i = layers.length - 1; i >= 0; --i) {
+        layers[i].redraw(true)}
+      app.center_south_and_east_panel.feature_table.store.reload()
+    }
+
     // Save the feature in the scratch vector layer through the power
     // of WFS-T, and refresh everything on the screen that touches that
     // vector layer.
@@ -1072,13 +1089,12 @@ var cop = (function() {
         return n
       }
 
-      // if feature has changed (and not by update or delete), change its
-      // state to reflect that
+      // detect feature change and set state
       if( !feature.state
           && !equalAttributes(feature.data, feature.attributes)) {
         feature.state = "Update" }
 
-      // Don't save empty attributes.
+      // don't save empty attributes
       if( feature.state == "Insert"
        || feature.state == "Update" ) {
         feature.attributes = objDiff(feature.data, feature.attributes)}
@@ -1088,11 +1104,7 @@ var cop = (function() {
         [feature],
         {callback: function(response) {
           echoResult(response)
-          // refresh everything the user sees
-          var layers = app.center_south_and_east_panel.map_panel.map.layers
-          for (var i = layers.length - 1; i >= 0; --i) {
-            layers[i].redraw(true)}
-          app.center_south_and_east_panel.feature_table.store.reload()}})
+          refreshAllLayers()}})
     }
 
     function displayLoginPopup() {
