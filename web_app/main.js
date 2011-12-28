@@ -264,31 +264,30 @@ var cop = (function() {
         _(missingFields).each(function(name) { feature.attributes[name] = "" })
       }())
 
+      // set default_graphic
       if( hasAttribute(feature.attributes, "default_graphic")) {
         ;(feature.attributes.default_graphic =
           feature.attributes.default_graphic || selectedIconUrl)
       }
-
-      var propertyGrid = new Ext.grid.PropertyGrid({
-        title: feature.fid,
-        source: feature.attributes
-      })
 
       // Need to:
       //   done   1. allow moving point that has popup
       //          2. prevent selecting/moving other points
       //   done   3. unselecting point closes popup
 
-
       modifyControl.selectFeature(feature)
-      // modifyControl.onModificationStart = function(f) {
-      //   console.log("onModificationStart")
-      //   if(f != feature) {
-      //     console.log("not equal")
-      //     modifyControl.deactivate()
-      //     // modifyControl.selectFeature(feature)
-      //   }
-      // }
+      modifyControl.onModification = function(f) {
+        if( f != feature ) {
+          popup.close()
+          refreshAllLayers()
+        }
+      }
+      // prevent select, too
+
+      var propertyGrid = new Ext.grid.PropertyGrid({
+        title: feature.fid,
+        source: feature.attributes
+      })
 
       var popup = GeoExtPopup.create({
         title: "Edit WFS-T Feature",
@@ -391,7 +390,8 @@ var cop = (function() {
     var selectFeatureControl = new OpenLayers.Control.SelectFeature(
           vectorLayer,
           { onSelect: createWfsPopup,
-            onUnselect: function(feature) { feature.popup.close() }})
+            onUnselect: function(feature) {
+              if(feature.popup) feature.popup.close() }})
     controls.push(selectFeatureControl)
 
     // get feature info (popup)
