@@ -491,7 +491,7 @@ var cop = (function() {
         iconCls: 'silk_user_go',
         handler: function () {
           Ext.Ajax.request({
-            url: "http://localhost/geoserver/j_spring_security_logout"
+            url: "/geoserver/j_spring_security_logout"
           })
           location.reload(true)
         }
@@ -1097,7 +1097,7 @@ var cop = (function() {
                 formBind: true,
                 handler: function() {
                   var response = Ext.Ajax.request({
-                    url: "http://localhost/geoserver/j_spring_security_check",
+                    url: "/geoserver/j_spring_security_check",
                     params: "username=" + loginPopup.loginForm.username.getValue() +
                       "&password=" + loginPopup.loginForm.password.getValue(),
                     callback: function(options, success, response) {
