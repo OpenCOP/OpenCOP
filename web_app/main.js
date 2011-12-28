@@ -1048,11 +1048,37 @@ var cop = (function() {
         }
       }
 
-      // Take two objects. Return a new hash of b's attributes only where
-      // b's attributes don't match a's.
+      function hasKey(obj, key) {
+        return _(obj).chain().keys().include(key).value()
+      }
+
+      // Take two objects, a before and an after. Return an object that
+      // represents the diff.  (Complex, nully truth table.)
       function objDiff(a, b) {
         var n = {}
-        _(a).chain().keys().each(function(k) { if(a[k] != b[k]) n[k] = b[k]})
+        _(b).chain().keys().each(function(k) {
+
+          // Nulls make everything more complicated.  Here's a truth table.
+          //
+          // null + ""  = no
+          // ""   + ""  = no
+          // "a"  + "a" = no
+          // "a"  + ""  = include
+          // null + "a" = include
+          // ""   + "a" = include
+          // null + "b" = include
+          // ""   + "b" = include
+          // "a"  + "b" = include
+
+          var nullA = !hasKey(a, k)
+          var emptyA = a[k] == ""
+          var emptyB = b[k] == ""
+          var equal = a[k] == b[k]
+
+          if( !(nullA && emptyB)
+           && !(emptyA && emptyB)
+           && !equal ) {
+            n[k] = b[k]}})
         return n
       }
 
@@ -1061,9 +1087,12 @@ var cop = (function() {
       Ext.each(vectorLayer.features, function(feature) {
         if (!feature.state && !equalAttributes(feature.data, feature.attributes)) {
           feature.state = "Update"
-          feature.attributes = objDiff(feature.data, feature.attributes)
-        }
-      })
+          feature.attributes = objDiff(feature.data, feature.attributes)}})
+
+      // Don't save empty attributes on insert.
+      Ext.each(vectorLayer.features, function(feature) {
+        if("Insert" == feature.state) {
+          feature.attributes = objDiff(feature.data, feature.attributes)}})
 
       // commit vector layer via WFS-T
       app.center_south_and_east_panel.feature_table.store.proxy.protocol.commit(
@@ -1071,6 +1100,7 @@ var cop = (function() {
         {
           callback: function(response) {
             echoResult(response)
+
             // refresh everything the user sees
             var layers = app.center_south_and_east_panel.map_panel.map.layers
             for (var i = layers.length - 1; i >= 0; --i) {
