@@ -1054,12 +1054,13 @@ var cop = (function() {
 
       // if feature has changed (and not by update or delete), change its
       // state to reflect that
-      if (!feature.state && !equalAttributes(feature.data, feature.attributes)) {
-        feature.state = "Update"
-        feature.attributes = objDiff(feature.data, feature.attributes)}
+      if( !feature.state
+          && !equalAttributes(feature.data, feature.attributes)) {
+        feature.state = "Update" }
 
-      // Don't save empty attributes on insert.
-      if("Insert" == feature.state) {
+      // Don't save empty attributes.
+      if( feature.state == "Insert"
+       || feature.state == "Update" ) {
         feature.attributes = objDiff(feature.data, feature.attributes)}
 
       // commit vector layer via WFS-T
