@@ -284,6 +284,29 @@ var cop = (function() {
         source: feature.attributes
       })
 
+
+
+
+
+      // Need to:
+      // 1. allow moving point that has popup
+      // 2. prevent selecting/moving other points
+      // 3. unselecting point closes popup
+
+      // modifyControl.selectFeature(feature)
+      // modifyControl.onModificationStart = function(feature) {
+      //   // var id = feature.id
+      //   // var fid = feature.fid
+      //   console.log("returning false")
+      //   return false
+      // }
+
+
+
+
+
+
+
       var popup = GeoExtPopup.create({
         title: "Edit WFS-T Feature",
         height: 300,
@@ -1375,6 +1398,7 @@ var cop = (function() {
     }
   }())
 
+  // for DEVELOPMENT: let some variables leak out into global space
   var debug = (function(){
     return { app: function() {return app}
       , map: function() {return app.center_south_and_east_panel.map_panel.map}
