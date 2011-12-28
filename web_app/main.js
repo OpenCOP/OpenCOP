@@ -446,7 +446,13 @@ var cop = (function() {
       },
       extent : new OpenLayers.Bounds(-10918469.080342, 2472890.3987378,
                                      -9525887.0459675, 6856095.3481128),
-      layers: [vectorLayer]
+      layers: [vectorLayer],
+      items: [{
+        xtype: "gx_zoomslider",
+        aggressive: true,
+        vertical: true,
+        height: 100,
+      }],
     }
 
     var menu_bar = new Ext.Toolbar({
@@ -457,18 +463,6 @@ var cop = (function() {
         iconCls: 'opencop_logo',
         handler: displayAppInfo
       }, '-', {
-        text: 'Zoom In',
-        iconCls: 'silk_zoom_in',
-        handler: function() {
-          app.center_south_and_east_panel.map_panel.map.zoomIn()
-        }
-      }, {
-        text: 'Zoom Out',
-        iconCls: 'silk_zoom_out',
-        handler: function() {
-          app.center_south_and_east_panel.map_panel.map.zoomOut()
-        }
-      }, {
         text: 'Zoom to Me',
         iconCls: 'silk_zoom_to_me',
         handler: function() {
