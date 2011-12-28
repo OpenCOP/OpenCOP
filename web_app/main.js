@@ -332,7 +332,7 @@ var cop = (function() {
           iconCls: 'silk_tick',
           handler: function() {
             propertyGrid.stopEditing()  // prevent having to click off field to save in IE
-            saveVectorLayer()
+            saveFeature(feature)
             popup.close()
           }
         }]
@@ -991,37 +991,6 @@ var cop = (function() {
 
     app.west.tree_panel.getSelectionModel().on("selectionchange", setLayer)
 
-    // ON THE CUTTING BLOCK
-    var bbar = app.center_south_and_east_panel.feature_table.getBottomToolbar()
-    bbar.add([
-      {
-        text: "Delete",
-        handler: function() {
-          app.center_south_and_east_panel.feature_table.store.featureFilter = new OpenLayers.Filter({
-            evaluate: function(feature) { return feature.state != OpenLayers.State.DELETE }
-          })
-          app.center_south_and_east_panel.feature_table.getSelectionModel().each(function(rec) {
-            var feature = rec.getFeature()
-            modifyControl.unselectFeature(feature)
-            vectorLayer.removeFeatures([feature])
-            if (feature.state != OpenLayers.State.INSERT) {
-              feature.state = OpenLayers.State.DELETE
-              vectorLayer.addFeatures([feature])
-            }
-          })
-        }
-      },
-      new GeoExt.Action({
-        control: drawControl,
-        text: "Create",
-        enableToggle: true
-      }),
-      {
-        text: "Save",
-        handler: saveVectorLayer
-      }])
-    bbar.doLayout()
-
     var sm = app.center_south_and_east_panel.feature_table.getSelectionModel()
     sm.unbind()
     sm.bind(modifyControl.selectControl)
@@ -1034,9 +1003,10 @@ var cop = (function() {
     // (generally meaning "including app")
     //
 
-    // Save all features in the scratch vector layer through the power of WFS-T,
-    // and refresh everything on the screen that touches that vector layer.
-    function saveVectorLayer() {
+    // Save the feature in the scratch vector layer through the power
+    // of WFS-T, and refresh everything on the screen that touches that
+    // vector layer.
+    function saveFeature(feature) {
 
       function echoResult(response) {
         if(response.error) {
@@ -1075,7 +1045,7 @@ var cop = (function() {
           var emptyB = b[k] == ""
           var equal = a[k] == b[k]
 
-          if( !(nullA && emptyB)
+          if( !( nullA && emptyB)
            && !(emptyA && emptyB)
            && !equal ) {
             n[k] = b[k]}})
@@ -1084,32 +1054,24 @@ var cop = (function() {
 
       // if feature has changed (and not by update or delete), change its
       // state to reflect that
-      Ext.each(vectorLayer.features, function(feature) {
-        if (!feature.state && !equalAttributes(feature.data, feature.attributes)) {
-          feature.state = "Update"
-          feature.attributes = objDiff(feature.data, feature.attributes)}})
+      if (!feature.state && !equalAttributes(feature.data, feature.attributes)) {
+        feature.state = "Update"
+        feature.attributes = objDiff(feature.data, feature.attributes)}
 
       // Don't save empty attributes on insert.
-      Ext.each(vectorLayer.features, function(feature) {
-        if("Insert" == feature.state) {
-          feature.attributes = objDiff(feature.data, feature.attributes)}})
+      if("Insert" == feature.state) {
+        feature.attributes = objDiff(feature.data, feature.attributes)}
 
       // commit vector layer via WFS-T
       app.center_south_and_east_panel.feature_table.store.proxy.protocol.commit(
-        vectorLayer.features,
-        {
-          callback: function(response) {
-            echoResult(response)
-
-            // refresh everything the user sees
-            var layers = app.center_south_and_east_panel.map_panel.map.layers
-            for (var i = layers.length - 1; i >= 0; --i) {
-              layers[i].redraw(true)
-            }
-            app.center_south_and_east_panel.feature_table.store.reload()
-          }
-        }
-      )
+        [feature],
+        {callback: function(response) {
+          echoResult(response)
+          // refresh everything the user sees
+          var layers = app.center_south_and_east_panel.map_panel.map.layers
+          for (var i = layers.length - 1; i >= 0; --i) {
+            layers[i].redraw(true)}
+          app.center_south_and_east_panel.feature_table.store.reload()}})
     }
 
     function displayLoginPopup() {
