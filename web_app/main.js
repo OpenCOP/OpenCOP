@@ -243,7 +243,7 @@ var cop = (function() {
           fillColor: "66CCFF",
           strokeColor: "blue",
           strokeWidth: 3,
-          fillOpacity: 0.25,
+          fillOpacity: 0.25
         }),
         "select": new OpenLayers.Style({
           externalGraphic: "${default_graphic}",
@@ -452,10 +452,10 @@ var cop = (function() {
       layers: [vectorLayer],
       items: [{
         xtype: "gx_zoomslider",
-        aggressive: true,
+        aggressive: false,
         vertical: true,
-        height: 100,
-      }],
+        height: 100
+      }]
     }
 
     var menu_bar = new Ext.Toolbar({
