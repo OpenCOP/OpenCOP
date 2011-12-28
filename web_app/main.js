@@ -325,7 +325,6 @@ var cop = (function() {
       //  unselectFeature
 
 
-
       var popup = GeoExtPopup.create({
         title: "Edit WFS-T Feature",
         height: 300,
@@ -343,6 +342,16 @@ var cop = (function() {
           handler: function() {
             if(feature.state == "Insert") vectorLayer.removeFeatures([feature])
             popup.close()
+          }
+        }, {
+          text: 'Delete',
+          iconCls: 'silk_cross',
+          handler: function() {
+            if(confirm("Delete this features?")) {
+              feature.state = OpenLayers.State.DELETE
+              saveFeature(feature)
+              popup.close()
+            }
           }
         }, {
           text: 'Save',
