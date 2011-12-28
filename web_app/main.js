@@ -429,7 +429,7 @@ var cop = (function() {
         aggressive: false,
         vertical: true,
         height: 100,
-      }],
+      }]
     }
 
     var menu_bar = new Ext.Toolbar({
