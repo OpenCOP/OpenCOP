@@ -274,17 +274,13 @@ var cop = (function() {
         source: feature.attributes
       })
 
-
-
-
-
       // Need to:
-      // 1. allow moving point that has popup
-      // 2. prevent selecting/moving other points
-      // 3. unselecting point closes popup
+      //   done   1. allow moving point that has popup
+      //          2. prevent selecting/moving other points
+      //   done   3. unselecting point closes popup
 
 
-      // modifyControl.selectFeature(feature)
+      modifyControl.selectFeature(feature)
       // modifyControl.onModificationStart = function(f) {
       //   console.log("onModificationStart")
       //   if(f != feature) {
@@ -293,31 +289,6 @@ var cop = (function() {
       //     // modifyControl.selectFeature(feature)
       //   }
       // }
-
-
-      //  activate
-      //  beforeSelectFeature
-      //  collectDragHandle
-      //  collectRadiusHandle
-      //  collectVertices
-      //  deactivate
-      //  destroy
-      //  dragComplete
-      //  dragStart
-      //  dragVertex
-      //  draw
-      //  handleKeypress
-      //  initialize
-      //  moveTo
-      //  onModification
-      //  onModificationEnd
-      //  onModificationStart
-      //  resetVertices
-      //  selectFeature
-      //  setFeatureState
-      //  setMap
-      //  unselectFeature
-
 
       var popup = GeoExtPopup.create({
         title: "Edit WFS-T Feature",
