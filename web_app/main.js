@@ -272,9 +272,9 @@ var cop = (function() {
 
       // Need to:
       //   done   1. allow moving point that has popup
-      //          2. prevent selecting/moving other points
-      //   done   3. unselecting point closes popup
-
+      //   done   2. prevent selecting other points
+      //          3. prevent moving other points
+      //   done   4. unselecting point closes popup
       modifyControl.selectFeature(feature)
       modifyControl.onModification = function(f) {
         if( f != feature ) {
@@ -282,7 +282,18 @@ var cop = (function() {
           refreshAllLayers()
         }
       }
-      // prevent select, too
+      modifyControl.selectControl.onSelect = function(f) {
+        if(f != feature) {
+
+          // must figure out how to really and truly deactivate the modify
+          // control here
+
+          modifyControl.unselectFeature(f)
+          modifyControl.deactivate()
+          popup.close()
+          refreshAllLayers()
+        }
+      }
 
       var propertyGrid = new Ext.grid.PropertyGrid({
         title: feature.fid,
