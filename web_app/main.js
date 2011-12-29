@@ -271,29 +271,19 @@ var cop = (function() {
       }
 
       // Need to:
-      //   done   1. allow moving point that has popup
-      //   done   2. prevent selecting other points
-      //          3. prevent moving other points
-      //   done   4. unselecting point closes popup
+      // 1. allow moving point that has popup
+      // 2. prevent selecting other points
+      // 3. prevent moving other points
+      // 4. unselecting point closes popup
+      //
+      // The empty dragStart callback is key. For whatever (stupid)
+      // reason, it inhibits the select control.
       modifyControl.selectFeature(feature)
-      modifyControl.onModification = function(f) {
-        if( f != feature ) {
+      modifyControl.dragStart = function() { }
+      modifyControl.dragComplete = function(f) {
+        if( f.id != feature.id ) {
           popup.close()
-          refreshAllLayers()
-        }
-      }
-      modifyControl.selectControl.onSelect = function(f) {
-        if(f != feature) {
-
-          // must figure out how to really and truly deactivate the modify
-          // control here
-
-          modifyControl.unselectFeature(f)
-          modifyControl.deactivate()
-          popup.close()
-          refreshAllLayers()
-        }
-      }
+          refreshAllLayers()}}
 
       var propertyGrid = new Ext.grid.PropertyGrid({
         title: feature.fid,
