@@ -245,6 +245,10 @@ var cop = (function() {
     })
 
     function cancelEditWfs(feature) {
+
+      if(featureChanged(feature)) {
+        msg.info("Changes cancelled", "Changes to vector have been cancelled.")}
+
       feature.popup.close()
       if(feature.state == "Insert") {
         vectorLayer.removeFeatures([feature])
@@ -1062,8 +1066,7 @@ var cop = (function() {
       }
 
       // detect feature change and set state
-      if( !feature.state
-          && !equalAttributes(feature.data, feature.attributes)) {
+      if( !feature.state && featureChanged(feature)) {
         feature.state = "Update" }
 
       // don't save empty attributes
@@ -1077,6 +1080,10 @@ var cop = (function() {
         {callback: function(response) {
           echoResult(response)
           refreshAllLayers()}})
+    }
+
+    function featureChanged(feature) {
+      return !equalAttributes(feature.data, feature.attributes)
     }
 
     function displayLoginPopup() {
