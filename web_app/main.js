@@ -301,7 +301,10 @@ var cop = (function() {
       modifyControl.dragStart = function() { }
       modifyControl.dragComplete = function(f) {
         if( f.id != feature.id ) {
-          cancelEditWfs(feature)}}
+          cancelEditWfs(feature)
+        } else {
+          feature.state = OpenLayers.State.UPDATE
+        }}
 
       var propertyGrid = new Ext.grid.PropertyGrid({
         title: feature.fid,
@@ -1401,10 +1404,10 @@ var cop = (function() {
   // make rendering html in javascript stupid simple
   var h = (function() {
     return { img: function(src) { return "<img src='" + src + "' />" }
-      , br: function() { return "<br />" }
       , code: function(text) { return "<code>" + text + "<code/>" }
       , b: function(text) { return "<b>" + text + "<b/>" }
       , p: function(text) { return "<p>" + text + "<p/>" }
+      , br: function() { return "<br />" }
     }
   }())
 
