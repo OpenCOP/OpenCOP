@@ -244,17 +244,32 @@ var cop = (function() {
       'displayInLayerSwitcher': false
     })
 
+    function cancelEditWfs(feature) {
+      feature.popup.close()
+      if(feature.state == "Insert") {
+        vectorLayer.removeFeatures([feature])
+      } else {
+        // reset attributes and position
+        //
+        // All that really needs to happen here is resetting the
+        // attributes and geometry.  Attributes can be reset with
+        // "feature.data = feature.attributes".  If we knew how to reset
+        // the geom, this could be more efficient.
+        refreshAllLayers()
+      }
+    }
+
     function createWfsPopup(feature) {
       // the "createWfsPopup" abstraction allows for the flexibility to
       // open other types of popups when in other modes
       if (editFeaturesActive()) createEditWfsPopup(feature)
     }
 
-    function hasAttribute(obj, attribute) {
-      return _(obj).chain().keys().include(attribute).value()
-    }
-
     function createEditWfsPopup(feature) {
+
+      function hasAttribute(obj, attribute) {
+        return _(obj).chain().keys().include(attribute).value()
+      }
 
       ;(function ensureFeatureHasAllFields() {
         var allFields = _(vectorLayer.store.data.items).map(function(n) {return n.data.name})
@@ -282,8 +297,7 @@ var cop = (function() {
       modifyControl.dragStart = function() { }
       modifyControl.dragComplete = function(f) {
         if( f.id != feature.id ) {
-          popup.close()
-          refreshAllLayers()}}
+          cancelEditWfs(feature)}}
 
       var propertyGrid = new Ext.grid.PropertyGrid({
         title: feature.fid,
@@ -304,20 +318,7 @@ var cop = (function() {
         buttons: [{
           text: 'Cancel',
           iconCls: 'silk_cross',
-          handler: function() {
-            if(feature.state == "Insert") {
-              vectorLayer.removeFeatures([feature])
-            } else {
-              // reset attributes and position
-              //
-              // All that really needs to happen here is resetting the
-              // attributes and geometry.  Attributes can be reset with
-              // "feature.data = feature.attributes".  If we knew how to reset
-              // the geom, this could be more efficient.
-              refreshAllLayers()
-            }
-            popup.close()
-          }
+          handler: function() { cancelEditWfs(feature) }
         }, {
           text: 'Delete',
           iconCls: 'silk_cross',
@@ -391,8 +392,7 @@ var cop = (function() {
     var selectFeatureControl = new OpenLayers.Control.SelectFeature(
           vectorLayer,
           { onSelect: createWfsPopup,
-            onUnselect: function(feature) {
-              if(feature.popup) feature.popup.close() }})
+            onUnselect: cancelEditWfs})
     controls.push(selectFeatureControl)
 
     // get feature info (popup)
