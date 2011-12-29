@@ -236,9 +236,11 @@ var cop = (function() {
           fillOpacity: 0.25
         }),
         "select": new OpenLayers.Style({
-          externalGraphic: "${default_graphic}",
-          pointRadius: "12",
-          graphicOpacity: "1"
+          graphicName: "cross",
+          pointRadius: "16",
+          fillColor: "66CCFF",
+          strokeColor: "blue",
+          strokeWidth: 3
         })
       }),
       'displayInLayerSwitcher': false
