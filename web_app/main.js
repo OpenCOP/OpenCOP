@@ -828,6 +828,11 @@ var cop = (function() {
       refreshControl()
     }
 
+    function moveToDetailsTab() {
+      if(!app) return
+      app.west.selected_layer_panel.tabs.setActiveTab(0)
+    }
+
     // Sometimes which controls are activated gets pretty messed up.
     // This function attempts to set everything back to something
     // stable.
@@ -858,11 +863,6 @@ var cop = (function() {
         wms_off()
         vec_off()
         kml_off()
-      }
-
-      function moveToDetailsTab() {
-        if(!app) return
-        app.west.selected_layer_panel.tabs.setActiveTab(0)
       }
 
       var mode = currentModePanel()
@@ -960,6 +960,7 @@ var cop = (function() {
       if(queryFeaturesActive() || editFeaturesActive()) {
         var node = currentlySelectedLayerNode()
         if(node && node.layer) populateWfsGrid(node.layer)
+        vectorLayer.parentLayer = node.layer
       }
       grid[queryFeaturesActive() ? "expand" : "collapse"]()  // isn't this cute?
       vectorLayer.removeAllFeatures()  // needed for query tab
@@ -998,7 +999,23 @@ var cop = (function() {
       })
     }
 
+    function uncheckLayer(layer) {
+      var isActiveVectorLayer = (vectorLayer.parentLayer
+          && layer.id == vectorLayer.parentLayer.id)
+      if( isActiveVectorLayer ) {
+        moveToDetailsTab()
+        var isSelected = currentlySelectedLayerNode().layer.id == layer.id
+        if( isSelected ) {  // I'm pretty sure this will always be true.  Whatever.
+          app.west.selected_layer_panel.collapse()
+          app.west.tree_panel.getSelectionModel().clearSelections()
+        }
+      }
+    }
+
     app.west.tree_panel.getSelectionModel().on("selectionchange", setLayer)
+    app.west.tree_panel.on("checkchange", function(node, justChecked) {
+      if( !justChecked ) {
+        uncheckLayer(node.layer)}})
 
     var sm = app.center_south_and_east_panel.feature_table.getSelectionModel()
     sm.unbind()
