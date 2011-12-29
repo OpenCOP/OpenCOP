@@ -1001,23 +1001,41 @@ var cop = (function() {
       })
     }
 
-    function uncheckLayer(layer) {
-      var isActiveVectorLayer = (vectorLayer.parentLayer
-          && layer.id == vectorLayer.parentLayer.id)
-      if( isActiveVectorLayer ) {
-        moveToDetailsTab()
-        var isSelected = currentlySelectedLayerNode().layer.id == layer.id
-        if( isSelected ) {  // I'm pretty sure this will always be true.  Whatever.
-          app.west.selected_layer_panel.collapse()
-          app.west.tree_panel.getSelectionModel().clearSelections()
+    function configureLayerTreeEvents() {
+
+      var suppressNextClick = false
+
+      function uncheckLayer(layer) {
+        var isActiveVectorLayer = (vectorLayer.parentLayer
+            && layer.id == vectorLayer.parentLayer.id)
+        if( isActiveVectorLayer ) {
+          moveToDetailsTab()
+          var isSelected = currentlySelectedLayerNode().layer.id == layer.id
+          if( isSelected ) {  // I'm pretty sure this will always be true.  Whatever.
+            app.west.selected_layer_panel.collapse()
+            app.west.tree_panel.getSelectionModel().clearSelections()
+          }
         }
       }
+
+      app.west.tree_panel.getSelectionModel().on("selectionchange", setLayer)
+      app.west.tree_panel.on("beforeclick", function(node) {
+        if( node.isSelected() ) { suppressNextClick = true } })
+      app.west.tree_panel.on("click", function(node) {
+        if( suppressNextClick ) {
+          moveToDetailsTab()
+          app.west.selected_layer_panel.collapse()
+          app.west.tree_panel.getSelectionModel().clearSelections()
+          suppressNextClick = false
+        }
+      })
+
+      app.west.tree_panel.on("checkchange", function(node, justChecked) {
+        if( !justChecked ) {
+          uncheckLayer(node.layer)}})
     }
 
-    app.west.tree_panel.getSelectionModel().on("selectionchange", setLayer)
-    app.west.tree_panel.on("checkchange", function(node, justChecked) {
-      if( !justChecked ) {
-        uncheckLayer(node.layer)}})
+    configureLayerTreeEvents()
 
     var sm = app.center_south_and_east_panel.feature_table.getSelectionModel()
     sm.unbind()
