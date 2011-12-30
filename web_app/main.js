@@ -1298,9 +1298,22 @@ var cop = (function() {
           }
 
           function addAllSelectedLayers() {  // from all tabs
-            _(layersPopup.tabs.items.items).each(function(grid) {
-              grid.getSelectionModel().each(addLayer)
-            })
+            var layers = app.center_south_and_east_panel.map_panel.map.layers
+            _(layersPopup.tabs.items.items).chain()  // all grids
+              .map(function(grid) {return grid.getSelectionModel().getSelected()})
+              .flatten()
+              .compact()  // all selected layers
+              .reject(function(selected) {  // only add if not already added
+                return _(layers).any(function(layer) {
+                  // We're checking for the equality of a selected
+                  // layer and an existing layer in the layer tree. The
+                  // assumption is that the layers are equal if they
+                  // have the same namespace:name and if they have the
+                  // same url (that is, come from the same geoserver).
+                  return layer.params  // null-checking action
+                    && layer.url == selected.data.layer.url
+                    && layer.params.LAYERS == selected.data.name })})
+              .each(addLayer)
             deselectAllLayers()
           }
 
