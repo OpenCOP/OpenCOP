@@ -582,10 +582,7 @@ var cop = (function() {
             var node = currentlySelectedLayerNode()
             if (node) {
               app.center_south_and_east_panel.map_panel.map.removeLayer(node.layer)
-            }
-          }
-        }]
-    }
+              shutdownDetailsPane()}}}]}
 
     var layerDetail = {
       ref: "layer_detail",
@@ -961,8 +958,10 @@ var cop = (function() {
       var grid = app.center_south_and_east_panel.feature_table
       if(queryFeaturesActive() || editFeaturesActive()) {
         var node = currentlySelectedLayerNode()
-        if(node && node.layer) populateWfsGrid(node.layer)
-        vectorLayer.parentLayer = node.layer
+        if(node && node.layer) {
+          populateWfsGrid(node.layer)
+          vectorLayer.parentLayer = node.layer
+        }
       }
       grid[queryFeaturesActive() ? "expand" : "collapse"]()  // isn't this cute?
       vectorLayer.removeAllFeatures()  // needed for query tab
@@ -1001,21 +1000,20 @@ var cop = (function() {
       })
     }
 
+    function shutdownDetailsPane() {
+      moveToDetailsTab()
+      app.west.selected_layer_panel.collapse()
+      app.west.tree_panel.getSelectionModel().clearSelections()
+    }
+
     function configureLayerTreeEvents() {
 
       var suppressNextClick = false
 
-      function uncheckLayer(layer) {
+      function onUncheckLayer(layer) {
         var isActiveVectorLayer = (vectorLayer.parentLayer
             && layer.id == vectorLayer.parentLayer.id)
-        if( isActiveVectorLayer ) {
-          moveToDetailsTab()
-          var isSelected = currentlySelectedLayerNode().layer.id == layer.id
-          if( isSelected ) {  // I'm pretty sure this will always be true.  Whatever.
-            app.west.selected_layer_panel.collapse()
-            app.west.tree_panel.getSelectionModel().clearSelections()
-          }
-        }
+        if( isActiveVectorLayer ) { shutdownDetailsPane() }
       }
 
       app.west.tree_panel.getSelectionModel().on("selectionchange", setLayer)
@@ -1023,16 +1021,14 @@ var cop = (function() {
         if( node.isSelected() ) { suppressNextClick = true } })
       app.west.tree_panel.on("click", function(node) {
         if( suppressNextClick ) {
-          moveToDetailsTab()
-          app.west.selected_layer_panel.collapse()
-          app.west.tree_panel.getSelectionModel().clearSelections()
+          shutdownDetailsPane()
           suppressNextClick = false
         }
       })
 
       app.west.tree_panel.on("checkchange", function(node, justChecked) {
         if( !justChecked ) {
-          uncheckLayer(node.layer)}})
+          onUncheckLayer(node.layer)}})
     }
 
     configureLayerTreeEvents()
