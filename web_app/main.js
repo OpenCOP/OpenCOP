@@ -410,6 +410,7 @@ var cop = (function() {
       infoFormat: "application/vnd.ogc.gml",
       vendorParams: { buffer: 10 },  //geoserver param, don't have to click dead center, I believe ESRI ignores it
       maxFeatures: 3,  // Zach says this is a reasonable number [t06dec'11]ish
+      queryVisible: true, //only send the request for visible layers
       eventListeners: {
         "getfeatureinfo": function(e) {
           if(e.features.length == 0) return GeoExtPopup.closeAll()  // prevent empty popups
