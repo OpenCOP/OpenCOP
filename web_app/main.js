@@ -957,6 +957,7 @@ var cop = (function() {
               "</tr>"
             var tpl = new Ext.Template(templateHtml)
             tpl.compile()
+            listOfHashes.forEach(function(item) {alert("I'm classy!")})
             listOfHashes.forEach(function(item) { tpl.append('available_icons_table', item) })
           }
 
