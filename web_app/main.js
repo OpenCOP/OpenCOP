@@ -361,17 +361,15 @@ var cop = (function() {
       drawControl.deactivate()
     }
 
+    // Return a copy of obj where all its attributes have been passed
+    // through fn.
     function fmap(obj, fn) {
       var n = {}
-      _(obj).each(function(val, key) {
-        n[key] = fn(val)
-      })
+      _(obj).each(function(val, key) { n[key] = fn(val) })
       return n
     }
 
     function createKmlPopup(feature) {
-      console.log("customs")
-
       var popup = GeoExtPopup.create({
         title: "View KML Feature",
         height: 300,
@@ -384,9 +382,7 @@ var cop = (function() {
         items: [new Ext.grid.PropertyGrid({
           listeners: { "beforeedit": function(e) { e.cancel = true }}, // prevent editing
           title: feature.fid,
-          customRenderers: {
-            description: function(v){ if(v){ return v }else{ return 'No' } },
-            Value: function(v){return "bogus"} },
+          customRenderers: fmap(feature.attributes, function() {return function(v) {return v}}),
           source: feature.attributes })],
         buttons: [{
           text: 'Close',
