@@ -103,14 +103,14 @@ p {
 }
 
 
-/***  in-kml-popup  ***/
+/***  in-popup  ***/
 
-div.in-kml-popup table {
+div.in-popup table {
   border-width: 0px;
   border-spacing: 0px;
   border-collapse: collapse;
 }
-div.in-kml-popup table th {
+div.in-popup table th {
   border-width: 1px;
   padding: 5px;
   border-style: solid;
@@ -118,7 +118,7 @@ div.in-kml-popup table th {
   border-color:#a3bad9;
   color:#222;
 }
-div.in-kml-popup table td {
+div.in-popup table td {
   border-width: 1px;
   padding: 5px;
   border-style: solid;
