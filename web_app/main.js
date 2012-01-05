@@ -23,7 +23,7 @@ var cop = (function() {
 
       function getUrl(opts) {  // relies on global "username"
         var url = "/geoserver/rest/proxy?url=" + opts.url
-        if( username ) url += "&username=" + username
+        if( username ) url += "?username=" + username
         return url
       }
 
