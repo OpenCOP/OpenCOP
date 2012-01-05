@@ -5,6 +5,7 @@ var cop = (function() {
   var kmlSelectControls = []
   var vectorLayer
   var selectedIconUrl
+  var username  // null means guest
 
   // Return url to query opencop database for table name. If the need
   // strikes you, you can throw a CQL_FILTER on the end.
@@ -19,11 +20,18 @@ var cop = (function() {
   function buildOlLayer(opts) {
 
     function buildKmlLayer(opts) {
+
+      function getUrl(opts) {  // relies on global "username"
+        var url = "/geoserver/rest/proxy?url=" + opts.url
+        if( username ) url += "&username=" + username
+        return url
+      }
+
       return new OpenLayers.Layer.Vector(opts.name, {
         projection: new OpenLayers.Projection("EPSG:4326"),
         strategies: [new OpenLayers.Strategy.Fixed()],
         protocol: new OpenLayers.Protocol.HTTP({
-          url: "/geoserver/rest/proxy?url=" + opts.url + "&username=bpriest",
+          url: getUrl(opts),
           format: new OpenLayers.Format.KML({
               extractStyles: true,
               extractAttributes: true,
@@ -1182,9 +1190,11 @@ var cop = (function() {
                       // failure is to inspect the contents of the response and see if it redirected
                       // back to a login page.
                       if(response.responseText.search("GeoServer: User login") > -1){
+                        username = null  // guest
                         loginPopup.hide()
                         displayFailedLoginPopup()
                       } else {
+                        username = loginPopup.loginForm.username.getValue()  // current user
                         loginPopup.hide()
                         displayAvailableLayers()
                       }
