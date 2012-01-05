@@ -370,6 +370,11 @@ var cop = (function() {
     }
 
     function createKmlPopup(feature) {
+
+      function wrapDiv(text) {
+        return _("<div class='in-kml-popup'><%=s%></div>").template({s: text})
+      }
+
       var popup = GeoExtPopup.create({
         title: "View KML Feature",
         height: 300,
@@ -382,7 +387,7 @@ var cop = (function() {
         items: [new Ext.grid.PropertyGrid({
           listeners: { "beforeedit": function(e) { e.cancel = true }}, // prevent editing
           title: feature.fid,
-          customRenderers: fmap(feature.attributes, function() {return function(v) {return v}}),
+          customRenderers: fmap(feature.attributes, function() {return wrapDiv}),
           source: feature.attributes })],
         buttons: [{
           text: 'Close',

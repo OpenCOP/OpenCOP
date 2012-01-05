@@ -9,11 +9,11 @@ html, body {
 p {
   margin:5px;
 }
-.opencop_logo { 
-  background-image: url(/opencop/images/OpenCOP_logo_16.png); 
+.opencop_logo {
+  background-image: url(/opencop/images/OpenCOP_logo_16.png);
   width: 84 !important;
   height: 16;
-  background-repeat: no-repeat !important; 
+  background-repeat: no-repeat !important;
 }
 .geocent_logo { background-image: url(/opencop/images/geocent_logo_16.png) !important; background-repeat: no-repeat; }
 .olControlPanPanel div {
@@ -60,7 +60,7 @@ p {
     top: 16px;
 }
 
-.olControlZoomPanel { 
+.olControlZoomPanel {
     left:21px;
 }
 
@@ -103,3 +103,26 @@ p {
 }
 
 
+/***  in-kml-popup  ***/
+
+div.in-kml-popup table {
+  border-width: 0px;
+  border-spacing: 0px;
+  border-collapse: collapse;
+}
+div.in-kml-popup table th {
+  border-width: 1px;
+  padding: 5px;
+  border-style: solid;
+  background-color: #eee;
+  border-color:#a3bad9;
+  color:#222;
+}
+div.in-kml-popup table td {
+  border-width: 1px;
+  padding: 5px;
+  border-style: solid;
+  background-color: #eee;
+  border-color:#a3bad9;
+  color:#222;
+}
