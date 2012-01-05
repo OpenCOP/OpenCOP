@@ -23,7 +23,7 @@ var cop = (function() {
         projection: new OpenLayers.Projection("EPSG:4326"),
         strategies: [new OpenLayers.Strategy.Fixed()],
         protocol: new OpenLayers.Protocol.HTTP({
-          url: "/geoserver/rest/proxy?url=" + opts.url,
+          url: "/geoserver/rest/proxy?url=" + opts.url + "&username=bpriest",
           format: new OpenLayers.Format.KML({
               extractStyles: true,
               extractAttributes: true,
