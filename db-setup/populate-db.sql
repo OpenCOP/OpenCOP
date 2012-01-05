@@ -92,6 +92,7 @@ create table layer (
 insert into layer values (0, 1, 'external', 'topp:example', 'our example WMS', 'WMS', '/geoserver/wms', 'Our favorite example layer', 20);
 insert into layer values (1, 2, 'external', 'basic', 'some WMS test', 'WMS', 'http://vmap0.tiles.osgeo.org/wms/vmap0', 'Try this WMS; you will find you like it.', 20);
 insert into layer values (2, 2, 'external', 'neplo', 'some KML test', 'KML', 'http://demo.geocent.com/neplo/neplo.kml', 'A really very nice KML layer.', 20);
+insert into layer values (3, 2, 'external', 'neplo', 'some KML test', 'KML', 'http://demo.geocent.com/opencop-icons/kml/Installations.kml', 'Golden test', 20);
 
 ------------------------------------------------------------
 ---- icons to layers
