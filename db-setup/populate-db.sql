@@ -128,3 +128,18 @@ create view iconmaster as
     icon as i,
     iconstolayers as s
   where i.id = s.iconid;
+
+
+------------------------------------------------------------
+---- config
+
+drop table if exists config;
+create table config (
+  id integer primary key,
+  component varchar(30),
+  name varchar(50),
+  value varchar(200),
+  description varchar(200)
+);
+
+insert into config values (0, 'db', 'domain', 'demo.geocent.com', 'ex: "demo.geocent.com", "localhost". Sets href for edit_url-making rule.');
