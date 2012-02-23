@@ -454,6 +454,7 @@ var cop = (function() {
             location: e.xy,
             items: [{
               xtype: 'tabpanel',
+              enableTabScroll:true,
               ref: "tabs",
               activeTab: 0,
               items: items
@@ -697,6 +698,7 @@ var cop = (function() {
       split: true,
       items: [{
         xtype: 'tabpanel',
+        enableTabScroll:true,
         ref: "tabs",
         activeTab: 0,
         items: [layerDetail, editFeaturesPanel]
@@ -1357,6 +1359,7 @@ var cop = (function() {
             height: 600,
             items: [{
               xtype: "tabpanel",
+              enableTabScroll:true,
               ref: "tabs",
               activeTab: 0,
               items: _(parseGeoserverJson(response)).map(createGeoserverGrid)}],
