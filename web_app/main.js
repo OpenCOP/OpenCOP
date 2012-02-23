@@ -1355,8 +1355,8 @@ var cop = (function() {
             iconCls: 'geosilk_layers_add',
             layout: "fit",
             modal: true,
-            width: 800,
-            height: 600,
+            width: '60%',
+            height: document.body.clientHeight - 50,
             items: [{
               xtype: "tabpanel",
               enableTabScroll:true,
