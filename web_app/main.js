@@ -428,23 +428,12 @@ var cop = (function() {
     // get feature info (popup)
     var WMSGetFeatureInfoControl = new OpenLayers.Control.WMSGetFeatureInfo({
       autoActivate: true,
-      infoFormat: "application/vnd.ogc.gml",
+      infoFormat: "text/html",
       vendorParams: { buffer: 10 },  //geoserver param, don't have to click dead center, I believe ESRI ignores it
-      maxFeatures: 3,  // Zach says this is a reasonable number [t06dec'11]ish
+      maxFeatures: 5,  // Zach says this is a reasonable number [t06dec'11]ish
       queryVisible: true, //only send the request for visible layers
       eventListeners: {
         "getfeatureinfo": function(e) {
-          if(e.features.length == 0) return GeoExtPopup.closeAll()  // prevent empty popups
-          var items = []
-          Ext.each(e.features, function(feature) {
-            items.push({
-              xtype: "propertygrid",
-              title: feature.fid,
-              customRenderers: fmap(feature.attributes, function() {return wrapInPopupDiv}),  // allow rendering html
-              listeners: { "beforeedit": function(e) { e.cancel = true }}, // prevent editing
-              source: feature.attributes
-            })
-          })
           GeoExtPopup.create({
             title: "Feature Info",
             width: 300,
@@ -453,11 +442,11 @@ var cop = (function() {
             map: app.center_south_and_east_panel.map_panel,
             location: e.xy,
             items: [{
-              xtype: 'tabpanel',
-              enableTabScroll:true,
-              ref: "tabs",
-              activeTab: 0,
-              items: items
+              xtype: 'box',
+              autoScroll: true,
+              autoEl: {
+                html: e.text
+              }
             }]
           }).show()
         }
