@@ -536,11 +536,10 @@ var cop = (function() {
     //      this.setText("Show Side Panel")
     //    }
       }, '->', {
-    //    Doesn't do anything
-    //    text: 'Application Settings',
-    //    iconCls: 'silk_cog_edit',
-    //    handler: displayApplicationSettings
-    //  }, '-', {
+        text: 'Application Settings',
+        iconCls: 'silk_cog_edit',
+        handler: function() { window.open("/geoserver", "geoserver") }
+      }, '-', {
         text: 'Log Out',
         iconCls: 'silk_user_go',
         handler: function () {
