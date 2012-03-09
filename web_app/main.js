@@ -316,6 +316,10 @@ var cop = (function() {
           feature.state = OpenLayers.State.UPDATE
         }}
 
+      // remove the edit_url field (making a heavy assumption
+      // that this field's name won't change)
+      delete feature.attributes.edit_url;
+      
       var propertyGrid = new Ext.grid.PropertyGrid({
         title: feature.fid,
         source: feature.attributes
@@ -449,8 +453,8 @@ var cop = (function() {
               }
             }]
           }).show()
+          }
         }
-      }
     })
     controls.push(WMSGetFeatureInfoControl)
 
