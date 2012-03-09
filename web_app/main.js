@@ -1292,13 +1292,12 @@ var cop = (function() {
               store: new GeoExt.data.WMSCapabilitiesStore({
                 url: gridOpts.url,
                 autoLoad: true,
-                sortInfo: {field: 'prefix', direction: "ASC"},
+                sortInfo: {field: 'title', direction: "ASC"},
                 listeners: {
                   "load": function(store, records, options) {
                     loadAdditionalLayers(store, gridOpts.id)}}}),
               columns: [
-                { header: "Layer Group", dataIndex: "prefix"  , width: 150, sortable: true },
-                { header: "Title"      , dataIndex: "title"   , width: 250, sortable: true },
+                { header: "Title"      , dataIndex: "title"   , width: 300, sortable: true },
                 { header: "Abstract"   , dataIndex: "abstract", width: 600, sortable: true }]}}
 
           // load layers that are not part of the GetCapabilities
