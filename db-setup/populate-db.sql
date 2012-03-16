@@ -142,4 +142,4 @@ create table config (
   description varchar(200)
 );
 
-insert into config values (0, 'db', 'domain', 'demo.geocent.com', 'ex: "demo.geocent.com", "localhost". Sets href for edit_url-making rule.');
+insert into config values (0, 'db', 'domain', 'http://demo.geocent.com', 'ex: "http://demo.geocent.com", "http://localhost". Sets href for edit_url-making rule.');
