@@ -6,6 +6,7 @@ var cop = (function() {
   var vectorLayer
   var selectedIconUrl
   var username  // null means guest
+  var refreshInterval = 30000;
 
   // Return url to query opencop database for table name. If the need
   // strikes you, you can throw a CQL_FILTER on the end.
@@ -193,6 +194,7 @@ var cop = (function() {
 
   // take a geoserver ajax response object and convert it into what
   // you'd expect: a list of javascript objects
+  // Pulls the response out of the FeatureCollection
   function parseGeoserverJson(response) {
     function parseId(idStr) {
       return idStr.match(/\d*$/)[0]  // ex: "layergroup.24" -> "24"
@@ -231,6 +233,7 @@ var cop = (function() {
   var init = function() {
     displayLoginPopup()
 
+//    OpenLayers.ProxyHost = "/geoserver/rest/proxy?url=";
     Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
     Ext.state.Manager.setProvider(new Ext.state.CookieProvider())
 
@@ -997,6 +1000,7 @@ var cop = (function() {
     function populateWfsGrid(layer) {
       if(!layer.url) return  // basically, not really a WFS layer -- probably KML
       var baseUrl = layer.url.split("?")[0] // the base url without params
+//      baseUrl = baseUrl.replace(/wms/, "wfs")
       new GeoExt.data.AttributeStore({
         url: baseUrl,
         // request specific params
@@ -1062,12 +1066,41 @@ var cop = (function() {
     // (generally meaning "including app")
     //
 
+      Ext.Ajax.request({
+        url: jsonUrl("config"),
+        success: function(response) {
+          var temp = _(parseGeoserverJson(response)).filter(
+            function(item) {
+              return item.component == "map" && item.name == "refreshInterval"
+          });
+          
+          if (null != temp && temp.length == 1) {
+            refreshInterval = temp[0].value;
+          }
+          autoRefreshLayers();
+        }
+      });
+
     function refreshAllLayers() {
       var layers = app.center_south_and_east_panel.map_panel.map.layers
       for (var i = layers.length - 1; i >= 0; --i) {
-        layers[i].redraw(true)}
-      app.center_south_and_east_panel.feature_table.store.reload()
+        refreshLayer(layers[i]);
+      }
+      if (editFeaturesActive()) {
+        app.center_south_and_east_panel.feature_table.store.reload()
+      }
     }
+
+   function refreshLayer(layer) {
+     if (layer.CLASS_NAME == "OpenLayers.Layer.WMS") {
+       layer.mergeNewParams({'random': Math.random()});
+     }
+   }
+
+   function autoRefreshLayers() {
+     refreshAllLayers();
+     setTimeout(autoRefreshLayers, refreshInterval);
+   }
 
     // Save the feature in the scratch vector layer through the power
     // of WFS-T, and refresh everything on the screen that touches that
@@ -1372,7 +1405,7 @@ var cop = (function() {
     function queryFeaturesActive() { return currentModePanel() == 'query_features' }
     function editFeaturesActive()  { return currentModePanel() == 'edit_features' }
     function layerDetailActive()   { return currentModePanel() == 'layer_detail' }
-
+    
     // add any kind of layer to the map
     //   - base layer
     //   - record

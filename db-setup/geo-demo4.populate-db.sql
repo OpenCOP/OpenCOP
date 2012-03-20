@@ -143,3 +143,4 @@ create table config (
 );
 
 insert into config values (0, 'db', 'domain', 'http://geo-demo4.geocent.com', 'ex: "http://demo.geocent.com", "http://localhost". Sets href for edit_url-making rule.');
+insert into config values (1, 'map', 'refreshInterval', '120000', 'Layer refresh interval in ms.');
