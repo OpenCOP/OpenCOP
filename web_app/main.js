@@ -52,7 +52,6 @@ var cop = (function() {
     ];
 
     var bumpIndex = function() {
-      debugger;
       index += 1;
       if( index >= availableStyles.length ) index = 0;
     };
