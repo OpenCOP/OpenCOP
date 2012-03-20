@@ -1141,6 +1141,8 @@ var cop = (function() {
    function refreshLayer(layer) {
      if (layer.CLASS_NAME == "OpenLayers.Layer.WMS") {
        layer.mergeNewParams({'random': Math.random()});
+     } else if (layer.CLASS_NAME == "OpenLayers.Layer.Vector" && layer.name != "Editable features") {
+       layer.refresh({ force: true, params: { 'random': Math.random()} });
      }
    }
 
