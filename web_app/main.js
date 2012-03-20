@@ -18,6 +18,52 @@ var cop = (function() {
       + "&typeName=opencop:" + tableName
   }
 
+  /**
+   * Return next style in style sequence. Sequence will eventually
+   * loop.
+   */
+  var getNextStyle = function() {
+
+    /**
+     * Build style by specifying changes to default style.
+     *
+     * @opts Hash of changes to make to default OpenLayers style
+     */
+    var buildStyle = function(opts) {
+      var style = OpenLayers.Util.extend(
+        {},
+        OpenLayers.Feature.Vector.style["default"]);
+      return OpenLayers.Util.applyDefaults(opts, style);
+    };
+
+    var index = 0;
+    var fillOpacity = 0.9;
+    var availableStyles = [
+      buildStyle({strokeColor: "red", fillColor: "red", fillOpacity: fillOpacity}),
+      buildStyle({strokeColor: "purple", fillColor: "purple", fillOpacity: fillOpacity}),
+      buildStyle({strokeColor: "black", fillColor: "black", fillOpacity: fillOpacity}),
+      buildStyle({strokeColor: "brown", fillColor: "brown", fillOpacity: fillOpacity}),
+      buildStyle({strokeColor: "pink", fillColor: "pink", fillOpacity: fillOpacity}),
+      buildStyle({strokeColor: "yellow", fillColor: "yellow", fillOpacity: fillOpacity}),
+      buildStyle({strokeColor: "white", fillColor: "white", fillOpacity: fillOpacity}),
+      buildStyle({strokeColor: "blue", fillColor: "blue", fillOpacity: fillOpacity}),
+      buildStyle({strokeColor: "orange", fillColor: "orange", fillOpacity: fillOpacity}),
+      buildStyle({strokeColor: "green", fillColor: "green", fillOpacity: fillOpacity})
+    ];
+
+    var bumpIndex = function() {
+      debugger;
+      index += 1;
+      if( index >= availableStyles.length ) index = 0;
+    };
+
+    return function() {
+      var style = availableStyles[index];
+      bumpIndex();
+      return style;
+    }
+  }();
+
   function buildOlLayer(opts) {
 
     function buildKmlLayer(opts) {
@@ -28,7 +74,7 @@ var cop = (function() {
         return url
       }
 
-      return new OpenLayers.Layer.Vector(opts.name, {
+      var kmlLayer = new OpenLayers.Layer.Vector(opts.name, {
         projection: new OpenLayers.Projection("EPSG:4326"),
         strategies: [new OpenLayers.Strategy.Fixed()],
         protocol: new OpenLayers.Protocol.HTTP({
@@ -37,6 +83,8 @@ var cop = (function() {
               extractStyles: true,
               extractAttributes: true,
               maxDepth: 2 })})})
+      kmlLayer.style = getNextStyle();
+      return kmlLayer;
     }
 
     function buildWmsLayer(opts) {
