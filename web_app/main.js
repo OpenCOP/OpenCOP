@@ -369,7 +369,7 @@ var cop = (function() {
       // remove the edit_url field (making a heavy assumption
       // that this field's name won't change)
       delete feature.attributes.edit_url;
-      
+
       var propertyGrid = new Ext.grid.PropertyGrid({
         title: feature.fid,
         source: feature.attributes
@@ -488,6 +488,8 @@ var cop = (function() {
       queryVisible: true, //only send the request for visible layers
       eventListeners: {
         "getfeatureinfo": function(e) {
+          var bodyIsEmpty = !(/<table/.test(e.text))
+          if(bodyIsEmpty) return
           GeoExtPopup.create({
             title: "Feature Info",
             width: 300,
@@ -1120,7 +1122,7 @@ var cop = (function() {
             function(item) {
               return item.component == "map" && item.name == "refreshInterval"
           });
-          
+
           if (null != temp && temp.length == 1) {
             refreshInterval = temp[0].value;
           }
@@ -1454,7 +1456,7 @@ var cop = (function() {
     function queryFeaturesActive() { return currentModePanel() == 'query_features' }
     function editFeaturesActive()  { return currentModePanel() == 'edit_features' }
     function layerDetailActive()   { return currentModePanel() == 'layer_detail' }
-    
+
     // add any kind of layer to the map
     //   - base layer
     //   - record
