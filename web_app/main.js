@@ -1257,18 +1257,36 @@ var cop = (function() {
                 fieldLabel: 'Username',
                 name: 'username',
                 ref: "username",
-                allowBlank: false
+                allowBlank: false,
+                listeners: {
+                  afterrender: function(field) {
+                    field.focus(
+                      false,  // true = select existing text in box
+                      100)    // delay (ms)
+                  }
+                }
               }, {
                 fieldLabel: 'Password',
                 name: 'password',
                 ref: "password",
                 inputType: "password",
-                allowBlank: false
+                allowBlank: false,
+                enableKeyEvents: true,
+                listeners: {
+                  specialKey: function(field, el) {
+                    if(el.getKey() == Ext.EventObject.ENTER) {
+                      Ext.getCmp('log_in_button').handler.call(Ext.getCmp('log_in_button').scope)
+                    }
+                  }
+                }
               }
             ],
             buttons: [
               {
                 text: 'Log In',
+                name: 'log_in_button',
+                id: 'log_in_button',
+                ref: 'log_in_button',
                 iconCls: 'silk_user_go',
                 formBind: true,
                 handler: function() {
