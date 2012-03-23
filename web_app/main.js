@@ -488,7 +488,7 @@ var cop = (function() {
       queryVisible: true, //only send the request for visible layers
       eventListeners: {
         "getfeatureinfo": function(e) {
-          var bodyIsEmpty = !(/<table/.test(e.text))
+          var bodyIsEmpty = /<body>\s*<\/body>/.test(e.text)
           if(bodyIsEmpty) return
           GeoExtPopup.create({
             title: "Feature Info",
