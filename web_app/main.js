@@ -100,13 +100,6 @@ var cop = (function() {
     if(opts.type == "WMS") return buildWmsLayer(opts)
   }
 
-  // Objects with the same keys and values (excluding functions) are equal.
-  //   Example: {a: 1, :b: 2} == {a: 1, :b: 2} != {a: 1, b: 2, c: 3}.
-  function equalAttributes(objA, objB) {
-    // Yes, I feel bad about how hacky this is.  But it seems to work.
-    return Ext.encode(objA) === Ext.encode(objB)
-  }
-
   function displayAppInfo() {
     var win = new Ext.Window({
       title: "About OpenCOP",
@@ -277,6 +270,41 @@ var cop = (function() {
       : createFeature(obj))
   }
 
+  // utils namespace (for the purest of the pure functions)
+  var utils = {
+
+    /**
+     * Return a new arr where each object is unique, with uniqueness tested
+     * against field (a string).
+     */
+    makeUniqOnField: function(arr, field) {
+      return _.reduce(
+          arr,
+          function(acc, n) {
+            var isIn = _.find(acc, function(m) { return m[field] == n[field]})
+            if(!isIn) acc.push(n)
+            return acc },
+          [])
+    },
+
+    // Objects with the same keys and values (excluding functions) are equal.
+    //   Example: {a: 1, :b: 2} == {a: 1, :b: 2} != {a: 1, b: 2, c: 3}.
+    equalAttributes: function(objA, objB) {
+      // Yes, I feel bad about how hacky this is.  But it seems to work.
+      return Ext.encode(objA) === Ext.encode(objB)
+    },
+
+    // Return a copy of obj where all its attributes have been passed
+    // through fn.
+    fmap: function(obj, fn) {
+      var n = {}
+      _(obj).each(function(val, key) { n[key] = fn(val) })
+      return n
+    },
+
+    defaultTo: function(obj, val) { return obj == null || obj == undefined ? val : obj }
+  }
+
   var init = function() {
     displayLoginPopup()
 
@@ -303,6 +331,125 @@ var cop = (function() {
       }),
       'displayInLayerSwitcher': false
     })
+
+    // legend namespace
+    var legend = (function() {
+
+      function refreshLegendPanel() {
+
+        if(!legendActive()) return
+
+        var rec = currentlySelectedLayerRecord()
+        var title = rec.data.title
+        var styles = utils.makeUniqOnField(rec.data.styles, "name")
+        var currentStyleIndex = getStyleIndex(styles, rec.data.layer.params.STYLES)
+        var currentStyle = styles[currentStyleIndex]
+
+        Ext.get("legend_layer_title").update(title)
+
+        // update style-selector combo box
+        var comboBoxPanel = app.west.selected_layer_panel.tabs.legend_panel.legend_combo_box_panel
+        comboBoxPanel.removeAll()
+        if(styles.length > 1) {
+          comboBoxPanel.add(buildStylesComboBox(styles, currentStyleIndex))
+          comboBoxPanel.doLayout()
+        }
+
+        setLegendToStyle(currentStyle)
+      }
+
+      function setLegendToStyle(style) {
+        Ext.get("legend_style_title").update(style.title)
+        Ext.get("legend_style_abstract").update(style.abstract)
+        Ext.get("legend_style_graphic").dom.src = style.legend.href
+      }
+
+      function getStyleIndex(styles, name) {
+        return !name ? 0 : _.indexOf(styles, _.find(styles, function(s) { return s.name == name}))
+      }
+
+      function buildStylesComboBox(styles, currentStyleIndex) {
+        return new Ext.form.ComboBox({
+          typeAhead: true,
+          triggerAction: 'all',
+          autoSelect: true,
+          lazyRender:true,
+          mode: 'local',
+          editable: false,  // set to true to allow filtering as the user types
+          valueField: 'myId',
+          displayField: 'displayText',
+          store: new Ext.data.ArrayStore({
+            id: 0,
+            fields: [ 'myId', 'displayText' ],
+            data: buildStylesStore(styles) }),
+          listeners: {
+            'select': function(combo, record, index) {
+              setLegendToStyle(styles[index])
+              currentlySelectedLayerRecord().data.layer
+                .mergeNewParams({styles: styles[index].name})}}
+        }).setValue(currentStyleIndex)
+      }
+
+      /**
+       * Take a list of styles, and return a store suitable for a comboBox.
+       *
+       * Example output: [[0, "text0"], [1, "text1"], [2, "text2"], ...]
+       */
+      function buildStylesStore(styles) {
+        var idList = _.range(styles.length)
+        return _.map(idList, function(i) { return [i, styles[i].name] })
+      }
+
+      function buildPopoutLegendPopup() {
+
+        // grab what the legend is currently showing
+        var layerName = Ext.get("legend_layer_title").dom.innerText
+        var styleTitle = Ext.get("legend_style_title").dom.innerText
+        var styleAbstract = Ext.get("legend_style_abstract").dom.innerText
+        var legendGraphicUrl = Ext.get("legend_style_graphic").dom.src
+
+        var nav = new Ext.FormPanel(
+          { frame: true
+          , monitorValid: true
+          , defaultType: 'textfield'
+          , items:
+            [ { xtype: 'box'
+              , cls: "legend-padding"
+              , autoEl:
+                { tag: 'h1'
+                , html: styleTitle }}
+            , { xtype: 'box'
+              , cls: "legend-padding"
+              , autoEl:
+                { tag: 'p'
+                , html: styleAbstract }}
+            , { xtype: 'box'
+              , cls: "legend-padding"
+              , autoEl:
+                { tag: 'img'
+                , src: legendGraphicUrl }}]})
+        var dlgPopup = new Ext.Window(
+          { collapsible: true
+          , constrain: true
+          , cls: "legend-window"
+          , height: 300
+          , items: [nav]
+          , layout: 'fit'
+          , maximizable: true
+          , modal: false
+          , plain: true
+          , renderTo: 'map_panel'
+          , resizable: true
+          , width: 300
+          , title: "Legend: " + layerName
+          })
+        dlgPopup.show()
+        return dlgPopup
+      }
+
+      return { refreshLegendPanel: refreshLegendPanel
+        , buildPopoutLegendPopup: buildPopoutLegendPopup }
+    }())
 
     function cancelEditWfs(feature) {
 
@@ -415,14 +562,6 @@ var cop = (function() {
       drawControl.deactivate()
     }
 
-    // Return a copy of obj where all its attributes have been passed
-    // through fn.
-    function fmap(obj, fn) {
-      var n = {}
-      _(obj).each(function(val, key) { n[key] = fn(val) })
-      return n
-    }
-
     function wrapInPopupDiv(text) {
       return _("<div class='in-popup'><%=s%></div>").template({s: text})
     }
@@ -440,7 +579,7 @@ var cop = (function() {
         items: [new Ext.grid.PropertyGrid({
           listeners: { "beforeedit": function(e) { e.cancel = true }}, // prevent editing
           title: feature.fid,
-          customRenderers: fmap(feature.attributes, function() {return wrapInPopupDiv}),  // allow rendering html
+          customRenderers: utils.fmap(feature.attributes, function() {return wrapInPopupDiv}),  // allow rendering html
           source: feature.attributes })],
         buttons: [{
           text: 'Close',
@@ -700,6 +839,45 @@ var cop = (function() {
       }]
     }
 
+    var legendPanel = {
+      ref: "legend_panel",
+      id: "legend_panel",
+      title: 'Legend',
+      cls: 'legend_panel',
+      autoScroll: true,
+      iconCls: "silk_book_open",
+      frame: true,
+      listeners: { "activate": legend.refreshLegendPanel },
+      items: [
+        { xtype: 'tbbutton',
+          cls: "legend-popout-button",
+          text: ">>",
+          listeners: { 'click': legend.buildPopoutLegendPopup }},
+        { xtype: 'box',
+          cls: "legend-layer-title",
+          autoEl: {
+            tag: 'h1',
+            id: 'legend_layer_title' }},
+        { xtype: 'container',
+          cls: "legend-padding",
+          ref: 'legend_combo_box_panel' },
+        { xtype: 'box',
+          cls: "legend-padding",
+          autoEl: {
+            tag: 'h2',
+            id: 'legend_style_title' }},
+        { xtype: 'box',
+          cls: "legend-padding",
+          autoEl: {
+            tag: 'p',
+            id: 'legend_style_abstract' }},
+        { xtype: 'box',
+          cls: "legend-padding",
+          autoEl: {
+            tag: 'img',
+            id: 'legend_style_graphic',
+            src: "" }}]}
+
     var editFeaturesPanel = {
       ref: "edit_features",
       title: 'Edit',
@@ -745,7 +923,7 @@ var cop = (function() {
         enableTabScroll:true,
         ref: "tabs",
         activeTab: 0,
-        items: [layerDetail, editFeaturesPanel]
+        items: [layerDetail, editFeaturesPanel, legendPanel]
       }]
     }
 
@@ -845,7 +1023,7 @@ var cop = (function() {
           // we have an attribute column
           fields.push({
             name: name,
-          type: types[type]
+            type: types[type]
           })
           columns.push({
             xtype: types[type] == "string" ?
@@ -894,6 +1072,7 @@ var cop = (function() {
       refreshLayerDetailsPanel()
       refreshVectorLayerAndFeatureGrid()
       refreshControl()
+      legend.refreshLegendPanel()
     }
 
     function moveToDetailsTab() {
@@ -1115,20 +1294,20 @@ var cop = (function() {
     // (generally meaning "including app")
     //
 
-      Ext.Ajax.request({
-        url: jsonUrl("config"),
-        success: function(response) {
-          var temp = _(parseGeoserverJson(response)).filter(
-            function(item) {
-              return item.component == "map" && item.name == "refreshInterval"
-          });
+    Ext.Ajax.request({
+      url: jsonUrl("config"),
+      success: function(response) {
+        var temp = _(parseGeoserverJson(response)).filter(
+          function(item) {
+            return item.component == "map" && item.name == "refreshInterval"
+        });
 
-          if (null != temp && temp.length == 1) {
-            refreshInterval = temp[0].value;
-          }
-          autoRefreshLayers();
+        if (null != temp && temp.length == 1) {
+          refreshInterval = temp[0].value;
         }
-      });
+        autoRefreshLayers();
+      }
+    });
 
     function refreshAllLayers() {
       var layers = app.center_south_and_east_panel.map_panel.map.layers
@@ -1140,18 +1319,18 @@ var cop = (function() {
       }
     }
 
-   function refreshLayer(layer) {
-     if (layer.CLASS_NAME == "OpenLayers.Layer.WMS") {
-       layer.mergeNewParams({'random': Math.random()});
-     } else if (layer.CLASS_NAME == "OpenLayers.Layer.Vector" && layer.name != "Editable features") {
-       layer.refresh({ force: true, params: { 'random': Math.random()} });
-     }
-   }
+    function refreshLayer(layer) {
+      if (layer.CLASS_NAME == "OpenLayers.Layer.WMS") {
+        layer.mergeNewParams({ 'random': Math.random() });
+      } else if (layer.CLASS_NAME == "OpenLayers.Layer.Vector" && layer.name != "Editable features") {
+        layer.refresh({ force: true, params: { 'random': Math.random()} });
+      }
+    }
 
-   function autoRefreshLayers() {
-     refreshAllLayers();
-     setTimeout(autoRefreshLayers, refreshInterval);
-   }
+    function autoRefreshLayers() {
+      refreshAllLayers();
+      setTimeout(autoRefreshLayers, refreshInterval);
+    }
 
     // Save the feature in the scratch vector layer through the power
     // of WFS-T, and refresh everything on the screen that touches that
@@ -1220,7 +1399,7 @@ var cop = (function() {
     }
 
     function featureChanged(feature) {
-      return !equalAttributes(feature.data, feature.attributes)
+      return !utils.equalAttributes(feature.data, feature.attributes)
     }
 
     function displayLoginPopup() {
@@ -1474,6 +1653,7 @@ var cop = (function() {
     function queryFeaturesActive() { return currentModePanel() == 'query_features' }
     function editFeaturesActive()  { return currentModePanel() == 'edit_features' }
     function layerDetailActive()   { return currentModePanel() == 'layer_detail' }
+    function legendActive()        { return currentModePanel() == 'legend_panel' }
 
     // add any kind of layer to the map
     //   - base layer
@@ -1590,7 +1770,10 @@ var cop = (function() {
   return { init:init
     , debug:debug
     , selectIcon:selectIcon
+    , utils:utils
   }
 }())
 
-Ext.onReady(cop.init)
+Ext.onReady(function() {
+  cop.init()
+  if(runTests) test.run() })

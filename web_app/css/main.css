@@ -126,3 +126,27 @@ div.in-popup table td {
   border-color:#a3bad9;
   color:#222;
 }
+
+
+/**  legendary!  **/
+
+.legend-padding {
+  padding: 5px 0px 0px 2px;
+  margin: 0px;
+}
+
+.legend-layer-title {
+  font-size: 1.3em;
+  padding-bottom: 5px;
+  padding-left: 2px;
+}
+
+.legend-popout-button {
+  float: right;
+}
+
+.legend-window {
+  /*  src: http://www.w3schools.com/css/css_image_transparency.asp  */
+  opacity:0.95;
+  filter:alpha(opacity=95); /* For IE8 and earlier */
+}
