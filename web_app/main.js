@@ -1126,7 +1126,7 @@ var cop = (function() {
         vec_off()
         kml_on()
         drw_off()
-      } else if(mode == "layer_detail" || mode == "legend_panel") {
+      } else if(mode == "layer_detail") {
         if(type == "WMS") {
           wms_on()
           vec_off()
@@ -1140,6 +1140,24 @@ var cop = (function() {
         } else if(isBaseLayer(type)) {
           all_off()
         } else {
+          all_off()
+        }
+      } else if(mode == "legend_panel") {
+        if(type == "WMS") {
+          wms_on()
+          vec_off()
+          kml_off()
+          drw_off()
+        } else if(type == "KML") {
+          wms_off()
+          vec_off()
+          kml_on()
+          drw_off()
+        } else if(isBaseLayer(type)) {
+          moveToDetailsTab()
+          all_off()
+        } else {
+          moveToDetailsTab()
           all_off()
         }
       } else if(mode == "edit_features") {
