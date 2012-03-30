@@ -820,9 +820,11 @@ var cop = (function() {
       }, {
         xtype: "gx_opacityslider",
         ref: "opacity_slider",
+        value: 100,
         aggressive: true,
-        changevisibility: true,
-        value: 100
+        delay: 500,
+        changeVisibilityDelay: 500,
+        changevisibility: true
       }, {
         xtype: 'box',
         autoEl: {
@@ -1183,7 +1185,26 @@ var cop = (function() {
       if( !layerRecord ) return
       Ext.get('layer-description-title').update(layerRecord.data.title)
       Ext.get('layer_description').update(layerRecord.data.abstract)
-      app.west.selected_layer_panel.tabs.layer_detail.opacity_slider.setLayer(layerRecord.getLayer())
+
+      // hide the opacity slider for base layers
+      //
+      // Why?  Issue #35.  There's a bug somewhere in something such that, for
+      // base layers only, setting the opacity with the slider causes the
+      // slider to oscillate between the old and the new values until you click
+      // on another layer.  Thus, hide the mess.
+      //
+      // Playing with all settings listed in these places didn't help:
+      // - http://docs.sencha.com/ext-js/3-4/#!/api/Ext.slider.SingleSlider
+      // - http://www.geoext.org/lib/GeoExt/widgets/LayerOpacitySlider.html
+      //
+      var slider = app.west.selected_layer_panel.tabs.layer_detail.opacity_slider
+      if(layerRecord.data.layer.baselayer) {
+        slider.hide()
+      } else {
+        slider.setLayer(layerRecord.getLayer())
+        slider.show()
+      }
+
       app.west.selected_layer_panel.expand()
       populateIcons()
     }
