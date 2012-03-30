@@ -847,7 +847,10 @@ var cop = (function() {
       autoScroll: true,
       iconCls: "silk_book_open",
       frame: true,
-      listeners: { "activate": legend.refreshLegendPanel },
+      listeners: { "activate": function() {
+        refreshVectorLayerAndFeatureGrid()
+        refreshControl()
+        legend.refreshLegendPanel() }},
       items: [
         { xtype: 'tbbutton',
           cls: "legend-popout-button",
@@ -1083,6 +1086,8 @@ var cop = (function() {
     // Sometimes which controls are activated gets pretty messed up.
     // This function attempts to set everything back to something
     // stable.
+    //
+    // This function could equally be called "hammer time".
     function refreshControl() {
 
       function currentLayerType() {
@@ -1091,26 +1096,26 @@ var cop = (function() {
         if(layerRecord.id.match("WMS")) return "WMS"
         if(layerRecord.id.match("Google")) return "Google"
         if(layerRecord.id.match("Yahoo")) return "Yahoo"
-        return "KML"
-      }
+        return "KML" }
 
-      function isBaseLayer(type) {
-        return type == "Google" || type == "Yahoo"
-      }
+      function isBaseLayer(type) { return type == "Google" || type == "Yahoo" }
 
       function wms_on() {WMSGetFeatureInfoControl.activate()}
       function vec_on() {selectFeatureControl.activate()}
       function kml_on() {_(kmlSelectControls).invoke("activate")}
+      // drw_on() doesn't exist because drawControl is *only* activated when
+      // the user selects an icon on the edit tab
 
       function wms_off() {WMSGetFeatureInfoControl.deactivate()}
       function vec_off() {selectFeatureControl.deactivate()}
       function kml_off() {_(kmlSelectControls).invoke("deactivate")}
+      function drw_off() {drawControl.deactivate()}
 
       function all_off() {
         wms_off()
         vec_off()
         kml_off()
-      }
+        drw_off() }
 
       var mode = currentModePanel()
       var type = currentLayerType()
@@ -1120,15 +1125,18 @@ var cop = (function() {
         wms_on()
         vec_off()
         kml_on()
-      } else if(mode == "layer_detail" ) {
+        drw_off()
+      } else if(mode == "layer_detail" || mode == "legend_panel") {
         if(type == "WMS") {
           wms_on()
           vec_off()
           kml_off()
+          drw_off()
         } else if(type == "KML") {
           wms_off()
           vec_off()
           kml_on()
+          drw_off()
         } else if(isBaseLayer(type)) {
           all_off()
         } else {
@@ -1144,6 +1152,7 @@ var cop = (function() {
           wms_off()
           vec_off()
           kml_on()
+          drw_off()
         } else if(isBaseLayer(type)) {
           moveToDetailsTab()
           all_off()
