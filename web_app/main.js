@@ -1167,6 +1167,7 @@ var cop = (function() {
           wms_off()
           vec_on()
           kml_off()
+          drw_off()
         } else if(type == "KML") {
           moveToDetailsTab()
           wms_off()
