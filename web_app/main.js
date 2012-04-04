@@ -1768,8 +1768,7 @@ var cop = (function() {
         }
         addLayer(new OpenLayers.Layer.Google(opts.name, {
             sphericalMercator: true,
-            // transitionEffect: 'resize',
-            transitionEffect: 'none',
+            transitionEffect: 'resize',
             type: type,
             isBaseLayer: true,
             baselayer: true,  // change to 'group'
