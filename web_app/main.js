@@ -90,10 +90,10 @@ var cop = (function() {
       return new OpenLayers.Layer.WMS(
         opts.name,
         opts.url,
-        {layers: opts.layers,
-         transparent: "true",
-         format: "image/png"},
-        {isBaseLayer: false})
+        { layers: opts.layers,
+          transparent: "true",
+          format: "image/png"},
+        { isBaseLayer: false})
     }
 
     if(opts.type == "KML") return buildKmlLayer(opts)
@@ -1768,7 +1768,8 @@ var cop = (function() {
         }
         addLayer(new OpenLayers.Layer.Google(opts.name, {
             sphericalMercator: true,
-            transitionEffect: 'resize',
+            // transitionEffect: 'resize',
+            transitionEffect: 'none',
             type: type,
             isBaseLayer: true,
             baselayer: true,  // change to 'group'
@@ -1795,7 +1796,8 @@ var cop = (function() {
     }
 
     loadBaselayers()
-  }
+
+  }  // close init()
 
   // make rendering html in javascript stupid simple
   var h = (function() {

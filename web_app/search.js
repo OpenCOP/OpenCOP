@@ -69,6 +69,19 @@ function searchEqual(object, value, maxDepth) {
   return search(object, function(n) { return n == value}, maxDepth) }
 
 /**
+ * Same as search(), but instead of taking a predicate it takes an exact string
+ * to search for, case in-sensitive.
+ */
+function searchEqualI(object, value, maxDepth) {
+  return search(
+      object,
+      function(n) {
+        if( typeof n == "string" ) {
+          return n.toLowerCase() == value.toLowerCase() }
+        return n == value },
+      maxDepth) }
+
+/**
  * Same as search(), but instead of taking a predicate it takes a string to
  * fuzzy-match on.
  */
