@@ -3,3 +3,5 @@ build/
 .war
 *.swp
 *.war
+/selenium_tests/nbproject/private/
+/selenium_tests/dist/
