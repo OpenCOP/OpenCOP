@@ -822,8 +822,6 @@ var cop = (function() {
         ref: "opacity_slider",
         value: 100,
         aggressive: true,
-        delay: 500,
-        changeVisibilityDelay: 500,
         changevisibility: true
       }, {
         xtype: 'box',
@@ -1111,7 +1109,7 @@ var cop = (function() {
       function wms_off() {WMSGetFeatureInfoControl.deactivate()}
       function vec_off() {selectFeatureControl.deactivate()}
       function kml_off() {_(kmlSelectControls).invoke("deactivate")}
-      function drw_off() {drawControl.deactivate()}
+      function drw_off() { drawControl.deactivate() }
 
       function all_off() {
         wms_off()
@@ -1184,30 +1182,27 @@ var cop = (function() {
     function refreshLayerDetailsPanel() {
       var layerRecord = currentlySelectedLayerRecord()
       if( !layerRecord ) return
+
+      var layer = layerRecord.getLayer()
+      var slider = app.west.selected_layer_panel.tabs.layer_detail.opacity_slider
+
       Ext.get('layer-description-title').update(layerRecord.data.title)
       Ext.get('layer_description').update(layerRecord.data.abstract)
-
-      // hide the opacity slider for base layers
-      //
-      // Why?  Issue #35.  There's a bug somewhere in something such that, for
-      // base layers only, setting the opacity with the slider causes the
-      // slider to oscillate between the old and the new values until you click
-      // on another layer.  Thus, hide the mess.
-      //
-      // Playing with all settings listed in these places didn't help:
-      // - http://docs.sencha.com/ext-js/3-4/#!/api/Ext.slider.SingleSlider
-      // - http://www.geoext.org/lib/GeoExt/widgets/LayerOpacitySlider.html
-      //
-      var slider = app.west.selected_layer_panel.tabs.layer_detail.opacity_slider
-      if(layerRecord.data.layer.baselayer) {
-        slider.hide()
-      } else {
-        slider.setLayer(layerRecord.getLayer())
-        slider.show()
-      }
-
+      slider.setLayer(layer)
       app.west.selected_layer_panel.expand()
       populateIcons()
+
+      // This is a terrible, terrible hack.  Without it, the slider starts life
+      // out logically at 100% but visually at 90%.  It doesn't matter what the
+      // layer it's bound to says.  This double-set is the only way I could
+      // find to force the slider to start out at 100%.
+      //
+      // And yes, it needs to happen after the element has already been made
+      // visual.  Somewhat surprisingly, this doesn't cause flicker.
+      if(layer.opacity == null) {
+        slider.setValue(99)
+        slider.setValue(100)
+      }
     }
 
     function populateIcons() {
