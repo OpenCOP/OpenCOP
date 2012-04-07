@@ -748,8 +748,7 @@ var cop = (function() {
       expanded: true,
       allowDrag: false,
       isTarget: false,
-      iconCls: "geosilk_folder_layer"
-      ,
+      iconCls: "geosilk_folder_layer",
       loader: {
         filter: function(record) {
           var layer = record.get("layer")
@@ -761,8 +760,7 @@ var cop = (function() {
       expanded: true,
       allowDrag: false,
       allowDrop: false,
-      iconCls: "geosilk_folder_map"
-    }))
+      iconCls: "geosilk_folder_map" }))
 
     var tree_panel = {
       autoScroll: true,
@@ -776,6 +774,20 @@ var cop = (function() {
       xtype: "treepanel",
       root: layerTree,
       rootVisible: false,
+      listeners: {
+
+        // The geoext/openlayers system doesn't automatically update the
+        // internal baselayer settings when the user makes a selection in the
+        // layer tree.  Therefore, we have to do that by hand here.
+        //
+        // This fixes the "I zoom out, but the base layer doesn't always zoom
+        // out" problem (Issue #34).
+        "checkchange": function(node, checked) {
+          var layer = node.layer
+          if(layer.baselayer && checked) {
+            var map = app.center_south_and_east_panel.map_panel.map
+            map.setBaseLayer(layer) }}},
+
       tbar: [
         {
           text: 'Add',
@@ -1199,7 +1211,11 @@ var cop = (function() {
       //
       // And yes, it needs to happen after the element has already been made
       // visual.  Somewhat surprisingly, this doesn't cause flicker.
-      if(layer.opacity == null) {
+      //
+      // This only needs to happen the first time.  The first time, the values
+      // will either be 1 or null.
+
+      if(layer.opacity == 1 || layer.opacity == null) {
         slider.setValue(99)
         slider.setValue(100)
       }
@@ -1741,7 +1757,8 @@ var cop = (function() {
       }
 
       if(isKml(obj)) addSelectControl(obj.data.layer)
-      app.center_south_and_east_panel.map_panel.layers.add(forceToRecord(obj))
+
+      app.center_south_and_east_panel.map_panel.layers.add([forceToRecord(obj)])
     }
 
     function loadBaselayers() {
@@ -1767,26 +1784,48 @@ var cop = (function() {
             type: type,
             isBaseLayer: true,
             baselayer: true,  // change to 'group'
-            visibile: opts.isdefault,  // this doesn't seem to have an effect
-            numZoomLevels: opts.numzoomlevels
-          }))
+            visible: opts.isdefault,
+            numZoomLevels: opts.numzoomlevels }))
       }
 
       function addYahooBaseLayer(opts) {
         addLayer(new OpenLayers.Layer.Yahoo(opts.name, {
           sphericalMercator: true,
           isBaseLayer: true,
-          baselayer: true
-        }))
+          baselayer: true }))
       }
 
       Ext.Ajax.request({
-       url: jsonUrl("baselayer"),
-       success: function(response) {
-         var features = Ext.util.JSON.decode(response.responseText).features
-         Ext.each(features, function(n) {addBaseLayer(n.properties)})
-       }
+        url: jsonUrl("baselayer"),
+        success: function(response) {
+          var features = Ext.util.JSON.decode(response.responseText).features
+          Ext.each(features, function(f) { addBaseLayer(f.properties) })
+
+          // the default base layer must be set in the layer box by hand
+          Ext.each(features, function(f) {
+            if(f.properties.isdefault) checkBaseLayer(f.properties.name) })
+        }
       })
+    }
+
+    // check the radio box for the base layer
+    function checkBaseLayer(baseLayerName) {
+
+      // This is just about the hackiest thing ever.
+      //
+      // I searched high and low, but couldn't find a programmatic way to set
+      // the radio buttons next to the base layers.  So instead I use jquery to
+      // simulate a mouse click.
+      //
+      // We don't control which elements appear here, and there wasn't a lot to
+      // select on.  The result is really, really fragile.  And this whole
+      // system will break if there are ever multiple base layers with the same
+      // name.
+
+      var checkboxes = $('input[name=baselayer_checkbox]')
+      var names = checkboxes.next().children().map(function(i, n) { return n.innerHTML })
+      var index = _(names).indexOf(baseLayerName)
+      checkboxes[index].click()
     }
 
     loadBaselayers()
