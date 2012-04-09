@@ -656,11 +656,10 @@ var cop = (function() {
       id: "map_panel",
       region: "center",
       map: {
-        numZoomLevels: 19,
+        // numZoomLevels: 19,  // see issue 46
         projection        : new OpenLayers.Projection("EPSG:900913" ),
         displayProjection : new OpenLayers.Projection("EPSG:4326"   ),
         units             : "m",
-        //numZoomLevels     : 21,
         maxResolution     : 156543.0339,
         tileSize          : new OpenLayers.Size(512,512),
         maxExtent : new OpenLayers.Bounds(-20037508, -20037508,
@@ -1785,8 +1784,8 @@ var cop = (function() {
             type: type,
             isBaseLayer: true,
             baselayer: true,  // change to 'group'
-            visible: opts.isdefault,
-            numZoomLevels: opts.numzoomlevels }))
+            // numZoomLevels: opts.numzoomlevels,  // see issue 46
+            visible: opts.isdefault }))
       }
 
       function addYahooBaseLayer(opts) {
