@@ -92,6 +92,7 @@ var cop = (function() {
         opts.url,
         { layers: opts.layers,
           transparent: "true",
+          'random': Math.random(),
           format: "image/png"},
         { isBaseLayer: false})
     }
