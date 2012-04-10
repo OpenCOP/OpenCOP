@@ -1,6 +1,6 @@
 ## Overview ##
 
-OpenCOP is an open source collection of tools that enable cross platform sharing and editing of real time
+OpenCOP is an open source collection of tools that enables cross platform sharing and editing of real time
 GIS data layers.  OpenCOP began as a DHS SBIR and continues as an active project deployed for Emergency Management. 
 
 Visit [OpenCOP Demo](http://demo.geocent.com/opencop) to play with a live version. 
