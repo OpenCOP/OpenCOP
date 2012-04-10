@@ -661,7 +661,7 @@ var cop = (function() {
         displayProjection : new OpenLayers.Projection("EPSG:4326"   ),
         units             : "m",
         maxResolution     : 156543.0339,
-        tileSize          : new OpenLayers.Size(512,512),
+        tileSize          : new OpenLayers.Size(256,256),
         maxExtent : new OpenLayers.Bounds(-20037508, -20037508,
                                            20037508,  20037508.34),
         controls: controls
