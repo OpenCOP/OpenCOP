@@ -150,7 +150,6 @@ else
   sudo service postgresql-8.4 restart
   psql -U postgres -c "CREATE ROLE opencop LOGIN ENCRYPTED PASSWORD '57levelsofeoc' INHERIT CREATEDB CREATEROLE;"
   psql -U postgres -c "CREATE ROLE fmanager LOGIN ENCRYPTED PASSWORD 'md5247826c7fcf1dfcb0fe1b350cd0cda2e' INHERIT CREATEDB CREATEROLE;"
-  #createuser -U postgres smann
 fi
 
 # create databases (and postgis-ify them)
@@ -177,8 +176,6 @@ su $username -c 'cd ~/OpenCOP; sh ./local_deploy'
 # So copy it here
 cp /home/$username/OpenCOP/build/opencop.war /var/lib/tomcat6/webapps
 
-#sudo 'cd ~/OpenCOP; sh ./local_deploy'
-
 # Restart apache and tomcat
 sudo service apache2 restart
 sudo service tomcat6 restart
@@ -196,7 +193,7 @@ apt-get install curl
 
 # Wait for Geoserver to come up
 geoserver_up="false"
-echo -n "$p Waiting for Geoserver to come up. May take a minute or two..."
+echo -n "$p Waiting for Geoserver to come up. This may take a minute or two..."
 
 while [ $geoserver_up != "true" ]
 do
@@ -209,7 +206,7 @@ do
 		geoserver_up="true"
 	else
 		echo -n "."
-		sleep 5
+		sleep 3
 	fi
 done
 
@@ -221,33 +218,36 @@ su $username -c 'cd ~/OpenCOP/db-setup; sh ./populate-db'
 
 # Add the opencop workspace/namespace
 ## TODO: Check the return values from these calls
-echo "$p Adding opencop workspace"
-curl -u admin:geoserver -v -XPOST -H 'Content-type: text/xml' -d '<namespace><uri>http://opencop.geocent.com</uri><prefix>opencop</prefix></namespace>' http://$localip/geoserver/rest/namespaces
+echo -n "$p Adding opencop workspace..."
+response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d '<namespace><uri>http://opencop.geocent.com</uri><prefix>opencop</prefix></namespace>' http://$localip/geoserver/rest/namespaces`
+if [ "$response" = "201" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
 
-echo "$p Adding the opencop data store"
+echo -n "$p Adding the opencop data store..."
 ## TODO: Not all the params are specified here(spaces in, for example, "max connections", hose up the xml). Doesn't appear they need to be, but...
-curl -u admin:geoserver -v -XPOST -H 'Content-type: text/xml' -d "<dataStore><name>opencop</name><connectionParameters><host>$localip</host><port>5432</port><database>opencop</database><user>opencop</user><dbtype>postgis</dbtype><passwd>57levelsofeoc</passwd></connectionParameters></dataStore>" http://$localip/geoserver/rest/workspaces/opencop/datastores
+response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<dataStore><name>opencop</name><connectionParameters><host>$localip</host><port>5432</port><database>opencop</database><user>opencop</user><dbtype>postgis</dbtype><passwd>57levelsofeoc</passwd></connectionParameters></dataStore>" http://$localip/geoserver/rest/workspaces/opencop/datastores`
+if [ "$response" = "201" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
 
-echo "$p Publishing baselayer"
-curl -u admin:geoserver -v -XPOST -H 'Content-type: text/xml' -d '<featureType><name>baselayer</name><srs>EPSG:4326</srs><nativeBoundingBox><minx>0</minx><miny>0</miny><maxx>-1</maxx><maxy>-1</maxy></nativeBoundingBox><latLonBoundingBox><minx>-1</minx><miny>-1</miny><maxx>0</maxx><maxy>0</maxy></latLonBoundingBox></featureType>' http://$localip/geoserver/rest/workspaces/opencop/datastores/opencop/featuretypes
-
-echo "$p Publishing config"
-curl -u admin:geoserver -v -XPOST -H 'Content-type: text/xml' -d '<featureType><name>config</name><srs>EPSG:4326</srs><nativeBoundingBox><minx>0</minx><miny>0</miny><maxx>-1</maxx><maxy>-1</maxy></nativeBoundingBox><latLonBoundingBox><minx>-1</minx><miny>-1</miny><maxx>0</maxx><maxy>0</maxy></latLonBoundingBox></featureType>' http://$localip/geoserver/rest/workspaces/opencop/datastores/opencop/featuretypes
-
-echo "$p Publishing icon"
-curl -u admin:geoserver -v -XPOST -H 'Content-type: text/xml' -d '<featureType><name>icon</name><srs>EPSG:4326</srs><nativeBoundingBox><minx>0</minx><miny>0</miny><maxx>-1</maxx><maxy>-1</maxy></nativeBoundingBox><latLonBoundingBox><minx>-1</minx><miny>-1</miny><maxx>0</maxx><maxy>0</maxy></latLonBoundingBox></featureType>' http://$localip/geoserver/rest/workspaces/opencop/datastores/opencop/featuretypes
-
-echo "$p Publishing iconmaster"
-curl -u admin:geoserver -v -XPOST -H 'Content-type: text/xml' -d '<featureType><name>iconmaster</name><srs>EPSG:4326</srs><nativeBoundingBox><minx>0</minx><miny>0</miny><maxx>-1</maxx><maxy>-1</maxy></nativeBoundingBox><latLonBoundingBox><minx>-1</minx><miny>-1</miny><maxx>0</maxx><maxy>0</maxy></latLonBoundingBox></featureType>' http://$localip/geoserver/rest/workspaces/opencop/datastores/opencop/featuretypes
-
-echo "$p Publishing iconstolayers"
-curl -u admin:geoserver -v -XPOST -H 'Content-type: text/xml' -d '<featureType><name>iconstolayers</name><srs>EPSG:4326</srs><nativeBoundingBox><minx>0</minx><miny>0</miny><maxx>-1</maxx><maxy>-1</maxy></nativeBoundingBox><latLonBoundingBox><minx>-1</minx><miny>-1</miny><maxx>0</maxx><maxy>0</maxy></latLonBoundingBox></featureType>' http://$localip/geoserver/rest/workspaces/opencop/datastores/opencop/featuretypes
-
-echo "$p Publishing layer"
-curl -u admin:geoserver -v -XPOST -H 'Content-type: text/xml' -d '<featureType><name>layer</name><srs>EPSG:4326</srs><nativeBoundingBox><minx>0</minx><miny>0</miny><maxx>-1</maxx><maxy>-1</maxy></nativeBoundingBox><latLonBoundingBox><minx>-1</minx><miny>-1</miny><maxx>0</maxx><maxy>0</maxy></latLonBoundingBox></featureType>' http://$localip/geoserver/rest/workspaces/opencop/datastores/opencop/featuretypes
-
-echo "$p Publishing layergroup"
-curl -u admin:geoserver -v -XPOST -H 'Content-type: text/xml' -d '<featureType><name>layergroup</name><srs>EPSG:4326</srs><nativeBoundingBox><minx>0</minx><miny>0</miny><maxx>-1</maxx><maxy>-1</maxy></nativeBoundingBox><latLonBoundingBox><minx>-1</minx><miny>-1</miny><maxx>0</maxx><maxy>0</maxy></latLonBoundingBox></featureType>' http://$localip/geoserver/rest/workspaces/opencop/datastores/opencop/featuretypes
+for layername in "baselayer" "config" "icon" "iconmaster" "iconstolayers" "layer" "layergroup"
+do
+echo -n "$p Publishing $layername layer... "
+response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<featureType><name>$layername</name><srs>EPSG:4326</srs><nativeBoundingBox><minx>0</minx><miny>0</miny><maxx>-1</maxx><maxy>-1</maxy></nativeBoundingBox><latLonBoundingBox><minx>-1</minx><miny>-1</miny><maxx>0</maxx><maxy>0</maxy></latLonBoundingBox></featureType>" http://$localip/geoserver/rest/workspaces/opencop/datastores/opencop/featuretypes`
+if [ "$response" = "201" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
+done
 
 
 echo "$p OpenCOP install complete. Have a nice day."
