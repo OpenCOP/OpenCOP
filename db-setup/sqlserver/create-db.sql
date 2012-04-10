@@ -1,3 +1,27 @@
+----------------------------------------------------------------------------
+-- create-db.sql created: 20120410
+--
+-- Script to create and populate the OpenCOP database for SQL Server
+-- Tested on SQL Server 2008.
+--
+-- You must modify this script to suit your configuration.  
+--
+-- This script creates a database called "opencop" that resides on D:\MSDATA\opencop.mdf,
+-- you should modify the path of the database and the log file to whatever is appropriate 
+-- for your installation.
+--
+-- The script then creates an "opencop" login and gives it access to the "opencop" database
+-- You should change the password to something more secure after running this script.
+--
+-- This script also creates a record in the "config" table that points to "http://demo.geocent.com"
+-- You should replace that entry with whatever is appropriate for your installation
+--
+-- Please note that you also have to set up the SQL store in GeoServer and publish all of the example 
+-- layers after running this script.
+--
+-- 
+----------------------------------------------------------------------------
+
 
 ----------------------------------------------------------------------------
 -- CREATE OPENCOP DATABASE
