@@ -94,3 +94,16 @@ function searchLike(object, str, maxDepth) {
         var b = n.toLowerCase()
         return a.indexOf(b) > 0 || b.indexOf(a) > 0 },
       maxDepth )}
+
+/**
+ * Return a list of all methods on this object.
+ */
+function allMethods(obj) {
+  var ms = []
+  for(var m in obj) {
+    if(typeof obj[m] == "function") {
+      ms.push(m)
+    }
+  }
+  return _(ms).sort()
+}
