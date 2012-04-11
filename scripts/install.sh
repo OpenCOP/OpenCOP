@@ -102,7 +102,7 @@ else
 	echo "$p Creating user $username"
 	# Encrypt the password so we can pass it to useradd -p
 	pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
-	useradd -m -p $pass $username
+	useradd -m -p $pass -s /bin/bash $username
 	if [ $? -eq 0 ]; then
 		echo "User $username has been added to system"
 	else
