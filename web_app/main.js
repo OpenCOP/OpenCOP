@@ -1152,26 +1152,32 @@ var cop = (function() {
     // stable.
     //
     // This function could equally be called "hammer time".
+    //
+    // Called whenever:
+    // - a layer is added, deleted, or selected
+    // - any of the three panels are selected
     function refreshControls() {
+
+      if(!app) return
 
       function currentLayerType() {
         var layerRecord = currentlySelectedLayerRecord()
         if( !layerRecord ) return null
-        if(layerRecord.id.match("WMS")) return "WMS"
-        if(layerRecord.id.match("Google")) return "Google"
-        if(layerRecord.id.match("Yahoo")) return "Yahoo"
+        if( layerRecord.id.match("WMS") ) return "WMS"
+        if( layerRecord.id.match("Google") ) return "Google"
+        if( layerRecord.id.match("Yahoo") ) return "Yahoo"
         return "KML" }
 
       function isBaseLayer(type) { return type == "Google" || type == "Yahoo" }
 
-      function wms_on() {WMSGetFeatureInfoControl.activate()}
-      function vec_on() {selectFeatureControl.activate()}
+      function wms_on() { WMSGetFeatureInfoControl.activate() }
+      function vec_on() { selectFeatureControl.activate() }
       function kml_on() { kmlSelectControl.refresh() }
       // drw_on() doesn't exist because drawControl is *only* activated when
       // the user selects an icon on the edit tab
 
-      function wms_off() {WMSGetFeatureInfoControl.deactivate()}
-      function vec_off() {selectFeatureControl.deactivate()}
+      function wms_off() { WMSGetFeatureInfoControl.deactivate() }
+      function vec_off() { selectFeatureControl.deactivate() }
       function kml_off() { kmlSelectControl.deactivate()}
       function drw_off() { drawControl.deactivate() }
 
@@ -1181,66 +1187,32 @@ var cop = (function() {
         kml_off()
         drw_off() }
 
+      var legendPanel = app.west.selected_layer_panel.tabs.legend_panel
+      var editPanel = app.west.selected_layer_panel.tabs.edit_features
+
       var mode = currentModePanel()
       var type = currentLayerType()
 
-      if(!mode || !type) {
+      if(isBaseLayer(type)) {
         moveToDetailsTab()
+        legendPanel.disable()
+        editPanel.disable()
+      } else {
+        legendPanel.enable()
+        editPanel.enable()
+      }
+
+      if(mode == "edit_features" && type == "WMS") {
+        wms_off()
+        vec_on()
+        kml_off()
+      } else {
         wms_on()
         vec_off()
         kml_on()
-        drw_off()
-      } else if(mode == "layer_detail") {
-        if(type == "WMS") {
-          wms_on()
-          vec_off()
-          kml_off()
-          drw_off()
-        } else if(type == "KML") {
-          wms_off()
-          vec_off()
-          kml_on()
-          drw_off()
-        } else if(isBaseLayer(type)) {
-          all_off()
-        } else {
-          all_off()
-        }
-      } else if(mode == "legend_panel") {
-        if(type == "WMS") {
-          wms_on()
-          vec_off()
-          kml_off()
-          drw_off()
-        } else if(type == "KML") {
-          wms_off()
-          vec_off()
-          kml_on()
-          drw_off()
-        } else if(isBaseLayer(type)) {
-          moveToDetailsTab()
-          all_off()
-        } else {
-          moveToDetailsTab()
-          all_off()
-        }
-      } else if(mode == "edit_features") {
-        if(type == "WMS") {
-          wms_off()
-          vec_on()
-          kml_off()
-          drw_off()
-        } else if(type == "KML") {
-          moveToDetailsTab()
-          wms_off()
-          vec_off()
-          kml_on()
-          drw_off()
-        } else if(isBaseLayer(type)) {
-          moveToDetailsTab()
-          all_off()
-        }
       }
+
+      drw_off()
     }
 
     function refreshLayerDetailsPanel() {
