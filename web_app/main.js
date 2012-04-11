@@ -5,7 +5,7 @@ var cop = (function() {
   var vectorLayer
   var selectedIconUrl
   var username  // null means guest
-  var refreshInterval = 30000;
+  var refreshInterval = 30000
 
   // Return url to query opencop database for table name. If the need
   // strikes you, you can throw a CQL_FILTER on the end.
@@ -31,12 +31,12 @@ var cop = (function() {
     var buildStyle = function(opts) {
       var style = OpenLayers.Util.extend(
         {},
-        OpenLayers.Feature.Vector.style["default"]);
-      return OpenLayers.Util.applyDefaults(opts, style);
-    };
+        OpenLayers.Feature.Vector.style["default"])
+      return OpenLayers.Util.applyDefaults(opts, style)
+    }
 
-    var index = 0;
-    var fillOpacity = 0.9;
+    var index = 0
+    var fillOpacity = 0.9
     var availableStyles = [
       buildStyle({strokeColor: "red", fillColor: "red", fillOpacity: fillOpacity}),
       buildStyle({strokeColor: "purple", fillColor: "purple", fillOpacity: fillOpacity}),
@@ -48,19 +48,19 @@ var cop = (function() {
       buildStyle({strokeColor: "blue", fillColor: "blue", fillOpacity: fillOpacity}),
       buildStyle({strokeColor: "orange", fillColor: "orange", fillOpacity: fillOpacity}),
       buildStyle({strokeColor: "green", fillColor: "green", fillOpacity: fillOpacity})
-    ];
+    ]
 
     var bumpIndex = function() {
-      index += 1;
-      if( index >= availableStyles.length ) index = 0;
-    };
+      index += 1
+      if( index >= availableStyles.length ) index = 0
+    }
 
     return function() {
-      var style = availableStyles[index];
-      bumpIndex();
-      return style;
+      var style = availableStyles[index]
+      bumpIndex()
+      return style
     }
-  }();
+  }()
 
   function buildOlLayer(opts) {
 
@@ -81,8 +81,8 @@ var cop = (function() {
               extractStyles: true,
               extractAttributes: true,
               maxDepth: 2 })})})
-      kmlLayer.style = getNextStyle();
-      return kmlLayer;
+      kmlLayer.style = getNextStyle()
+      return kmlLayer
     }
 
     function buildWmsLayer(opts) {
@@ -308,7 +308,7 @@ var cop = (function() {
   var init = function() {
     displayLoginPopup()
 
-//    OpenLayers.ProxyHost = "/geoserver/rest/proxy?url=";
+//    OpenLayers.ProxyHost = "/geoserver/rest/proxy?url="
     Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
     Ext.state.Manager.setProvider(new Ext.state.CookieProvider())
 
@@ -590,7 +590,7 @@ var cop = (function() {
 
       // remove the edit_url field (making a heavy assumption
       // that this field's name won't change)
-      delete feature.attributes.edit_url;
+      delete feature.attributes.edit_url
 
       var propertyGrid = new Ext.grid.PropertyGrid({
         title: feature.fid,
@@ -1412,19 +1412,19 @@ var cop = (function() {
         var temp = _(parseGeoserverJson(response)).filter(
           function(item) {
             return item.component == "map" && item.name == "refreshInterval"
-        });
+        })
 
         if (null != temp && temp.length == 1) {
-          refreshInterval = temp[0].value;
+          refreshInterval = temp[0].value
         }
-        autoRefreshLayers();
+        autoRefreshLayers()
       }
-    });
+    })
 
     function refreshAllLayers() {
       var layers = app.center_south_and_east_panel.map_panel.map.layers
       for (var i = layers.length - 1; i >= 0; --i) {
-        refreshLayer(layers[i]);
+        refreshLayer(layers[i])
       }
       if (editFeaturesActive()) {
         app.center_south_and_east_panel.feature_table.store.reload()
@@ -1433,15 +1433,15 @@ var cop = (function() {
 
     function refreshLayer(layer) {
       if (layer.CLASS_NAME == "OpenLayers.Layer.WMS") {
-        layer.mergeNewParams({ 'random': Math.random() });
+        layer.mergeNewParams({ 'random': Math.random() })
       } else if (layer.CLASS_NAME == "OpenLayers.Layer.Vector" && layer.name != "Editable features") {
-        layer.refresh({ force: true, params: { 'random': Math.random()} });
+        layer.refresh({ force: true, params: { 'random': Math.random()} })
       }
     }
 
     function autoRefreshLayers() {
-      refreshAllLayers();
-      setTimeout(autoRefreshLayers, refreshInterval);
+      refreshAllLayers()
+      setTimeout(autoRefreshLayers, refreshInterval)
     }
 
     // Save the feature in the scratch vector layer through the power
