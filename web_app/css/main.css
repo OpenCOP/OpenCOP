@@ -127,6 +127,23 @@ div.in-popup table td {
   color:#222;
 }
 
+/** Common styles for Selected Layer panels **/
+
+.selected-layer-padding {
+  padding: 5px 0px 0px 2px;
+  margin: 0px;
+}
+
+.selected-layer-panel {
+  padding: 5px 5px 5px 5px;
+}
+
+.selected-layer-title {
+  font-size: 1.3em;
+  padding-bottom: 5px;
+  padding-left: 2px;
+}
+
 
 /**  legendary!  **/
 
@@ -138,7 +155,7 @@ div.in-popup table td {
 .legend-layer-title {
   font-size: 1.3em;
   padding-bottom: 5px;
-  padding-left: 2px;
+  /* padding-left: 2px; */
 }
 
 .legend-popout-button {

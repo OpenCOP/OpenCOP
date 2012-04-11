@@ -350,10 +350,24 @@ var cop = (function() {
 
         // update style-selector combo box
         var comboBoxPanel = app.west.selected_layer_panel.tabs.legend_panel.legend_combo_box_panel
+        var comboBoxTitle = Ext.get('legend_combo_box_title')
+
         comboBoxPanel.removeAll()
+
+        if ( comboBoxTitle ) {
+          comboBoxTitle.setDisplayed(false)
+        }
+        else {
+	  console.log('comboBoxTitle is undefined')
+        }
+
         if(styles.length > 1) {
           comboBoxPanel.add(buildStylesComboBox(styles, currentStyleIndex))
           comboBoxPanel.doLayout()
+
+          if ( comboBoxTitle ) {
+            comboBoxTitle.setDisplayed(true)
+          }
         }
 
         setLegendToStyle(currentStyle)
@@ -806,11 +820,10 @@ var cop = (function() {
     var layerDetail = {
       ref: "layer_detail",
       title: 'Details',
-      cls: 'layer_detail',
+      cls: 'selected-layer-panel',
       autoScroll: true,
       iconCls: "silk_information",
       frame: true,
-      padding: '10 10 10 10',
       listeners: {
         "activate": function() {
           refreshVectorLayerAndFeatureGrid()
@@ -818,6 +831,7 @@ var cop = (function() {
         }},
       items: [{
         xtype: 'box',
+          cls: "selected-layer-title",
         autoEl: {
           tag: 'h1',
           id: 'layer-description-title',
@@ -855,7 +869,7 @@ var cop = (function() {
       ref: "legend_panel",
       id: "legend_panel",
       title: 'Legend',
-      cls: 'legend_panel',
+      cls: 'selected-layer-panel',
       autoScroll: true,
       iconCls: "silk_book_open",
       frame: true,
@@ -866,28 +880,34 @@ var cop = (function() {
       items: [
         { xtype: 'tbbutton',
           cls: "legend-popout-button",
-          text: ">>",
+          icon: 'images/misc_icons/popout.png',
           listeners: { 'click': legend.buildPopoutLegendPopup }},
         { xtype: 'box',
-          cls: "legend-layer-title",
+          cls: "selected-layer-title",
           autoEl: {
             tag: 'h1',
             id: 'legend_layer_title' }},
+        { xtype: 'box',
+          cls: "selected-layer-padding",
+          autoEl: {
+            tag: 'h2',
+            id: 'legend_combo_box_title',
+            html: 'Style' }},
         { xtype: 'container',
-          cls: "legend-padding",
+          cls: "selected-layer-padding",
           ref: 'legend_combo_box_panel' },
         { xtype: 'box',
-          cls: "legend-padding",
+          cls: "selected-layer-padding",
           autoEl: {
             tag: 'h2',
             id: 'legend_style_title' }},
         { xtype: 'box',
-          cls: "legend-padding",
+          cls: "selected-layer-padding",
           autoEl: {
             tag: 'p',
             id: 'legend_style_abstract' }},
         { xtype: 'box',
-          cls: "legend-padding",
+          cls: "selected-layer-padding",
           autoEl: {
             tag: 'img',
             id: 'legend_style_graphic',
@@ -896,16 +916,25 @@ var cop = (function() {
     var editFeaturesPanel = {
       ref: "edit_features",
       title: 'Edit',
+      cls: 'selected-layer-panel',
       autoScroll: true,
       iconCls: "silk_pencil",
-      padding: '10 10 10 10',
       frame: 'true',
       listeners: {
         "activate": function() {
           populateIcons()
           refreshVectorLayerAndFeatureGrid()
-          refreshControl()}},
+          refreshControl()
+          refreshLayerEditPanel()}},
       items: [{
+        xtype: 'box',
+          cls: "selected-layer-title",
+        autoEl: {
+          tag: 'h1',
+          id: 'layer-edit-title',
+          html: '-- No layer selected --'
+        }
+      }, {
         xtype: 'box',
         autoEl: {
           tag: 'h1',
@@ -1088,6 +1117,7 @@ var cop = (function() {
       refreshVectorLayerAndFeatureGrid()
       refreshControl()
       legend.refreshLegendPanel()
+      refreshLayerEditPanel()
     }
 
     function moveToDetailsTab() {
@@ -1189,6 +1219,16 @@ var cop = (function() {
           all_off()
         }
       }
+    }
+
+    function refreshLayerEditPanel() {
+      var layerRecord = currentlySelectedLayerRecord()
+      if( !layerRecord ) return
+
+      var layerEditTitle = Ext.get('layer-edit-title')
+      if ( !layerEditTitle ) return
+
+      layerEditTitle.update(layerRecord.data.title)
     }
 
     function refreshLayerDetailsPanel() {
