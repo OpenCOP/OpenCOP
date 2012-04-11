@@ -2,11 +2,10 @@ var cop = (function() {
 
   var app
   var drawControl
-  var kmlSelectControls = []
   var vectorLayer
   var selectedIconUrl
   var username  // null means guest
-  var refreshInterval = 30000;
+  var refreshInterval = 30000
 
   // Return url to query opencop database for table name. If the need
   // strikes you, you can throw a CQL_FILTER on the end.
@@ -32,12 +31,12 @@ var cop = (function() {
     var buildStyle = function(opts) {
       var style = OpenLayers.Util.extend(
         {},
-        OpenLayers.Feature.Vector.style["default"]);
-      return OpenLayers.Util.applyDefaults(opts, style);
-    };
+        OpenLayers.Feature.Vector.style["default"])
+      return OpenLayers.Util.applyDefaults(opts, style)
+    }
 
-    var index = 0;
-    var fillOpacity = 0.9;
+    var index = 0
+    var fillOpacity = 0.9
     var availableStyles = [
       buildStyle({strokeColor: "red", fillColor: "red", fillOpacity: fillOpacity}),
       buildStyle({strokeColor: "purple", fillColor: "purple", fillOpacity: fillOpacity}),
@@ -49,19 +48,19 @@ var cop = (function() {
       buildStyle({strokeColor: "blue", fillColor: "blue", fillOpacity: fillOpacity}),
       buildStyle({strokeColor: "orange", fillColor: "orange", fillOpacity: fillOpacity}),
       buildStyle({strokeColor: "green", fillColor: "green", fillOpacity: fillOpacity})
-    ];
+    ]
 
     var bumpIndex = function() {
-      index += 1;
-      if( index >= availableStyles.length ) index = 0;
-    };
+      index += 1
+      if( index >= availableStyles.length ) index = 0
+    }
 
     return function() {
-      var style = availableStyles[index];
-      bumpIndex();
-      return style;
+      var style = availableStyles[index]
+      bumpIndex()
+      return style
     }
-  }();
+  }()
 
   function buildOlLayer(opts) {
 
@@ -82,8 +81,8 @@ var cop = (function() {
               extractStyles: true,
               extractAttributes: true,
               maxDepth: 2 })})})
-      kmlLayer.style = getNextStyle();
-      return kmlLayer;
+      kmlLayer.style = getNextStyle()
+      return kmlLayer
     }
 
     function buildWmsLayer(opts) {
@@ -309,7 +308,7 @@ var cop = (function() {
   var init = function() {
     displayLoginPopup()
 
-//    OpenLayers.ProxyHost = "/geoserver/rest/proxy?url=";
+//    OpenLayers.ProxyHost = "/geoserver/rest/proxy?url="
     Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
     Ext.state.Manager.setProvider(new Ext.state.CookieProvider())
 
@@ -332,6 +331,81 @@ var cop = (function() {
       }),
       'displayInLayerSwitcher': false
     })
+
+    kmlSelectControl = (function() {  // namespace
+
+      // When a KML layer is selected, we wanted to be able to select from any
+      // KML layer.  To do that, we have to create a Select Feature with a list
+      // of KML layers.  When we want to change that list, we rebuild the
+      // Select Feature control.
+      //
+      // This class/singleton wraps the Select Feature control, and manages the
+      // list of KML layers.
+
+      var layers = []
+      var control = null
+
+      function rebuildControl() {
+        var map = app.center_south_and_east_panel.map_panel.map
+
+        if(control) map.removeControl(control)
+
+        if(layers.length == 0) return
+        control = new OpenLayers.Control.SelectFeature(
+            layers,
+            { onSelect: createKmlPopup,
+              onUnselect: function(feature) {feature.popup.close()}})
+        map.addControl(control)
+      }
+
+      function createKmlPopup(feature) {
+        var popup = GeoExtPopup.create({
+          title: "View KML Feature",
+          height: 300,
+          width: 300,
+          layout: "fit",
+          map: app.center_south_and_east_panel.map_panel,
+          location: feature,
+          maximizable: true,
+          collapsible: true,
+          items: [new Ext.grid.PropertyGrid({
+            listeners: { "beforeedit": function(e) { e.cancel = true }}, // prevent editing
+            title: feature.fid,
+            customRenderers: utils.fmap(feature.attributes, function() {return wrapInPopupDiv}),  // allow rendering html
+            source: feature.attributes })],
+          buttons: [{
+            text: 'Close',
+            iconCls: 'silk_cross',
+            handler: function() { popup.close()}}]
+        })
+        feature.popup = popup  // so we can close the popup on unselect
+        popup.show()
+      }
+
+      function activate() {
+        if(control) control.activate()
+      }
+
+      function deactivate() {
+        if(control) control.deactivate()
+      }
+
+      return {
+        addLayer: function(kmlLayer) {
+          layers.push(kmlLayer)
+          rebuildControl()
+        },
+
+        removeLayer: function(kmlLayer) {
+          layers = _(layers).reject(function(layer) { return layer.name == kmlLayer.name })
+          rebuildControl()
+        },
+
+        activate: activate,
+        deactivate: deactivate,
+        refresh: function() { deactivate(); activate() }
+      }
+    }())
 
     // legend namespace
     var legend = (function() {
@@ -530,7 +604,7 @@ var cop = (function() {
 
       // remove the edit_url field (making a heavy assumption
       // that this field's name won't change)
-      delete feature.attributes.edit_url;
+      delete feature.attributes.edit_url
 
       var propertyGrid = new Ext.grid.PropertyGrid({
         title: feature.fid,
@@ -579,30 +653,6 @@ var cop = (function() {
 
     function wrapInPopupDiv(text) {
       return _("<div class='in-popup'><%=s%></div>").template({s: text})
-    }
-
-    function createKmlPopup(feature) {
-      var popup = GeoExtPopup.create({
-        title: "View KML Feature",
-        height: 300,
-        width: 300,
-        layout: "fit",
-        map: app.center_south_and_east_panel.map_panel,
-        location: feature,
-        maximizable: true,
-        collapsible: true,
-        items: [new Ext.grid.PropertyGrid({
-          listeners: { "beforeedit": function(e) { e.cancel = true }}, // prevent editing
-          title: feature.fid,
-          customRenderers: utils.fmap(feature.attributes, function() {return wrapInPopupDiv}),  // allow rendering html
-          source: feature.attributes })],
-        buttons: [{
-          text: 'Close',
-          iconCls: 'silk_cross',
-          handler: function() { popup.close()}}]
-      })
-      feature.popup = popup  // so we can close the popup on unselect
-      popup.show()
     }
 
     function vectorLayerContainsFeature(vectorLayer, feature) {
@@ -659,8 +709,8 @@ var cop = (function() {
               }
             }]
           }).show()
-          }
         }
+      }
     })
     controls.push(WMSGetFeatureInfoControl)
 
@@ -815,7 +865,9 @@ var cop = (function() {
             var node = currentlySelectedLayerNode()
             if (node) {
               app.center_south_and_east_panel.map_panel.map.removeLayer(node.layer)
-              shutdownDetailsPane()}}}]}
+              shutdownDetailsPane()
+              kmlSelectControl.removeLayer(node.layer)
+              refreshControls() }}}]}
 
     var layerDetail = {
       ref: "layer_detail",
@@ -827,7 +879,7 @@ var cop = (function() {
       listeners: {
         "activate": function() {
           refreshVectorLayerAndFeatureGrid()
-          refreshControl()
+          refreshControls()
         }},
       items: [{
         xtype: 'box',
@@ -875,7 +927,7 @@ var cop = (function() {
       frame: true,
       listeners: { "activate": function() {
         refreshVectorLayerAndFeatureGrid()
-        refreshControl()
+        refreshControls()
         legend.refreshLegendPanel() }},
       items: [
         { xtype: 'tbbutton',
@@ -924,7 +976,7 @@ var cop = (function() {
         "activate": function() {
           populateIcons()
           refreshVectorLayerAndFeatureGrid()
-          refreshControl()
+          refreshControls()
           refreshLayerEditPanel()}},
       items: [{
         xtype: 'box',
@@ -1115,7 +1167,7 @@ var cop = (function() {
     function setLayer() {
       refreshLayerDetailsPanel()
       refreshVectorLayerAndFeatureGrid()
-      refreshControl()
+      refreshControls()
       legend.refreshLegendPanel()
       refreshLayerEditPanel()
     }
@@ -1130,27 +1182,33 @@ var cop = (function() {
     // stable.
     //
     // This function could equally be called "hammer time".
-    function refreshControl() {
+    //
+    // Called whenever:
+    // - a layer is added, deleted, or selected
+    // - any of the three panels are selected
+    function refreshControls() {
+
+      if(!app) return
 
       function currentLayerType() {
         var layerRecord = currentlySelectedLayerRecord()
         if( !layerRecord ) return null
-        if(layerRecord.id.match("WMS")) return "WMS"
-        if(layerRecord.id.match("Google")) return "Google"
-        if(layerRecord.id.match("Yahoo")) return "Yahoo"
+        if( layerRecord.id.match("WMS") ) return "WMS"
+        if( layerRecord.id.match("Google") ) return "Google"
+        if( layerRecord.id.match("Yahoo") ) return "Yahoo"
         return "KML" }
 
       function isBaseLayer(type) { return type == "Google" || type == "Yahoo" }
 
-      function wms_on() {WMSGetFeatureInfoControl.activate()}
-      function vec_on() {selectFeatureControl.activate()}
-      function kml_on() {_(kmlSelectControls).invoke("activate")}
+      function wms_on() { WMSGetFeatureInfoControl.activate() }
+      function vec_on() { selectFeatureControl.activate() }
+      function kml_on() { kmlSelectControl.refresh() }
       // drw_on() doesn't exist because drawControl is *only* activated when
       // the user selects an icon on the edit tab
 
-      function wms_off() {WMSGetFeatureInfoControl.deactivate()}
-      function vec_off() {selectFeatureControl.deactivate()}
-      function kml_off() {_(kmlSelectControls).invoke("deactivate")}
+      function wms_off() { WMSGetFeatureInfoControl.deactivate() }
+      function vec_off() { selectFeatureControl.deactivate() }
+      function kml_off() { kmlSelectControl.deactivate()}
       function drw_off() { drawControl.deactivate() }
 
       function all_off() {
@@ -1159,66 +1217,32 @@ var cop = (function() {
         kml_off()
         drw_off() }
 
+      var legendPanel = app.west.selected_layer_panel.tabs.legend_panel
+      var editPanel = app.west.selected_layer_panel.tabs.edit_features
+
       var mode = currentModePanel()
       var type = currentLayerType()
 
-      if(!mode || !type) {
+      if(isBaseLayer(type)) {
         moveToDetailsTab()
+        legendPanel.disable()
+        editPanel.disable()
+      } else {
+        legendPanel.enable()
+        editPanel.enable()
+      }
+
+      if(mode == "edit_features" && type == "WMS") {
+        wms_off()
+        vec_on()
+        kml_off()
+      } else {
         wms_on()
         vec_off()
         kml_on()
-        drw_off()
-      } else if(mode == "layer_detail") {
-        if(type == "WMS") {
-          wms_on()
-          vec_off()
-          kml_off()
-          drw_off()
-        } else if(type == "KML") {
-          wms_off()
-          vec_off()
-          kml_on()
-          drw_off()
-        } else if(isBaseLayer(type)) {
-          all_off()
-        } else {
-          all_off()
-        }
-      } else if(mode == "legend_panel") {
-        if(type == "WMS") {
-          wms_on()
-          vec_off()
-          kml_off()
-          drw_off()
-        } else if(type == "KML") {
-          wms_off()
-          vec_off()
-          kml_on()
-          drw_off()
-        } else if(isBaseLayer(type)) {
-          moveToDetailsTab()
-          all_off()
-        } else {
-          moveToDetailsTab()
-          all_off()
-        }
-      } else if(mode == "edit_features") {
-        if(type == "WMS") {
-          wms_off()
-          vec_on()
-          kml_off()
-          drw_off()
-        } else if(type == "KML") {
-          moveToDetailsTab()
-          wms_off()
-          vec_off()
-          kml_on()
-          drw_off()
-        } else if(isBaseLayer(type)) {
-          moveToDetailsTab()
-          all_off()
-        }
       }
+
+      drw_off()
     }
 
     function refreshLayerEditPanel() {
@@ -1400,19 +1424,19 @@ var cop = (function() {
         var temp = _(parseGeoserverJson(response)).filter(
           function(item) {
             return item.component == "map" && item.name == "refreshInterval"
-        });
+        })
 
         if (null != temp && temp.length == 1) {
-          refreshInterval = temp[0].value;
+          refreshInterval = temp[0].value
         }
-        autoRefreshLayers();
+        autoRefreshLayers()
       }
-    });
+    })
 
     function refreshAllLayers() {
       var layers = app.center_south_and_east_panel.map_panel.map.layers
       for (var i = layers.length - 1; i >= 0; --i) {
-        refreshLayer(layers[i]);
+        refreshLayer(layers[i])
       }
       if (editFeaturesActive()) {
         app.center_south_and_east_panel.feature_table.store.reload()
@@ -1421,15 +1445,15 @@ var cop = (function() {
 
     function refreshLayer(layer) {
       if (layer.CLASS_NAME == "OpenLayers.Layer.WMS") {
-        layer.mergeNewParams({ 'random': Math.random() });
+        layer.mergeNewParams({ 'random': Math.random() })
       } else if (layer.CLASS_NAME == "OpenLayers.Layer.Vector" && layer.name != "Editable features") {
-        layer.refresh({ force: true, params: { 'random': Math.random()} });
+        layer.refresh({ force: true, params: { 'random': Math.random()} })
       }
     }
 
     function autoRefreshLayers() {
-      refreshAllLayers();
-      setTimeout(autoRefreshLayers, refreshInterval);
+      refreshAllLayers()
+      setTimeout(autoRefreshLayers, refreshInterval)
     }
 
     // Save the feature in the scratch vector layer through the power
@@ -1714,6 +1738,7 @@ var cop = (function() {
                     && layer.params.LAYERS == selected.data.name })})
               .each(addLayer)
             deselectAllLayers()
+            refreshControls()
           }
 
           function deselectAllLayers() {  // from all tabs that have been rendered
@@ -1786,17 +1811,7 @@ var cop = (function() {
         return obj && obj.data && obj.data.type == "KML"
       }
 
-      // add a select control so that KML OBJECTS can get popups
-      function addSelectControl(kml) {
-        var selectControl = new OpenLayers.Control.SelectFeature(kml, {
-          onSelect:   createKmlPopup,
-          onUnselect: function(feature) {feature.popup.close()}})
-        app.center_south_and_east_panel.map_panel.map.addControl(selectControl)
-        kmlSelectControls.push(selectControl)
-        selectControl.activate()
-      }
-
-      if(isKml(obj)) addSelectControl(obj.data.layer)
+      if(isKml(obj)) kmlSelectControl.addLayer(obj.data.layer)
 
       app.center_south_and_east_panel.map_panel.layers.add([forceToRecord(obj)])
     }
