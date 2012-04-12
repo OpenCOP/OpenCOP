@@ -308,7 +308,7 @@ var cop = (function() {
   var init = function() {
     displayLoginPopup()
 
-//    OpenLayers.ProxyHost = "/geoserver/rest/proxy?url="
+    OpenLayers.ProxyHost = "/geoserver/rest/proxy?url="
     Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
     Ext.state.Manager.setProvider(new Ext.state.CookieProvider())
 
