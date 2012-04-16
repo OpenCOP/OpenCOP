@@ -93,7 +93,7 @@ var cop = (function() {
           transparent: "true",
           'random': Math.random(),
           format: "image/png"},
-        { isBaseLayer: false})
+        { isBaseLayer: false })
     }
 
     if(opts.type == "KML") return buildKmlLayer(opts)
@@ -898,8 +898,8 @@ var cop = (function() {
       }, {
         xtype: "gx_opacityslider",
         ref: "opacity_slider",
-        value: 100,
         aggressive: true,
+        animate: false,  // slider gets extremely jacked up if you let it animate
         changevisibility: true
       }, {
         xtype: 'box',
@@ -1255,7 +1255,7 @@ var cop = (function() {
       layerEditTitle.update(layerRecord.data.title)
     }
 
-    function refreshLayerDetailsPanel() {
+    function refreshLayerDetailsPanel () {
       var layerRecord = currentlySelectedLayerRecord()
       if( !layerRecord ) return
 
@@ -1268,21 +1268,15 @@ var cop = (function() {
       app.west.selected_layer_panel.expand()
       populateIcons()
 
-      // This is a terrible, terrible hack.  Without it, the slider starts life
-      // out logically at 100% but visually at 90%.  It doesn't matter what the
-      // layer it's bound to says.  This double-set is the only way I could
-      // find to force the slider to start out at 100%.
+      // No, this line doesn't really make any sense.  The min value is always
+      // 0.  But without it, the slider often shows up on the wrong position.
       //
-      // And yes, it needs to happen after the element has already been made
-      // visual.  Somewhat surprisingly, this doesn't cause flicker.
+      // I believe that this line forces the slider to redraw.  More sensible
+      // options, like show(), enable(), render(), or redraw() either don't
+      // work or don't have the desired effect.
       //
-      // This only needs to happen the first time.  The first time, the values
-      // will either be 1 or null.
-
-      if(layer.opacity == 1 || layer.opacity == null) {
-        slider.setValue(99)
-        slider.setValue(100)
-      }
+      // This hack only works if animate is false.
+      slider.setMinValue(0)
     }
 
     function populateIcons() {
