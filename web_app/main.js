@@ -571,6 +571,28 @@ var cop = (function() {
         return _(obj).chain().keys().include(attribute).value()
       }
 
+      function featureIsMultiPoint(feature) {
+        // a point's geometry will not have sub-components, whereas any other
+        // type of feature will
+        return feature.geometry.components
+      }
+
+      // you're only allowed to drag a point if it's attached to the feature
+      // you're currently editing
+      function allowedToDragPoint(point, feature) {
+
+        // feature is a line or a polygon
+        if(featureIsMultiPoint(feature)) {
+          return point.geometry.parent.id == feature.geometry.id
+        }
+
+        // feature is a point
+        else {
+          return point.id == feature.id
+        }
+
+      }
+
       ;(function ensureFeatureHasAllFields() {
         var allFields = _(vectorLayer.store.data.items).map(function(n) {return n.data.name})
         var missingFields = _(allFields).difference(
@@ -595,11 +617,12 @@ var cop = (function() {
       // reason, it inhibits the select control.
       modifyControl.selectFeature(feature)
       modifyControl.dragStart = function() { }
-      modifyControl.dragComplete = function(f) {
-        if( f.id != feature.id ) {
-          cancelEditWfs(feature)
-        } else {
+      modifyControl.dragComplete = function(point) {
+
+        if( allowedToDragPoint(point, feature) ) {
           feature.state = OpenLayers.State.UPDATE
+        } else {
+          cancelEditWfs(feature)
         }}
 
       // remove the edit_url field (making a heavy assumption
