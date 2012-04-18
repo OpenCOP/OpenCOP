@@ -4,14 +4,14 @@
 --
 -- Required fields:
 --
--- Line (name: line_test)
+-- Line (name: ship_route)
 -- - fid         : id
 -- - the_geom    : line-flavored geom
 -- - knots       : float, speed
 -- - hours_delta : int, distance between points
 -- - start_time  : timestamp
 --
--- Point (name: point_test)
+-- Point (name: ship_position)
 -- - the_geom    : point-flavored geom
 -- - line_id     : link to layer
 -- - time        : timestamp
@@ -40,10 +40,10 @@ BEGIN
   -- RAISE NOTICE 'percentage_delta is %', percentage_delta;
   --
   -- delete existing points associated with this line
-  delete from point_test where line_id = NEW.fid;
+  delete from ship_position where line_id = NEW.fid;
   --
   FOR i IN 0..point_count LOOP
-    insert into point_test (line_id, the_geom, time) values (
+    insert into ship_position (line_id, the_geom, time) values (
       NEW.fid,
       ST_Line_Interpolate_Point(NEW.the_geom, i * percentage_delta),
       NEW.start_time + CAST(i * NEW.hours_delta || ' hours' as interval));
@@ -53,10 +53,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-drop trigger recalc_path_points_trigger on line_test;
+drop trigger recalc_path_points_trigger on ship_route;
 CREATE TRIGGER recalc_path_points_trigger
-  AFTER INSERT OR UPDATE OR DELETE ON line_test
+  AFTER INSERT OR UPDATE OR DELETE ON ship_route
   FOR EACH ROW EXECUTE PROCEDURE recalc_path_points();
 
--- update line_test set hours_delta = 4;
--- select time from point_test;
+-- update ship_route set hours_delta = 4;
+-- select time from ship_position;
