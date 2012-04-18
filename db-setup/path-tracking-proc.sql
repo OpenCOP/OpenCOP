@@ -5,15 +5,15 @@
 --
 -- Line
 -- - fid         : id
+-- - the_geom    : line-flavored geom
 -- - knots       : float, speed
 -- - hours_delta : int, distance between points
 -- - start_time  : timestamp
--- - the_geom    : line-flavored geom
 --
 -- Point
--- - line_id     : link to layer
 -- - the_geom    : point-flavored geom
--- - time        : time
+-- - line_id     : link to layer
+-- - time        : timestamp
 CREATE or replace FUNCTION recalc_path_points() RETURNS TRIGGER AS $$
 DECLARE
   i integer;
