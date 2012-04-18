@@ -1,16 +1,17 @@
 -- This procedure works with two tables, one for lines and one for points.  It
--- generates points equally spaced across each line, based on speed and such.
+-- sets up a trigger and procedure to space points equally across a line based
+-- on speed and such.
 --
 -- Required fields:
 --
--- Line
+-- Line (name: line_test)
 -- - fid         : id
 -- - the_geom    : line-flavored geom
 -- - knots       : float, speed
 -- - hours_delta : int, distance between points
 -- - start_time  : timestamp
 --
--- Point
+-- Point (name: point_test)
 -- - the_geom    : point-flavored geom
 -- - line_id     : link to layer
 -- - time        : timestamp
@@ -27,7 +28,7 @@ DECLARE
   --
   meters_delta integer := hours_delta * knots * k;  -- distance between points
   total_meters float := ST_Length(ST_Transform(NEW.the_geom, 900913));
-  point_count integer := floor(total_meters / meters_delta);
+  point_count integer := greatest(1, floor(total_meters / meters_delta));
   percentage_delta float := 1.0 / point_count;  -- percentage of line between points
 BEGIN
   -- RAISE NOTICE 'knots is %', knots;
