@@ -15,6 +15,7 @@
 -- - the_geom    : point-flavored geom
 -- - line_id     : link to layer
 -- - time        : timestamp
+-- - time_end    : timestamp
 CREATE or replace FUNCTION recalc_path_points() RETURNS TRIGGER AS $$
 DECLARE
   i integer;
@@ -43,10 +44,11 @@ BEGIN
   delete from ship_position where line_id = NEW.fid;
   --
   FOR i IN 0..point_count LOOP
-    insert into ship_position (line_id, the_geom, time) values (
+    insert into ship_position (line_id, the_geom, time, time_end) values (
       NEW.fid,
       ST_Line_Interpolate_Point(NEW.the_geom, i * percentage_delta),
-      NEW.start_time + CAST(i * NEW.hours_delta || ' hours' as interval));
+      NEW.start_time + CAST(i * NEW.hours_delta || ' hours' as interval),
+      NEW.start_time + CAST((i + 1) * NEW.hours_delta || ' hours' as interval));
   END LOOP;
   --
   return NULL;
