@@ -1822,6 +1822,7 @@ var cop = (function() {
         switch(opts.brand.toLowerCase().trim()) {
           case "google" : addGoogleBaseLayer(opts) ; break
           case "yahoo"  : addYahooBaseLayer(opts)  ; break
+          case "osm"    : addOSMBaseLayer(opts)    ; break
         }
       }
 
@@ -1848,6 +1849,23 @@ var cop = (function() {
           sphericalMercator: true,
           isBaseLayer: true,
           baselayer: true }))
+      }
+
+      function addOSMBaseLayer(opts) {
+        var urls = ["http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
+                    "http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
+                    "http://a.tile.openstreetmap.org/${z}/${x}/${y}.png"];
+                  
+        if (null != opts.type && "mapquest" == opts.type.toLowerCase().trim()) {
+          urls = ["http://otile1.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+                  "http://otile2.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+                  "http://otile3.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+                  "http://otile4.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png"];
+        }
+        
+        addLayer(new OpenLayers.Layer.OSM(opts.name, urls, {
+          isBaseLayer: true,
+          baselayer: true }));
       }
 
       Ext.Ajax.request({
