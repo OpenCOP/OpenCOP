@@ -302,6 +302,19 @@ var cop = (function() {
       return n
     },
 
+    // Sometimes you want to be able to say things like `foo.a.b.c.d.e`, but
+    // you don't want to have to do a lot of null checking.  Instead, do this:
+    // `utils.safeDot(foo, ['a', 'b', 'c', 'd', 'e'])`, which will
+    // short-circuit with "undefined" if anything untoward happens.
+    safeDot: function(obj, attrs) {
+      var currObj = obj
+      for( var i = 0; i < attrs.length; ++i ) {
+        if( !currObj || !currObj[attrs[i]] ) return undefined
+        currObj = currObj[attrs[i]]
+      }
+      return currObj
+    },
+
     defaultTo: function(obj, val) { return obj == null || obj == undefined ? val : obj }
   }
 
@@ -571,26 +584,16 @@ var cop = (function() {
         return _(obj).chain().keys().include(attribute).value()
       }
 
-      function featureIsMultiPoint(feature) {
-        // a point's geometry will not have sub-components, whereas any other
-        // type of feature will
-        return feature.geometry.components
-      }
-
       // you're only allowed to drag a point if it's attached to the feature
       // you're currently editing
       function allowedToDragPoint(point, feature) {
-
-        // feature is a line or a polygon
-        if(featureIsMultiPoint(feature)) {
-          return point.geometry.parent.id == feature.geometry.id
-        }
-
-        // feature is a point
-        else {
-          return point.id == feature.id
-        }
-
+        var id = feature.geometry.id
+        return ( point.id == feature.id
+            || id == utils.safeDot(point, ['geometry', 'parent', 'id'])
+            || id == utils.safeDot(point, ['geometry', 'parent', 'parent', 'id'])
+            || id == utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'id'])
+            || id == utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'parent', 'id'])
+            || id == utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'parent', 'parent', 'id']))
       }
 
       ;(function ensureFeatureHasAllFields() {

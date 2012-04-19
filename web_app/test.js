@@ -59,6 +59,11 @@ var test = (function() {
       , isEq(cop.utils.defaultTo(null, 0), 0, "defaultTo 0 on null")
       , isEq(cop.utils.defaultTo(2, 0), 2, "don't defaultTo on not null")
 
+      , isEq(cop.utils.safeDot(undefined, ["c"]), undefined, "safedot: undefined")
+      , isEq(cop.utils.safeDot({a: {b: {c: {d: 4}}}}, ["c"]), undefined, "safedot: c")
+      , isEq(cop.utils.safeDot({a: {b: {c: {d: 4}}}}, ["a", "c"]), undefined, "safedot: a c")
+      , isEq(cop.utils.safeDot({a: {b: {c: {d: 4}}}}, ["a", "b", "c", "d"]), 4, "safedot: a b c d")
+
       ])
   }}
 }())
