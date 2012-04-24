@@ -428,6 +428,9 @@ var cop = (function() {
         if(!legendActive()) return
 
         var rec = currentlySelectedLayerRecord()
+
+        if(!rec) return
+
         var title = rec.data.title
         var styles = utils.makeUniqOnField(rec.data.styles, "name")
         var currentStyleIndex = getStyleIndex(styles, rec.data.layer.params.STYLES)
@@ -1875,14 +1878,14 @@ var cop = (function() {
         var urls = ["http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
                     "http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
                     "http://a.tile.openstreetmap.org/${z}/${x}/${y}.png"];
-                  
+
         if (null != opts.type && "mapquest" == opts.type.toLowerCase().trim()) {
           urls = ["http://otile1.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
                   "http://otile2.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
                   "http://otile3.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
                   "http://otile4.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png"];
         }
-        
+
         addLayer(new OpenLayers.Layer.OSM(opts.name, urls, {
           isBaseLayer: true,
           baselayer: true }));
