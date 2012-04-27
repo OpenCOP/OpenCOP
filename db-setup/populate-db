@@ -1,3 +1,4 @@
 #!/bin/sh
 psql -U opencop opencop -f icon.sql
+psql -U opencop opencop -f hswg_icons.sql  # relies on icon.sql having run
 psql -U opencop opencop -f populate-db.sql
