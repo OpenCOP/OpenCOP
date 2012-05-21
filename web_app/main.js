@@ -1,9 +1,12 @@
+"use strict"
+
 var cop = (function() {
 
   var app
   var drawControl
   var vectorLayer
   var selectedIconUrl
+  var kmlSelectControl
   var username  // null means guest
   var refreshInterval = 30000
 
@@ -1815,7 +1818,7 @@ var cop = (function() {
       // 2.  Delete the layer from the layer tree
 
       function layer_to_record(olLayer) {
-        record = new GeoExt.data.LayerRecord()
+        var record = new GeoExt.data.LayerRecord()
         record.setLayer(olLayer)
         record.id = olLayer.id
         return record
