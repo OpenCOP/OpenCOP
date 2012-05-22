@@ -692,7 +692,8 @@ var cop = (function() {
       new OpenLayers.Control.Navigation(),
       new OpenLayers.Control.Attribution(),
       new OpenLayers.Control.PanPanel(),
-      new OpenLayers.Control.ZoomPanel()
+      new OpenLayers.Control.ZoomPanel(),
+      new OpenLayers.Control.MousePosition()
     ]
 
     var modifyControl = new OpenLayers.Control.ModifyFeature(
