@@ -24,7 +24,7 @@ var cop = (function() {
    * Return next style in style sequence. Sequence will eventually
    * loop.
    */
-  var getNextStyle = function() {
+  var getNextStyle = (function() { // this is a function
 
     /**
      * Build style by specifying changes to default style.
@@ -63,7 +63,7 @@ var cop = (function() {
       bumpIndex()
       return style
     }
-  }()
+  }())
 
   function buildOlLayer(opts) {
 
@@ -249,7 +249,7 @@ var cop = (function() {
   }
 
   // select an icon for a feature while in edit mode
-  var selectIcon = function(obj) {
+  function selectIcon(obj) {
 
     function createFeature(obj) {
       vectorLayer.styleMap.styles["temporary"].setDefaultStyle({
@@ -268,9 +268,10 @@ var cop = (function() {
     }
 
     selectedIconUrl = obj.src
-    ;(GeoExtPopup.anyOpen()
-      ? updateFeature(obj)
-      : createFeature(obj))
+    if(GeoExtPopup.anyOpen()
+      updateFeature(obj)
+    else
+      createFeature(obj))
   }
 
   // utils namespace (for the purest of the pure functions)
@@ -1705,6 +1706,9 @@ var cop = (function() {
         url: jsonUrl("layergroup"),
         success: function(response) {
 
+          // Return an ext grid representing the layers available within
+          // a given layergroup.
+          //
           // options:
           // - layergroup id
           // - layergroup name
