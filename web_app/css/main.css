@@ -173,3 +173,7 @@ div.in-popup table td {
   opacity:0.95;
   filter:alpha(opacity=95); /* For IE8 and earlier */
 }
+
+.olLayerGoogleV3.olLayerGooglePoweredBy {
+  display: none;
+}
