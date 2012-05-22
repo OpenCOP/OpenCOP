@@ -30,6 +30,14 @@ var cop = ( function() {
       loadingReferenceCount++;
     }
 
+    // NETCDF Constants
+    //
+    // Setting these to empty arrays will disable to NETCDF-selecting feature
+    var ELEVATIONS = []
+    var TIMESTAMPS = []
+    // var ELEVATIONS = [-0.0, -2.0, -4.0, -6.0, -8.0, -10.0, -12.0, -15.0, -20.0, -25.0, -30.0, -35.0, -40.0, -45.0, -50.0, -60.0, -70.0, -80.0, -90.0, -100.0, -125.0, -150.0, -200.0, -250.0, -300.0, -350.0, -400.0, -500.0, -600.0, -700.0, -800.0, -900.0, -1000.0, -1250.0, -1500.0, -2000.0, -2500.0, -3000.0, -4000.0, -5000.0]
+    // var TIMESTAMPS = ["2012-05-17T00:00:00.000Z", "2012-05-17T03:00:00.000Z", "2012-05-17T06:00:00.000Z", "2012-05-17T09:00:00.000Z", "2012-05-17T12:00:00.000Z", "2012-05-17T15:00:00.000Z", "2012-05-17T18:00:00.000Z", "2012-05-17T21:00:00.000Z", "2012-05-18T00:00:00.000Z", "2012-05-18T03:00:00.000Z", "2012-05-18T06:00:00.000Z", "2012-05-18T09:00:00.000Z", "2012-05-18T12:00:00.000Z", "2012-05-18T15:00:00.000Z", "2012-05-18T18:00:00.000Z", "2012-05-18T21:00:00.000Z", "2012-05-19T00:00:00.000Z", "2012-05-19T03:00:00.000Z", "2012-05-19T06:00:00.000Z", "2012-05-19T09:00:00.000Z", "2012-05-19T12:00:00.000Z", "2012-05-19T15:00:00.000Z", "2012-05-19T18:00:00.000Z", "2012-05-19T21:00:00.000Z", "2012-05-20T00:00:00.000Z"]
+
     // Return url to query opencop database for table name. If the need
     // strikes you, you can throw a CQL_FILTER on the end.
     function jsonUrl(tableName) {
@@ -508,159 +516,250 @@ var cop = ( function() {
         }())
 
       // legend namespace
-      var legend = ( function() {
+      var legend = function() {
 
-          function refreshLegendPanel() {
+        function refreshLegendPanel() {
 
-            if(!legendActive())
-              return
+          if(!legendActive())
+            return
 
-            var rec = currentlySelectedLayerRecord()
+          var rec = currentlySelectedLayerRecord()
+          if(!rec)
+            return
 
-            if(!rec)
-              return
+          var title = rec.data.title
+          Ext.get("legend_layer_title").update(title)
 
-            var title = rec.data.title
-            var styles = utils.makeUniqOnField(rec.data.styles, "name")
-            var currentStyleIndex = getStyleIndex(styles, rec.data.layer.params.STYLES)
-            var currentStyle = styles[currentStyleIndex]
+          refreshStyles(rec)
+          refreshArrayComboBox(rec, "elevation", ELEVATIONS, "elevation_combo_box_panel", "elevation_combo_box_title")
+          refreshArrayComboBox(rec, "time", TIMESTAMPS, "time_combo_box_panel", "time_combo_box_title")
+        }
 
-            Ext.get("legend_layer_title").update(title)
+        function refreshStyles(rec) {
+          var styles = utils.makeUniqOnField(rec.data.styles, "name")
+          var currentStyleIndex = getStyleIndex(styles, rec.data.layer.params.STYLES)
+          var currentStyle = styles[currentStyleIndex]
 
-            // update style-selector combo box
-            var comboBoxPanel = app.west.selected_layer_panel.tabs.legend_panel.legend_combo_box_panel
-            var comboBoxTitle = Ext.get('legend_combo_box_title')
+          // update style-selector combo box
+          var styleComboBoxPanel = app.west.selected_layer_panel.tabs.legend_panel.legend_combo_box_panel
+          var styleComboBoxTitle = Ext.get('legend_combo_box_title')
 
-            comboBoxPanel.removeAll()
+          styleComboBoxPanel.removeAll()
+
+          if(styleComboBoxTitle) {
+            styleComboBoxTitle.setDisplayed(false)
+          } else {
+            console.log('styleComboBoxTitle is undefined')
+          }
+
+          if(styles.length > 1) {
+            styleComboBoxPanel.add(buildStylesComboBox(styles, currentStyleIndex))
+            styleComboBoxPanel.doLayout()
+
+            if(styleComboBoxTitle) {
+              styleComboBoxTitle.setDisplayed(true)
+            }
+          }
+
+          setLegendToStyle(currentStyle)
+        }
+
+        /**
+         * @param rec info about currently-selected layer (short for record)
+         * @param paramName how the param is referenced in the url; lowercase
+         * @param values the array we're filling the combo box with
+         * @param extCombobox name of the ext combo box we're filling
+         * @param extTitle title over the combo box
+         */
+        function refreshArrayComboBox(rec, paramName, values, extCombobox, extTitle) {
+
+          // params likes the uppercase, in this instance. Consistently.
+          var currIndex = getArrayIndex(values, rec.data.layer.params[paramName.toUpperCase()])
+          var comboBoxPanel = app.west.selected_layer_panel.tabs.legend_panel[extCombobox]
+          var comboBoxTitle = Ext.get(extTitle)
+
+          // clear out everything in there now
+          comboBoxPanel.removeAll()
+          if(comboBoxTitle) {
+            comboBoxTitle.setDisplayed(false)
+          } else {
+            console.log(paramname + ' comboBoxTitle is undefined')
+          }
+
+          // and put it back, if there's anything to put
+          if(values.length > 1) {
+
+            comboBoxPanel.add(buildArrayComboBox(values, currIndex, paramName))
+            comboBoxPanel.doLayout()
 
             if(comboBoxTitle) {
-              comboBoxTitle.setDisplayed(false)
-            } else {
-              console.log('comboBoxTitle is undefined')
+              comboBoxTitle.setDisplayed(true)
             }
+          }
+        }
 
-            if(styles.length > 1) {
-              comboBoxPanel.add(buildStylesComboBox(styles, currentStyleIndex))
-              comboBoxPanel.doLayout()
+        function setLegendToStyle(style) {
 
-              if(comboBoxTitle) {
-                comboBoxTitle.setDisplayed(true)
+          var title = style ? style.title : ""
+          var abstract = style ? style.abstract : ""
+          var url = style ? style.legend.href : ""
+
+          Ext.get("legend_style_title").update(title)
+          Ext.get("legend_style_abstract").update(abstract)
+          Ext.get("legend_style_graphic").dom.src = url
+        }
+
+        function buildStylesComboBox(styles, currentStyleIndex) {
+          return new Ext.form.ComboBox({
+            typeAhead : true,
+            triggerAction : 'all',
+            autoSelect : true,
+            lazyRender : true,
+            mode : 'local',
+            editable : false, // true = filter as the user types
+            valueField : 'myId',
+            displayField : 'displayText',
+            store : new Ext.data.ArrayStore({
+              id : 0,
+              fields : ['myId', 'displayText'],
+              data : buildStylesStore(styles)
+            }),
+            listeners : {
+              'select' : function(combo, record, index) {
+                setLegendToStyle(styles[index])
+                currentlySelectedLayerRecord().data.layer.mergeNewParams({
+                  styles : styles[index].name
+                })
               }
             }
+          }).setValue(currentStyleIndex)
+        }
 
-            setLegendToStyle(currentStyle)
-          }
-
-          function setLegendToStyle(style) {
-            Ext.get("legend_style_title").update(style.title)
-            Ext.get("legend_style_abstract").update(style.abstract)
-            Ext.get("legend_style_graphic").dom.src = style.legend.href
-          }
-
-          function getStyleIndex(styles, name) {
-            return !name ? 0 : _.indexOf(styles, _.find(styles, function(s) {
-              return s.name == name
-            }))
-          }
-
-          function buildStylesComboBox(styles, currentStyleIndex) {
-            return new Ext.form.ComboBox({
-              typeAhead : true,
-              triggerAction : 'all',
-              autoSelect : true,
-              lazyRender : true,
-              mode : 'local',
-              editable : false, // set to true to allow filtering as the user
-              // types
-              valueField : 'myId',
-              displayField : 'displayText',
-              store : new Ext.data.ArrayStore({
-                id : 0,
-                fields : ['myId', 'displayText'],
-                data : buildStylesStore(styles)
-              }),
-              listeners : {
-                'select' : function(combo, record, index) {
-                  setLegendToStyle(styles[index])
-                  currentlySelectedLayerRecord().data.layer.mergeNewParams({
-                    styles : styles[index].name
-                  })
-                }
+        function buildArrayComboBox(arr, currIndex, paramName) {
+          return new Ext.form.ComboBox({
+            typeAhead : true,
+            triggerAction : 'all',
+            autoSelect : true,
+            lazyRender : true,
+            mode : 'local',
+            editable : false, // true = filter as the user types
+            valueField : 'myId',
+            displayField : 'displayText',
+            store : new Ext.data.ArrayStore({
+              id : 0,
+              fields : ['myId', 'displayText'],
+              data : buildArrayStore(arr)
+            }),
+            listeners : {
+              'select' : function(combo, record, index) {
+                // merge causes an immediate layer refresh
+                // (gymnastics needed to add feature with dynamic name to object)
+                var params = {}
+                params[paramName] = arr[index]
+                currentlySelectedLayerRecord().data.layer.mergeNewParams(params)
               }
-            }).setValue(currentStyleIndex)
-          }
+            }
+          }).setValue(currIndex)
+        }
 
-          /**
-           * Take a list of styles, and return a store suitable for a comboBox.
-           *
-           * Example output: [[0, "text0"], [1, "text1"], [2, "text2"], ...]
-           */
-          function buildStylesStore(styles) {
-            var idList = _.range(styles.length)
-            return _.map(idList, function(i) {
-              return [i, styles[i].name]
-            })
-          }
+        function getStyleIndex(styles, name) {
+          var styleNames = _(styles).pluck("name")
+          return getArrayIndex(styles, name)
+        }
 
-          function buildPopoutLegendPopup() {
+        /**
+         * Like indexOf (returns the index of the element), except it returns
+         * index of 0 if nothing is found.  Useful for combo boxes.
+         */
+        function getArrayIndex(arr, elem) {
+          return !elem ? 0 : _.indexOf(arr, _.find(arr, function(e) {
+            return e == elem
+          }))
+        }
 
-            // grab what the legend is currently showing
-            var layerName = Ext.get("legend_layer_title").dom.innerText
-            var styleTitle = Ext.get("legend_style_title").dom.innerText
-            var styleAbstract = Ext.get("legend_style_abstract").dom.innerText
-            var legendGraphicUrl = Ext.get("legend_style_graphic").dom.src
+        /**
+         * Take a list of styles, and return a store suitable for a comboBox.
+         *
+         * Example output: [[0, "text0"], [1, "text1"], [2, "text2"], ...]
+         */
+        function buildStylesStore(styles) {
+          var styleNames = _(styles).pluck("name")
+          return buildArrayStore(styleNames);
+        }
 
-            var nav = new Ext.FormPanel({
-              frame : true,
-              monitorValid : true,
-              defaultType : 'textfield',
-              items : [{
-                xtype : 'box',
-                cls : "legend-padding",
-                autoEl : {
-                  tag : 'h1',
-                  html : styleTitle
-                }
-              }, {
-                xtype : 'box',
-                cls : "legend-padding",
-                autoEl : {
-                  tag : 'p',
-                  html : styleAbstract
-                }
-              }, {
-                xtype : 'box',
-                cls : "legend-padding",
-                autoEl : {
-                  tag : 'img',
-                  src : legendGraphicUrl
-                }
-              }]
-            })
-            var dlgPopup = new Ext.Window({
-              collapsible : true,
-              constrain : true,
-              cls : "legend-window",
-              height : 300,
-              items : [nav],
-              layout : 'fit',
-              maximizable : true,
-              modal : false,
-              plain : true,
-              renderTo : 'map_panel',
-              resizable : true,
-              width : 300,
-              title : "Legend: " + layerName
-            })
-            dlgPopup.show()
-            return dlgPopup
-          }
+        /**
+         * Function alias
+         */
+        var buildArrayStore = zipWithIndex
 
-          return {
-            refreshLegendPanel : refreshLegendPanel,
-            buildPopoutLegendPopup : buildPopoutLegendPopup
-          }
-        }())
+        /**
+         * Ex: [a, b, c, d] => [[0, a], [1, b], [2, c], [3, d]]
+         */
+        function zipWithIndex(arr) {
+          return _.map(_.range(arr.length), function(i) {
+            return [i, arr[i]]
+          })
+        }
+
+        function buildPopoutLegendPopup() {
+
+          // grab what the legend is currently showing
+          var layerName = Ext.get("legend_layer_title").dom.innerText
+          var styleTitle = Ext.get("legend_style_title").dom.innerText
+          var styleAbstract = Ext.get("legend_style_abstract").dom.innerText
+          var legendGraphicUrl = Ext.get("legend_style_graphic").dom.src
+
+          var nav = new Ext.FormPanel({
+            frame : true,
+            monitorValid : true,
+            defaultType : 'textfield',
+            items : [{
+              xtype : 'box',
+              cls : "legend-padding",
+              autoEl : {
+                tag : 'h1',
+                html : styleTitle
+              }
+            }, {
+              xtype : 'box',
+              cls : "legend-padding",
+              autoEl : {
+                tag : 'p',
+                html : styleAbstract
+              }
+            }, {
+              xtype : 'box',
+              cls : "legend-padding",
+              autoEl : {
+                tag : 'img',
+                src : legendGraphicUrl
+              }
+            }]
+          })
+          var dlgPopup = new Ext.Window({
+            collapsible : true,
+            constrain : true,
+            cls : "legend-window",
+            height : 300,
+            items : [nav],
+            layout : 'fit',
+            maximizable : true,
+            modal : false,
+            plain : true,
+            renderTo : 'map_panel',
+            resizable : true,
+            width : 300,
+            title : "Legend: " + layerName
+          })
+          dlgPopup.show()
+          return dlgPopup
+        }
+
+        return {
+          refreshLegendPanel : refreshLegendPanel,
+          buildPopoutLegendPopup : buildPopoutLegendPopup
+        }
+      }()
 
       function cancelEditWfs(feature) {
 
@@ -1137,8 +1236,31 @@ var cop = ( function() {
             id : 'legend_style_graphic',
             src : ""
           }
-        }]
-      }
+        }, {
+          xtype : 'box',
+          cls : "selected-layer-padding",
+          autoEl : {
+            tag : 'h2',
+            id : 'elevation_combo_box_title',
+            html : 'Elevation'
+          }
+        }, {
+          xtype : 'container',
+          cls : "selected-layer-padding",
+          ref : 'elevation_combo_box_panel'
+        }, {
+          xtype : 'box',
+          cls : "selected-layer-padding",
+          autoEl : {
+            tag : 'h2',
+            id : 'time_combo_box_title',
+            html : 'Time'
+          }
+        }, {
+          xtype : 'container',
+          cls : "selected-layer-padding",
+          ref : 'time_combo_box_panel'
+        }]      }
 
       var editFeaturesPanel = {
         ref : "edit_features",
@@ -1360,19 +1482,23 @@ var cop = ( function() {
       // - any of the three panels are selected
       function refreshControls() {
 
-        if(!app)
-          return function currentLayerType() {
-            var layerRecord = currentlySelectedLayerRecord()
-            if(!layerRecord)
-              return null
-            if(layerRecord.id.match("WMS"))
-              return "WMS"
-            if(layerRecord.id.match("Google"))
-              return "Google"
-            if(layerRecord.id.match("Yahoo"))
-              return "Yahoo"
-            return "KML"
-          }
+        if(!app) {
+          return
+        }
+
+        function currentLayerType() {
+          var layerRecord = currentlySelectedLayerRecord()
+          if(!layerRecord)
+            return null
+          if(layerRecord.id.match("WMS"))
+            return "WMS"
+          if(layerRecord.id.match("Google"))
+            return "Google"
+          if(layerRecord.id.match("Yahoo"))
+            return "Yahoo"
+          return "KML"
+        }
+
         function isBaseLayer(type) {
           return type == "Google" || type == "Yahoo"
         }
@@ -1445,18 +1571,21 @@ var cop = ( function() {
 
       function refreshLayerEditPanel() {
         var layerRecord = currentlySelectedLayerRecord()
-        if(!layerRecord)
+        if(!layerRecord) {
           return
+        }
 
         var layerEditTitle = Ext.get('layer-edit-title')
-        if(!layerEditTitle)
+        if(layerEditTitle) {
           return layerEditTitle.update(layerRecord.data.title)
+        }
       }
 
       function refreshLayerDetailsPanel() {
         var layerRecord = currentlySelectedLayerRecord()
-        if(!layerRecord)
+        if(!layerRecord) {
           return
+        }
 
         var layer = layerRecord.getLayer()
         var slider = app.west.selected_layer_panel.tabs.layer_detail.opacity_slider
