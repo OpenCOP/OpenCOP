@@ -11,8 +11,8 @@ p {
 }
 .opencop_logo {
   background-image: url(/opencop/images/OpenCOP_logo_16.png);
-  width: 84 !important;
-  height: 16;
+  width: 84px !important;
+  height: 16px;
   background-repeat: no-repeat !important;
 }
 .geocent_logo { background-image: url(/opencop/images/geocent_logo_16.png) !important; background-repeat: no-repeat; }
@@ -28,6 +28,12 @@ p {
     background-position: 15px -120px !important;
     left: 30px !important;
     top: 16px !important;
+}
+
+div.olControlMousePosition {
+  background-color: #CEECF5;
+  font-size: small;
+  padding: 1px 3px;
 }
 
 /* Pan- and Zoom- Panel Styles*/
@@ -166,4 +172,8 @@ div.in-popup table td {
   /*  src: http://www.w3schools.com/css/css_image_transparency.asp  */
   opacity:0.95;
   filter:alpha(opacity=95); /* For IE8 and earlier */
+}
+
+.olLayerGoogleV3.olLayerGooglePoweredBy {
+  display: none;
 }
