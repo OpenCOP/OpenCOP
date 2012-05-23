@@ -1733,7 +1733,7 @@ var cop = function() {
       //baseUrl = baseUrl.replace(/wms/, "wfs")
       new GeoExt.data.AttributeStore({
         url : baseUrl,
-        feature : vectorLayer,
+//        feature : vectorLayer,
         // request specific params
         baseParams : {
           "SERVICE" : "WFS",
