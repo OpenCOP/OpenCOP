@@ -930,7 +930,7 @@ var cop = function() {
       return OpenLayers.Util.indexOf(vectorLayer.selectedFeatures, feature) > -1
     }
 
-    var controls = [new OpenLayers.Control.Navigation(), new OpenLayers.Control.Attribution(), new OpenLayers.Control.PanPanel(), new OpenLayers.Control.ZoomPanel()]
+    var controls = [new OpenLayers.Control.Navigation(), new OpenLayers.Control.Attribution(), new OpenLayers.Control.PanPanel(), new OpenLayers.Control.ZoomPanel(), new OpenLayers.Control.MousePosition()]
 
     var modifyControl = new OpenLayers.Control.ModifyFeature(vectorLayer, {
       autoActivate : true
@@ -2076,6 +2076,9 @@ var cop = function() {
         url : jsonUrl("layergroup"),
         success : function(response) {
 
+          // Return an ext grid reprsenting the layers available within
+          // a given layergroup
+          //
           // options:
           // - layergroup id
           // - layergroup name
