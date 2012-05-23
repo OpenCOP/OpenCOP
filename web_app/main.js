@@ -343,7 +343,11 @@ var cop = function() {
     }
 
     selectedIconUrl = obj.src
-    GeoExtPopup.anyOpen() ? updateFeature(obj) : createFeature(obj)
+    if(GeoExtPopup.anyOpen()) {
+      updateFeature(obj)
+    } else {
+      createFeature(obj)
+    }
   }
   // utils namespace (for the purest of the pure functions)
   var utils = {
@@ -954,7 +958,7 @@ var cop = function() {
       eventListeners : {
         "getfeatureinfo" : function(e) {
           var bodyIsEmpty = /<body>\s*<\/body>/.test(e.text)
-          if(bodyIsEmpty)
+          if(!bodyIsEmpty)
             GeoExtPopup.create({
               title : "Feature Info",
               width : 300,
