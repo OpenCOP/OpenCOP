@@ -1,3 +1,5 @@
+"use strict";
+
 var cop = function() {
 
   var app
@@ -6,6 +8,7 @@ var cop = function() {
   var selectedIconUrl
   var username// null means guest
   var refreshInterval = 30000
+  var kmlSelectControl
   var loadingReferenceCount = 0
 
   function hideLoadingText() {
@@ -1733,7 +1736,6 @@ var cop = function() {
       //baseUrl = baseUrl.replace(/wms/, "wfs")
       new GeoExt.data.AttributeStore({
         url : baseUrl,
-//        feature : vectorLayer,
         // request specific params
         baseParams : {
           "SERVICE" : "WFS",
@@ -1744,8 +1746,8 @@ var cop = function() {
         autoLoad : true,
         listeners : {
           "load" : function(store) {
-            vectorLayer.store = store// make DescribeFeatureType results
-            // available to vectorLayer
+            // make DescribeFeatureType results available to vectorLayer
+            vectorLayer.store = store
             app.center_south_and_east_panel.feature_table.setTitle(layer.name)
             makeWfsGridHeadersDynamic(store, baseUrl)
           }
@@ -2151,8 +2153,9 @@ var cop = function() {
                 // assumption is that the layers are equal if they
                 // have the same namespace:name and if they have the
                 // same url (that is, come from the same geoserver).
-                return layer.params// null-checking action
-                && layer.url == selected.data.layer.url && layer.params.LAYERS == selected.data.name
+                return (layer.params
+                  && layer.params.LAYERS == selected.data.name
+                  && layer.url == selected.data.layer.url)
               })
             }).each(addLayer)
             deselectAllLayers()
@@ -2242,7 +2245,7 @@ var cop = function() {
       // 2.  Delete the layer from the layer tree
 
       function layer_to_record(olLayer) {
-        record = new GeoExt.data.LayerRecord()
+        var record = new GeoExt.data.LayerRecord()
         record.setLayer(olLayer)
         record.id = olLayer.id
         return record
