@@ -107,8 +107,9 @@ var cop = function() {
 
     var bumpIndex = function() {
       index += 1
-      if(index >= availableStyles.length)
+      if(index >= availableStyles.length) {
         index = 0
+      }
     }
 
     return function() {
@@ -124,8 +125,9 @@ var cop = function() {
 
       function getUrl(opts) {// relies on global "username"
         var url = "/geoserver/rest/proxy?url=" + opts.url
-        if(username)
+        if(username) {
           url += "?username=" + username
+        }
         return url
       }
 
@@ -156,10 +158,14 @@ var cop = function() {
       })
     }
 
-    if(opts.type == "KML")
+    if(opts.type == "KML") {
       return buildKmlLayer(opts)
-    if(opts.type == "WMS")
+    }
+    if(opts.type == "WMS") {
       return buildWmsLayer(opts)
+    }
+
+    throw "Unrecognized type: " + opts.type + "."
   }
 
   function displayAppInfo() {
@@ -351,8 +357,9 @@ var cop = function() {
         var isIn = _.find(acc, function(m) {
           return m[field] == n[field]
         })
-        if(!isIn)
+        if(!isIn) {
           acc.push(n)
+        }
         return acc
       }, [])
     },
@@ -381,8 +388,9 @@ var cop = function() {
     safeDot : function(obj, attrs) {
       var currObj = obj
       for(var i = 0; i < attrs.length; ++i) {
-        if(!currObj || !currObj[attrs[i]])
+        if(!currObj || !currObj[attrs[i]]) {
           return undefined
+        }
         currObj = currObj[attrs[i]]
       }
       return currObj
@@ -415,7 +423,7 @@ var cop = function() {
           fillColor : "66CCFF",
           strokeColor : "blue",
           strokeWidth : 3
-        }),
+        })
       }),
       'displayInLayerSwitcher' : false
     })
@@ -439,16 +447,19 @@ var cop = function() {
       function rebuildControl() {
         var map = app.center_south_and_east_panel.map_panel.map
 
-        if(control)
+        if(control) {
           map.removeControl(control)
+        }
 
-        if(layers.length == 0)
-          return control = new OpenLayers.Control.SelectFeature(layers, {
-            onSelect : createKmlPopup,
-            onUnselect : function(feature) {
-              feature.popup.close()
-            }
-          })
+        if(layers.length == 0) {
+          return
+        }
+        control = new OpenLayers.Control.SelectFeature(layers, {
+          onSelect : createKmlPopup,
+          onUnselect : function(feature) {
+            feature.popup.close()
+          }
+        })
         map.addControl(control)
       }
 
@@ -487,13 +498,15 @@ var cop = function() {
       }
 
       function activate() {
-        if(control)
+        if(control) {
           control.activate()
+        }
       }
 
       function deactivate() {
-        if(control)
+        if(control) {
           control.deactivate()
+        }
       }
 
       return {
@@ -523,12 +536,14 @@ var cop = function() {
 
       function refreshLegendPanel() {
 
-        if(!legendActive())
+        if(!legendActive()) {
           return
+        }
 
         var rec = currentlySelectedLayerRecord()
-        if(!rec)
+        if(!rec) {
           return
+        }
 
         var title = rec.data.title
         Ext.get("legend_layer_title").update(title)
@@ -787,8 +802,9 @@ var cop = function() {
     function createWfsPopup(feature) {
       // the "createWfsPopup" abstraction allows for the flexibility to
       // open other types of popups when in other modes
-      if(editFeaturesActive())
+      if(editFeaturesActive()) {
         createEditWfsPopup(feature)
+      }
     }
 
     function createEditWfsPopup(feature) {
@@ -939,7 +955,7 @@ var cop = function() {
         "getfeatureinfo" : function(e) {
           var bodyIsEmpty = /<body>\s*<\/body>/.test(e.text)
           if(bodyIsEmpty)
-            return GeoExtPopup.create({
+            GeoExtPopup.create({
               title : "Feature Info",
               width : 300,
               height : 300,
@@ -1475,8 +1491,10 @@ var cop = function() {
     }
 
     function moveToDetailsTab() {
-      if(!app)
-        return app.west.selected_layer_panel.tabs.setActiveTab(0)
+      if(!app) {
+        return
+      }
+      app.west.selected_layer_panel.tabs.setActiveTab(0)
     }
 
     // Sometimes which controls are activated gets pretty messed up.
@@ -1496,14 +1514,18 @@ var cop = function() {
 
       function currentLayerType() {
         var layerRecord = currentlySelectedLayerRecord()
-        if(!layerRecord)
+        if(!layerRecord) {
           return null
-        if(layerRecord.id.match("WMS"))
+        }
+        if(layerRecord.id.match("WMS")) {
           return "WMS"
-        if(layerRecord.id.match("Google"))
+        }
+        if(layerRecord.id.match("Google")) {
           return "Google"
-        if(layerRecord.id.match("Yahoo"))
+        }
+        if(layerRecord.id.match("Yahoo")) {
           return "Yahoo"
+        }
         return "KML"
       }
 
@@ -1584,9 +1606,10 @@ var cop = function() {
       }
 
       var layerEditTitle = Ext.get('layer-edit-title')
-      if(layerEditTitle) {
-        return layerEditTitle.update(layerRecord.data.title)
+      if(!layerEditTitle) {
+        return
       }
+      layerEditTitle.update(layerRecord.data.title)
     }
 
     function refreshLayerDetailsPanel() {
@@ -1685,7 +1708,7 @@ var cop = function() {
 
     function currentlySelectedLayerNode() {
       if(!app) {
-        return
+        return null
       }
       return app.west.tree_panel.getSelectionModel().getSelectedNode()
     }
@@ -1696,11 +1719,14 @@ var cop = function() {
     }
 
     function populateWfsGrid(layer) {
-      if(!layer.url)
-        return showLoadingText()
-      // basically, not really a WFS layer -- probably KML
-      var baseUrl = layer.url.split("?")[0]// the base url without params
-      //      baseUrl = baseUrl.replace(/wms/, "wfs")
+      if(!layer.url) {
+        // basically, not really a WFS layer -- probably KML
+        return
+      }
+      showLoadingText()
+      // the base url without params
+      var baseUrl = layer.url.split("?")[0]
+      //baseUrl = baseUrl.replace(/wms/, "wfs")
       new GeoExt.data.AttributeStore({
         url : baseUrl,
         feature : vectorLayer,
@@ -2178,8 +2204,9 @@ var cop = function() {
     }
 
     function currentModePanel() {
-      if(!app)
-        return
+      if(!app) {
+        return null
+      }
       return app.west.selected_layer_panel.tabs.getActiveTab().initialConfig.ref
     }
 
@@ -2218,8 +2245,9 @@ var cop = function() {
       }
 
       function forceToRecord(obj) {
-        if(obj.isBaseLayer)
+        if(obj.isBaseLayer) {
           return layer_to_record(obj)
+        }
         if(obj.getLayer) {
           obj.id = obj.data.layer.id
           return obj
@@ -2231,8 +2259,9 @@ var cop = function() {
         return obj && obj.data && obj.data.type == "KML"
       }
 
-      if(isKml(obj))
+      if(isKml(obj)) {
         kmlSelectControl.addLayer(obj.data.layer)
+      }
 
       app.center_south_and_east_panel.map_panel.layers.add([forceToRecord(obj)])
       hideLoadingText()
@@ -2312,8 +2341,9 @@ var cop = function() {
           })
           // the default base layer must be set in the layer box by hand
           Ext.each(features, function(f) {
-            if(f.properties.isdefault)
+            if(f.properties.isdefault) {
               checkBaseLayer(f.properties.name)
+            }
           })
         }
       })
@@ -2393,6 +2423,7 @@ var cop = function() {
 
 Ext.onReady(function() {
   cop.init()
-  if(runTests)
+  if(runTests) {
     test.run()
+  }
 })
