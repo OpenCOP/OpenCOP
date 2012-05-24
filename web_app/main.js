@@ -1,3 +1,5 @@
+"use strict";
+
 var cop = function() {
 
   var app
@@ -6,6 +8,7 @@ var cop = function() {
   var selectedIconUrl
   var username// null means guest
   var refreshInterval = 30000
+  var kmlSelectControl
   var loadingReferenceCount = 0
 
   function hideLoadingText() {
@@ -156,6 +159,15 @@ var cop = function() {
         format : "image/png"
       }, {
         isBaseLayer : false
+      })
+
+      wms.events.on({
+        "loadstart" : function() {
+          showLoadingText()
+        },
+        "loadend" : function() {
+          hideLoadingText()
+        }
       })
       return wms
     }
@@ -345,7 +357,11 @@ var cop = function() {
     }
 
     selectedIconUrl = obj.src
-    GeoExtPopup.anyOpen() ? updateFeature(obj) : createFeature(obj)
+    if(GeoExtPopup.anyOpen()) {
+      updateFeature(obj)
+    } else {
+      createFeature(obj)
+    }
   }
   // utils namespace (for the purest of the pure functions)
   var utils = {
@@ -621,11 +637,11 @@ var cop = function() {
       function setLegendToStyle(style) {
 
         var title = style ? style.title : ""
-        var abstract = style ? style.abstract : ""
+        var olAbstract = style ? style.abstract : ""
         var url = style ? style.legend.href : ""
 
         Ext.get("legend_style_title").update(title)
-        Ext.get("legend_style_abstract").update(abstract)
+        Ext.get("legend_style_abstract").update(olAbstract)
         Ext.get("legend_style_graphic").dom.src = url
       }
 
@@ -925,7 +941,7 @@ var cop = function() {
       return OpenLayers.Util.indexOf(vectorLayer.selectedFeatures, feature) > -1
     }
 
-    var controls = [new OpenLayers.Control.Navigation(), new OpenLayers.Control.Attribution(), new OpenLayers.Control.PanPanel(), new OpenLayers.Control.ZoomPanel()]
+    var controls = [new OpenLayers.Control.Navigation(), new OpenLayers.Control.Attribution(), new OpenLayers.Control.PanPanel(), new OpenLayers.Control.ZoomPanel(), new OpenLayers.Control.MousePosition()]
 
     var modifyControl = new OpenLayers.Control.ModifyFeature(vectorLayer, {
       autoActivate : true
@@ -956,7 +972,7 @@ var cop = function() {
       eventListeners : {
         "getfeatureinfo" : function(e) {
           var bodyIsEmpty = /<body>\s*<\/body>/.test(e.text)
-          if(bodyIsEmpty)
+          if(!bodyIsEmpty)
             GeoExtPopup.create({
               title : "Feature Info",
               width : 300,
@@ -1405,16 +1421,22 @@ var cop = function() {
     })
 
     app.center_south_and_east_panel.map_panel.map.events.on({
-//      "loadstart" : function() {
-//       showLoadingText()
-//      },
-//      "loadend" : function() {
-//        hideLoadingText()
-//      },
-      "move" : function() {
+      //      "loadstart" : function() {
+      //       showLoadingText()
+      //      },
+      //      "loadend" : function() {
+      //        hideLoadingText()
+      //      },
+      "movestart" : function() {
         showLoadingText()
       },
       "moveend" : function() {
+        hideLoadingText()
+      },
+      "preaddlayer" : function(e) {
+        showLoadingText()
+      },
+      "addlayer" : function(e) {
         hideLoadingText()
       }
     })
@@ -1756,8 +1778,8 @@ var cop = function() {
         autoLoad : true,
         listeners : {
           "load" : function(store) {
-            vectorLayer.store = store// make DescribeFeatureType results
-            // available to vectorLayer
+            // make DescribeFeatureType results available to vectorLayer
+            vectorLayer.store = store
             app.center_south_and_east_panel.feature_table.setTitle(layer.name)
             makeWfsGridHeadersDynamic(store, baseUrl)
           }
@@ -2086,6 +2108,9 @@ var cop = function() {
         url : jsonUrl("layergroup"),
         success : function(response) {
 
+          // Return an ext grid reprsenting the layers available within
+          // a given layergroup
+          //
           // options:
           // - layergroup id
           // - layergroup name
@@ -2168,8 +2193,7 @@ var cop = function() {
                 // assumption is that the layers are equal if they
                 // have the same namespace:name and if they have the
                 // same url (that is, come from the same geoserver).
-                return layer.params// null-checking action
-                && layer.url == selected.data.layer.url && layer.params.LAYERS == selected.data.name
+                return (layer.params && layer.params.LAYERS == selected.data.name && layer.url == selected.data.layer.url)
               })
             }).each(addLayer)
             deselectAllLayers()
@@ -2256,13 +2280,15 @@ var cop = function() {
     //   - record
     //   - olLayer
     function addLayer(obj) {
+      showLoadingText()
+
       // In the following, the record id MUST be set to the layer id by hand.
       // The automatic value is incorrect.  If this isn't done:
       // 1.  Bring up the layer info box
       // 2.  Delete the layer from the layer tree
 
       function layer_to_record(olLayer) {
-        record = new GeoExt.data.LayerRecord()
+        var record = new GeoExt.data.LayerRecord()
         record.setLayer(olLayer)
         record.id = olLayer.id
         return record
@@ -2395,8 +2421,7 @@ var cop = function() {
     }
 
     loadBaselayers()
-
-  }// close init()
+  }
   // make rendering html in javascript stupid simple
   var h = function() {
     return {
@@ -2446,7 +2471,8 @@ var cop = function() {
 
 Ext.onReady(function() {
   cop.init()
-  if(runTests) {
+  if(devMode) {
     test.run()
+    refresh.init()
   }
 })
