@@ -626,11 +626,11 @@ var cop = function() {
       function setLegendToStyle(style) {
 
         var title = style ? style.title : ""
-        var abstract = style ? style.abstract : ""
+        var olAbstract = style ? style.abstract : ""
         var url = style ? style.legend.href : ""
 
         Ext.get("legend_style_title").update(title)
-        Ext.get("legend_style_abstract").update(abstract)
+        Ext.get("legend_style_abstract").update(olAbstract)
         Ext.get("legend_style_graphic").dom.src = url
       }
 
@@ -1802,6 +1802,7 @@ var cop = function() {
     sm.on("beforerowselect", function() {
       sm.clearSelections()
     })
+
     // ---------------------------------------------------------------
     // UTILITY FUNCTIONS
     //
@@ -2242,6 +2243,7 @@ var cop = function() {
     //   - olLayer
     function addLayer(obj) {
       showLoadingText()
+
       // In the following, the record id MUST be set to the layer id by hand.
       // The automatic value is incorrect.  If this isn't done:
       // 1.  Bring up the layer info box
@@ -2382,8 +2384,8 @@ var cop = function() {
     }
 
     loadBaselayers()
+  }
 
-  }// close init()
   // make rendering html in javascript stupid simple
   var h = function() {
     return {
@@ -2433,7 +2435,8 @@ var cop = function() {
 
 Ext.onReady(function() {
   cop.init()
-  if(runTests) {
+  if(devMode) {
     test.run()
+    refresh.init()
   }
 })
