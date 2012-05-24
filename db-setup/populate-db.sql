@@ -145,3 +145,25 @@ create table config (
 insert into config values (0, 'db', 'domain', 'http://demo.geocent.com', 'ex: "http://demo.geocent.com", "http://localhost". Sets href for edit_url-making rule.');
 insert into config values (1, 'map', 'refreshInterval', '120000', 'Layer refresh interval in ms.');
 insert into config values (2, 'map', 'adminEmail', 'opencop@geocent.com', 'Admin email');
+
+
+------------------------------------------------------------
+---- default layers
+
+-- These are layers that appear by default -- on a per installation
+-- basis -- under the layer tree on startup.
+
+drop table if exists default_layer;
+create table default_layer (
+  id SERIAL primary key,
+  type varchar(6),    -- "WMS" or "KML"
+  name varchar(200),  -- what user sees in layer tree
+  url text,           -- url to service [1]
+  layers text         -- generally, the namespace:layer that geoserver uses [2]
+);
+-- [1]: optionally, could specify filters
+--      ex: http://geo-dev.geocent.com/geoserver/netcdf/wms?service=WMS
+-- [2]: optionally, could specify multiple layers
+insert into default_layer (type, name, url, layers) values ('WMS', 'Water Temp', 'http://geo-dev.geocent.com/geoserver/netcdf/wms?service=WMS', 'netcdf:water_temp');
+insert into default_layer (type, name, url, layers) values ('WMS', 'parish', 'http://localhost:80/geoserver/ows?SERVICE=WMS', 'topp:parish');
+insert into default_layer (type, name, url, layers) values ('KML', 'some KML test', 'http://demo.geocent.com/opencop-icons/kml/Installations.kml', null);

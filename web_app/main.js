@@ -147,6 +147,7 @@ var cop = function() {
         })
       })
       kmlLayer.style = getNextStyle()
+      kmlLayer.fullUrl = opts.url
       return kmlLayer
     }
 
@@ -409,7 +410,11 @@ var cop = function() {
   }
 
   var init = function() {
-    displayLoginPopup()
+    if(!devMode) {
+      displayLoginPopup()
+    } else {
+//      displayAvailableLayers()
+    }
 
     OpenLayers.ProxyHost = "/geoserver/rest/proxy?url="
     Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
@@ -1857,6 +1862,76 @@ var cop = function() {
       setTimeout(autoRefreshLayers, refreshInterval)
     }
 
+    var DefaultLayers = function() {
+
+      /**
+         * Get all user layers, return as OpenLayers objects.
+         *
+         * By user layers we mean
+         * - not base layers
+         * - not the scratch vector layer
+         * - not other layers that may be created for the benefit of obscure controls
+         */
+      function getAllUserLayers () {
+        var layers = app.center_south_and_east_panel.map_panel.map.layers
+        return _(layers).filter(function(layer) {
+          // If a controller makes a layer, it has a 'layers' param.
+          // The scratch layer has 'displayInLayerSwitcher = false'.
+          return !layer.baselayer && !layer.layers && layer.displayInLayerSwitcher
+        })
+      }
+
+      function serializeActiveLayers() {
+        return _(getAllUserLayers()).map(function(layer) {
+          return serializeLayer(layer)
+        })
+      }
+
+      function serializeLayer(layer) {
+        if(isKml(layer)) {
+          return {
+            type: "KML",
+            name: layer.name,
+            url: layer.fullUrl
+          }
+        } else if(isWms(layer)) {
+          return {
+            type: "WMS",
+            name: layer.name,
+            layers: layer.params.LAYERS,
+            url: layer.url
+          }
+        } else {
+          throw "Unrecognized layer type"
+        }
+      }
+
+      function isKml(layer) {
+        return layer.features
+      }
+
+      function isWms(layer) {
+        return layer.params.SERVICE == "WMS"
+      }
+
+      function loadLayers() {
+        Ext.Ajax.request({
+          url : jsonUrl("default_layer"),
+          success : function(response) {
+            var features = Ext.util.JSON.decode(response.responseText).features
+            Ext.each(features, function(feature) {
+              addLayer(buildOlLayer(feature.properties))
+            })
+          }
+        })
+      }
+
+      return {
+        serializeActiveLayers: serializeActiveLayers,
+        loadLayers: loadLayers
+      }
+    }()
+
     // Save the feature in the scratch vector layer through the power
     // of WFS-T, and refresh everything on the screen that touches that
     // vector layer.
@@ -2256,8 +2331,16 @@ var cop = function() {
         return record
       }
 
+      function isWmsLayer(obj) {
+        return obj.CLASS_NAME == "OpenLayers.Layer.WMS"
+      }
+
+      function isKmlLayer(obj) {
+        return obj.CLASS_NAME == "OpenLayers.Layer.Vector"
+      }
+
       function forceToRecord(obj) {
-        if(obj.isBaseLayer) {
+        if(obj.isBaseLayer || isWmsLayer(obj) || isKmlLayer(obj)) {
           return layer_to_record(obj)
         }
         if(obj.getLayer) {
@@ -2384,6 +2467,7 @@ var cop = function() {
     }
 
     loadBaselayers()
+    DefaultLayers.loadLayers()
   }
 
   // make rendering html in javascript stupid simple
@@ -2434,9 +2518,11 @@ var cop = function() {
 }()
 
 Ext.onReady(function() {
+  if(devMode) {
+    refresh.init()
+  }
   cop.init()
   if(devMode) {
     test.run()
-    refresh.init()
   }
 })

@@ -20,7 +20,7 @@ var refresh = function() {
 
   function check() {
     $.get(url, function(updated) {
-      if(lastUpdated != updated) {
+      if(updated != "" && lastUpdated != updated) {
         window.location.reload()
       }
       setTimeout(check, refreshIntervalMs)
