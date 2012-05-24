@@ -14,6 +14,7 @@ var cop = function() {
     }
 
     loadingReferenceCount--;
+    app.top_menu_bar.loading_text.hide();
     if(loadingReferenceCount === 0) {
       app.top_menu_bar.loading_text.hide();
     } else if(loadingReferenceCount < 0) {
@@ -148,7 +149,7 @@ var cop = function() {
     }
 
     function buildWmsLayer(opts) {
-      return new OpenLayers.Layer.WMS(opts.name, opts.url, {
+      var wms = new OpenLayers.Layer.WMS(opts.name, opts.url, {
         layers : opts.layers,
         transparent : "true",
         'random' : Math.random(),
@@ -156,6 +157,7 @@ var cop = function() {
       }, {
         isBaseLayer : false
       })
+      return wms
     }
 
     if(opts.type == "KML") {
@@ -1402,6 +1404,21 @@ var cop = function() {
       items : [menu_bar, west_panel, center_south_and_east_panel]
     })
 
+    app.center_south_and_east_panel.map_panel.map.events.on({
+//      "loadstart" : function() {
+//       showLoadingText()
+//      },
+//      "loadend" : function() {
+//        hideLoadingText()
+//      },
+      "move" : function() {
+        showLoadingText()
+      },
+      "moveend" : function() {
+        hideLoadingText()
+      }
+    })
+
     // necessary to populate south panel attributes
     var rawAttributeData
     var read = OpenLayers.Format.WFSDescribeFeatureType.prototype.read
@@ -1729,7 +1746,6 @@ var cop = function() {
       //baseUrl = baseUrl.replace(/wms/, "wfs")
       new GeoExt.data.AttributeStore({
         url : baseUrl,
-        feature : vectorLayer,
         // request specific params
         baseParams : {
           "SERVICE" : "WFS",
@@ -1802,7 +1818,7 @@ var cop = function() {
     // Utility functions that require onReady scope
     // (generally meaning "including app")
     //
-
+    showLoadingText();
     Ext.Ajax.request({
       url : jsonUrl("config"),
       success : function(response) {
@@ -1813,11 +1829,14 @@ var cop = function() {
           refreshInterval = temp[0].value
         }
         autoRefreshLayers()
+        hideLoadingText()
+      },
+      failure : function() {
+        hideLoadingText()
       }
     })
 
     function refreshAllLayers() {
-      showLoadingText()
       var layers = app.center_south_and_east_panel.map_panel.map.layers
       for(var i = layers.length - 1; i >= 0; --i) {
         refreshLayer(layers[i])
@@ -1825,11 +1844,9 @@ var cop = function() {
       if(editFeaturesActive()) {
         app.center_south_and_east_panel.feature_table.store.reload()
       }
-      hideLoadingText()
     }
 
     function refreshLayer(layer) {
-      showLoadingText()
       if(layer.CLASS_NAME == "OpenLayers.Layer.WMS") {
         layer.mergeNewParams({
           'random' : Math.random()
@@ -1842,7 +1859,6 @@ var cop = function() {
           }
         })
       }
-      hideLoadingText()
     }
 
     function autoRefreshLayers() {
@@ -2065,7 +2081,7 @@ var cop = function() {
     }
 
     function displayAvailableLayers() {
-
+      showLoadingText()
       Ext.Ajax.request({
         url : jsonUrl("layergroup"),
         success : function(response) {
@@ -2117,6 +2133,7 @@ var cop = function() {
 
           // load layers that are not part of the GetCapabilities
           function loadAdditionalLayers(store, layerGroupId) {
+            showLoadingText()
             Ext.Ajax.request({
               url : jsonUrl("layer") + "&CQL_FILTER=layergroup='" + layerGroupId + "'",
               success : function(response) {
@@ -2130,6 +2147,10 @@ var cop = function() {
                     layer : buildOlLayer(layerOpts)
                   }))
                 })
+                hideLoadingText()
+              },
+              failure : function() {
+                hideLoadingText()
               }
             })
           }
@@ -2199,6 +2220,10 @@ var cop = function() {
             }]
           })
           layersPopup.show()
+          hideLoadingText()
+        },
+        failure : function() {
+          hideLoadingText()
         }
       })
     }
@@ -2231,7 +2256,6 @@ var cop = function() {
     //   - record
     //   - olLayer
     function addLayer(obj) {
-      showLoadingText()
       // In the following, the record id MUST be set to the layer id by hand.
       // The automatic value is incorrect.  If this isn't done:
       // 1.  Bring up the layer info box
@@ -2264,7 +2288,6 @@ var cop = function() {
       }
 
       app.center_south_and_east_panel.map_panel.layers.add([forceToRecord(obj)])
-      hideLoadingText()
     }
 
     function loadBaselayers() {
