@@ -11,7 +11,6 @@ var refresh = function() {
   var refreshIntervalMs = 100
   var url = "/opencop-updated/updated"
 
-
   function init() {
     $.get(url, function(content) {
       initialContent = content

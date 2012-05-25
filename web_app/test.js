@@ -64,6 +64,23 @@ var test = (function() {
       , isEq(cop.utils.safeDot({a: {b: {c: {d: 4}}}}, ["a", "c"]), undefined, "safedot: a c")
       , isEq(cop.utils.safeDot({a: {b: {c: {d: 4}}}}, ["a", "b", "c", "d"]), 4, "safedot: a b c d")
 
+      , isEq(cop.utils.first("12345"), 1)
+      , isEq(cop.utils.last("12345"), 5)
+
+      , isEq(cop.utils.trimChars("hello", "&?"), "hello")
+      , isEq(cop.utils.trimChars("&hello&", "&?"), "hello")
+      , isEq(cop.utils.trimChars("?hello?", "&?"), "hello")
+      , isEq(cop.utils.trimChars("&?hello?&", "&?"), "hello")
+      , isEq(cop.utils.trimChars("?", "&?"), "")
+      , isEq(cop.utils.trimChars("&", "&?"), "")
+      , isEq(cop.utils.trimChars("", "&?"), "")
+
+      , is(cop.utils.contains("hello", "e"))
+      , isNot(cop.utils.contains("hello", "z"))
+
+      , isEq(cop.utils.dropFirst("hello"), "ello")
+      , isEq(cop.utils.dropLast("hello"), "hell")
+
       ])
   }}
 }())

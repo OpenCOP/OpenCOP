@@ -364,7 +364,10 @@ var cop = function() {
       createFeature(obj)
     }
   }
-  // utils namespace (for the purest of the pure functions)
+
+  /**
+   * Utils namespace (for the purest of the pure functions)
+   */
   var utils = {
 
     /**
@@ -413,6 +416,40 @@ var cop = function() {
         currObj = currObj[attrs[i]]
       }
       return currObj
+    },
+
+    /**
+     * Remove all chars from beginning and end of text.
+     */
+    trimChars: function(text, chars) {
+      var c = cop.utils
+      while(c.contains(chars, c.last(text))) {
+        text = c.dropLast(text)
+      }
+      while(c.contains(chars, c.first(text))) {
+        text = c.dropFirst(text)
+      }
+      return text
+    },
+
+    first: function(text) {
+      return text[0]
+    },
+
+    last: function(arr) {
+      return arr[arr.length - 1]
+    },
+
+    dropFirst: function(text) {
+      return text.substring(1, text.length)
+    },
+
+    dropLast: function(text) {
+      return text.substring(0, text.length - 1)
+    },
+
+    contains: function(arr, elem) {
+      return arr.indexOf(elem) >= 0
     },
 
     defaultTo : function(obj, val) {
@@ -2263,16 +2300,28 @@ var cop = function() {
             }).flatten().compact()// all selected layers
             .reject(function(selected) {// only add if not already added
               return _(layers).any(function(layer) {
-                // We're checking for the equality of a selected
-                // layer and an existing layer in the layer tree. The
-                // assumption is that the layers are equal if they
-                // have the same namespace:name and if they have the
-                // same url (that is, come from the same geoserver).
-                return (layer.params && layer.params.LAYERS == selected.data.name && layer.url == selected.data.layer.url)
+                // We're checking for the equality of a selected layer
+                // and an existing layer in the layer tree.
+                return layerEqualsSelected(layer, selected)
               })
             }).each(addLayer)
             deselectAllLayers()
             refreshControls()
+          }
+
+          function layerEqualsSelected(layer, selected) {
+            // If names are urls match, they are considered equal
+            if(selected.data.type == "KML") {
+              return (selected.data.title == layer.name
+                && cleanUrl(selected.data.layer.fullUrl) == cleanUrl(layer.fullUrl))
+            } else { // assume WMS
+              return (layer.params && layer.params.LAYERS == selected.data.name
+                && cleanUrl(layer.url) == cleanUrl(selected.data.layer.url))
+            }
+          }
+
+          function cleanUrl(url) {
+            return utils.trimChars(url, "&?")
           }
 
           function deselectAllLayers() {// from all tabs that have been
