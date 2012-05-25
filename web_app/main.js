@@ -458,11 +458,7 @@ var cop = function() {
   }
 
   var init = function() {
-    if(!devMode) {
-      displayLoginPopup()
-    } else {
-//      displayAvailableLayers()
-    }
+    optionallyDisplayLoginPopup()
 
     OpenLayers.ProxyHost = "/geoserver/rest/proxy?url="
     Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
@@ -1847,7 +1843,6 @@ var cop = function() {
         }
       }
 
-
       app.west.tree_panel.getSelectionModel().on("selectionchange", setLayer)
       app.west.tree_panel.on("beforeclick", function(node) {
         if(node.isSelected()) {
@@ -1876,29 +1871,61 @@ var cop = function() {
     sm.on("beforerowselect", function() {
       sm.clearSelections()
     })
-    // ---------------------------------------------------------------
-    // UTILITY FUNCTIONS
-    //
-    // Utility functions that require onReady scope
-    // (generally meaning "including app")
-    //
-    showLoadingText();
-    Ext.Ajax.request({
-      url : jsonUrl("config"),
-      success : function(response) {
-        var temp = _(parseGeoserverJson(response)).filter(function(item) {
-          return item.component == "map" && item.name == "refreshInterval"
-        })
-        if(null != temp && temp.length == 1) {
-          refreshInterval = temp[0].value
-        }
+
+    /* ---------------------------------------------------------------
+     * UTILITY FUNCTIONS
+     *
+     * Utility functions that require onReady scope
+     * (generally meaning "including app")
+     */
+
+    /**
+     * Grab the refresh interval from the server, and start
+     * auto-layer-refresh going.
+     */
+    function startAutoRefreshLayersSystem() {
+      getConfigOpt("map", "refreshInterval", function(opt) {
+        refreshInterval = parseInt(opt.value)
         autoRefreshLayers()
-        hideLoadingText()
-      },
-      failure : function() {
-        hideLoadingText()
-      }
-    })
+      }, autoRefreshLayers)
+    }
+
+    /**
+     * Display login popup, if this instance of opencop is configured
+     * for that sort of thing.
+     */
+    function optionallyDisplayLoginPopup() {
+      getConfigOpt("security", "showLogin", function(opt) {
+        if(opt.value == "true") {
+          displayLoginPopup()
+        } else {
+          displayAvailableLayers()
+        }
+      }, displayLoginPopup)
+    }
+
+    /**
+     * Get a value from the opencop:config table. Success function is
+     * called with the option value.
+     */
+    function getConfigOpt(component, name, success, failure) {
+      // Maybe one day, if we get enough calls to this function, we'll
+      // break it out so it doesn't keep making calls if the answer has
+      // already come back. That would be neat.
+      Ext.Ajax.request({
+        url: jsonUrl("config"),
+        success: function(response) {
+          var opt = _(parseGeoserverJson(response)).filter(function(item) {
+            return item.component == component && item.name == name
+          })[0]
+          if(opt) {
+            success(opt)
+          } else {
+            failure()
+          }
+        }
+      })
+    }
 
     function refreshAllLayers() {
       var layers = app.center_south_and_east_panel.map_panel.map.layers
@@ -2554,8 +2581,12 @@ var cop = function() {
 
     loadBaselayers()
     DefaultLayers.loadLayers()
+    startAutoRefreshLayersSystem()
   }
-  // make rendering html in javascript stupid simple
+
+  /**
+   * Make rendering html in javascript stupid simple
+   */
   var h = function() {
     return {
       img : function(src) {
