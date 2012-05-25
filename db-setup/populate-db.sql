@@ -146,6 +146,7 @@ insert into config values (0, 'db', 'domain', 'http://demo.geocent.com', 'ex: "h
 insert into config values (1, 'map', 'refreshInterval', '120000', 'Layer refresh interval in ms.');
 insert into config values (2, 'map', 'adminEmail', 'opencop@geocent.com', 'Admin email');
 insert into config values (3, 'security', 'showLogin', 'true', 'Whether or not to show the login on startup.');
+insert into config values (4, 'map', 'showLayers', 'true', 'Whether or not to show the layer picker on startup.');
 
 
 ------------------------------------------------------------

@@ -1899,9 +1899,17 @@ var cop = function() {
         if(opt.value == "true") {
           displayLoginPopup()
         } else {
-          displayAvailableLayers()
+          optionallyDisplayAvailableLayers()
         }
       }, displayLoginPopup)
+    }
+
+    function optionallyDisplayAvailableLayers() {
+      getConfigOpt("map", "showLayers", function(opt) {
+        if(opt.value == "true") {
+          displayAvailableLayers()
+        }
+      }, displayAvailableLayers)
     }
 
     /**
@@ -2113,7 +2121,7 @@ var cop = function() {
           show : function() {
             Ext.select('.ext-el-mask').addListener('click', function() {
               loginPopup.close()
-              displayAvailableLayers()
+              optionallyDisplayAvailableLayers()
             })
           }
         },
@@ -2166,13 +2174,11 @@ var cop = function() {
                 url : "/geoserver/j_spring_security_check",
                 params : "username=" + loginPopup.loginForm.username.getValue() + "&password=" + loginPopup.loginForm.password.getValue(),
                 callback : function(options, success, response) {
-                  // Hack alert: The security check returns a success code
-                  // regardless of whether
-                  // the user successfully authenticated. The only way to
-                  // determine success or
-                  // failure is to inspect the contents of the response and see
-                  // if it redirected
-                  // back to a login page.
+                  // Hack alert: The security check returns a success
+                  // code regardless of whether the user successfully
+                  // authenticated. The only way to determine success or
+                  // failure is to inspect the contents of the response
+                  // and see if it redirected back to a login page.
                   if(response.responseText.search("GeoServer: User login") > -1) {
                     username = null// guest
                     loginPopup.hide()
@@ -2181,7 +2187,7 @@ var cop = function() {
                     username = loginPopup.loginForm.username.getValue()//
                     // current user
                     loginPopup.hide()
-                    displayAvailableLayers()
+                    optionallyDisplayAvailableLayers()
                   }
                 }
               })
@@ -2191,7 +2197,7 @@ var cop = function() {
             iconCls : 'silk_door_in',
             handler : function() {
               loginPopup.hide()
-              displayAvailableLayers()
+              optionallyDisplayAvailableLayers()
             }
           }]
         })]
@@ -2213,7 +2219,7 @@ var cop = function() {
           show : function() {
             Ext.select('.ext-el-mask').addListener('click', function() {
               failedLoginPopup.close()
-              displayAvailableLayers()
+              optionallyDisplayAvailableLayers()
             })
           }
         },
@@ -2234,7 +2240,7 @@ var cop = function() {
           iconCls : 'silk_door_in',
           handler : function() {
             failedLoginPopup.hide()
-            displayAvailableLayers()
+            optionallyDisplayAvailableLayers()
           }
         }]
       })
