@@ -7,20 +7,21 @@
  */
 var refresh = function() {
 
-  var lastUpdated
+  var initialContent
   var refreshIntervalMs = 100
-  var url = "updated"
+  var url = "/opencop-updated/updated"
+
 
   function init() {
-    $.get(url, function(updated) {
-      lastUpdated = updated
+    $.get(url, function(content) {
+      initialContent = content
       setTimeout(check, refreshIntervalMs)
     })
   }
 
   function check() {
-    $.get(url, function(updated) {
-      if(updated != "" && lastUpdated != updated) {
+    $.get(url, function(content) {
+      if(content != "" && initialContent != content) {
         window.location.reload()
       }
       setTimeout(check, refreshIntervalMs)
