@@ -51,6 +51,48 @@ var cop = function() {
   }
 
   /**
+   * Get a value from the opencop:config table. Success function is
+   * called with the option value.
+   *
+   * (This is a function.)
+   */
+  var getConfigOpt = function() {
+
+    var opts
+
+    function extractSetting(component, name, success, failure) {
+      var opt = opts.filter(function(item) {
+        return item.component == component && item.name == name
+      })[0]
+      if(opt) {
+        success(opt.value)
+      } else {
+        failure()
+      }
+    }
+
+    function getDynamically(component, name, success, failure) {
+      Ext.Ajax.request({
+        url: jsonUrl("config"),
+        success: function(response) {
+          opts = _(parseGeoserverJson(response))
+          extractSetting(component, name, success, failure)
+        },
+        failure: failure
+      })
+    }
+
+    return function(component, name, success, failure) {
+      if(opts) {
+        extractSetting(component, name, success, failure)
+      } else {
+        getDynamically(component, name, success, failure)
+      }
+    }
+  }()
+
+
+  /**
    * Return next style in style sequence. Sequence will eventually
    * loop.
    */
@@ -1884,8 +1926,8 @@ var cop = function() {
      * auto-layer-refresh going.
      */
     function startAutoRefreshLayersSystem() {
-      getConfigOpt("map", "refreshInterval", function(opt) {
-        refreshInterval = parseInt(opt.value)
+      getConfigOpt("map", "refreshInterval", function(interval) {
+        refreshInterval = parseInt(interval)
         autoRefreshLayers()
       }, autoRefreshLayers)
     }
@@ -1895,8 +1937,8 @@ var cop = function() {
      * for that sort of thing.
      */
     function optionallyDisplayLoginPopup() {
-      getConfigOpt("security", "showLogin", function(opt) {
-        if(opt.value == "true") {
+      getConfigOpt("security", "showLogin", function(showLogin) {
+        if(showLogin == "true") {
           displayLoginPopup()
         } else {
           optionallyDisplayAvailableLayers()
@@ -1905,34 +1947,11 @@ var cop = function() {
     }
 
     function optionallyDisplayAvailableLayers() {
-      getConfigOpt("map", "showLayers", function(opt) {
-        if(opt.value == "true") {
+      getConfigOpt("map", "showLayers", function(showLayers) {
+        if(showLayers == "true") {
           displayAvailableLayers()
         }
       }, displayAvailableLayers)
-    }
-
-    /**
-     * Get a value from the opencop:config table. Success function is
-     * called with the option value.
-     */
-    function getConfigOpt(component, name, success, failure) {
-      // Maybe one day, if we get enough calls to this function, we'll
-      // break it out so it doesn't keep making calls if the answer has
-      // already come back. That would be neat.
-      Ext.Ajax.request({
-        url: jsonUrl("config"),
-        success: function(response) {
-          var opt = _(parseGeoserverJson(response)).filter(function(item) {
-            return item.component == component && item.name == name
-          })[0]
-          if(opt) {
-            success(opt)
-          } else {
-            failure()
-          }
-        }
-      })
     }
 
     function refreshAllLayers() {
