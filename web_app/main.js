@@ -9,30 +9,6 @@ var cop = function() {
   var username// null means guest
   var refreshInterval = 30000
   var kmlSelectControl
-  var loadingReferenceCount = 0
-
-  function hideLoadingText() {
-    if(app === undefined || app.top_menu_bar === undefined) {
-      return;
-    }
-
-    loadingReferenceCount--;
-    app.top_menu_bar.loading_text.hide();
-    if(loadingReferenceCount === 0) {
-      app.top_menu_bar.loading_text.hide();
-    } else if(loadingReferenceCount < 0) {
-      loadingReferenceCount = 0;
-    }
-  }
-
-  function showLoadingText() {
-    if(app === undefined || app.top_menu_bar === undefined) {
-      return;
-    }
-    app.top_menu_bar.loading_text.show();
-    //doesn't matter if its already shown
-    loadingReferenceCount++;
-  }
 
   // NETCDF Constants
   //
@@ -43,54 +19,6 @@ var cop = function() {
   var TIMESTAMPS = []
   // var ELEVATIONS = common_elevations
   // var TIMESTAMPS = common_timestamps
-
-  // Return url to query opencop database for table name. If the need
-  // strikes you, you can throw a CQL_FILTER on the end.
-  function jsonUrl(tableName) {
-    return "/geoserver/wfs" + "?request=GetFeature" + "&version=1.1.0" + "&outputFormat=JSON" + "&typeName=opencop:" + tableName
-  }
-
-  /**
-   * Get a value from the opencop:config table. Success function is
-   * called with the option value.
-   *
-   * (This is a function.)
-   */
-  var getConfigOpt = function() {
-
-    var opts
-
-    function extractSetting(component, name, success, failure) {
-      var opt = opts.filter(function(item) {
-        return item.component == component && item.name == name
-      })[0]
-      if(opt) {
-        success(opt.value)
-      } else {
-        failure()
-      }
-    }
-
-    function getDynamically(component, name, success, failure) {
-      Ext.Ajax.request({
-        url: jsonUrl("config"),
-        success: function(response) {
-          opts = _(parseGeoserverJson(response))
-          extractSetting(component, name, success, failure)
-        },
-        failure: failure
-      })
-    }
-
-    return function(component, name, success, failure) {
-      if(opts) {
-        extractSetting(component, name, success, failure)
-      } else {
-        getDynamically(component, name, success, failure)
-      }
-    }
-  }()
-
 
   /**
    * Return next style in style sequence. Sequence will eventually
@@ -206,10 +134,10 @@ var cop = function() {
 
       wms.events.on({
         "loadstart" : function() {
-          showLoadingText()
+          LoadingIndicator.start("loadwms")
         },
         "loadend" : function() {
-          hideLoadingText()
+          LoadingIndicator.stop("loadwms")
         }
       })
       return wms
@@ -356,31 +284,6 @@ var cop = function() {
     }
   }()
 
-  // call callback with list of all icon-join-table objects that exist in
-  // the namespace_name
-  function getIconInfo(namespace_name, callback) {
-    Ext.Ajax.request({
-      url : jsonUrl("iconmaster") + "&CQL_FILTER=layer='" + namespace_name + "'",
-      success : _.compose(callback, parseGeoserverJson)
-    })
-  }
-
-  // take a geoserver ajax response object and convert it into what
-  // you'd expect: a list of javascript objects
-  // Pulls the response out of the FeatureCollection
-  function parseGeoserverJson(response) {
-    function parseId(idStr) {
-      return idStr.match(/\d*$/)[0]  // ex: "layergroup.24" -> "24"
-    }
-
-    var features = Ext.util.JSON.decode(response.responseText).features
-    return _(features).map(function(feature) {
-      return _(feature.properties).defaults({
-        id : parseId(feature.id)
-      })
-    })
-  }
-
   // select an icon for a feature while in edit mode
   var selectIcon = function(obj) {
 
@@ -404,98 +307,6 @@ var cop = function() {
       updateFeature(obj)
     } else {
       createFeature(obj)
-    }
-  }
-
-  /**
-   * Utils namespace (for the purest of the pure functions)
-   */
-  var utils = {
-
-    /**
-     * Return a new arr where each object is unique, with uniqueness tested
-     * against field (a string).
-     */
-    makeUniqOnField : function(arr, field) {
-      return _.reduce(arr, function(acc, n) {
-        var isIn = _.find(acc, function(m) {
-          return m[field] == n[field]
-        })
-        if(!isIn) {
-          acc.push(n)
-        }
-        return acc
-      }, [])
-    },
-
-    // Objects with the same keys and values (excluding functions) are equal.
-    //   Example: {a: 1, :b: 2} == {a: 1, :b: 2} != {a: 1, b: 2, c: 3}.
-    equalAttributes : function(objA, objB) {
-      // Yes, I feel bad about how hacky this is.  But it seems to work.
-      return Ext.encode(objA) === Ext.encode(objB)
-    },
-
-    // Return a copy of obj where all its attributes have been passed
-    // through fn.
-    fmap : function(obj, fn) {
-      var n = {}
-      _(obj).each(function(val, key) {
-        n[key] = fn(val)
-      })
-      return n
-    },
-
-    // Sometimes you want to be able to say things like `foo.a.b.c.d.e`, but
-    // you don't want to have to do a lot of null checking.  Instead, do this:
-    // `utils.safeDot(foo, ['a', 'b', 'c', 'd', 'e'])`, which will
-    // short-circuit with "undefined" if anything untoward happens.
-    safeDot : function(obj, attrs) {
-      var currObj = obj
-      for(var i = 0; i < attrs.length; ++i) {
-        if(!currObj || !currObj[attrs[i]]) {
-          return undefined
-        }
-        currObj = currObj[attrs[i]]
-      }
-      return currObj
-    },
-
-    /**
-     * Remove all chars from beginning and end of text.
-     */
-    trimChars: function(text, chars) {
-      var c = cop.utils
-      while(c.contains(chars, c.last(text))) {
-        text = c.dropLast(text)
-      }
-      while(c.contains(chars, c.first(text))) {
-        text = c.dropFirst(text)
-      }
-      return text
-    },
-
-    first: function(text) {
-      return text[0]
-    },
-
-    last: function(arr) {
-      return arr[arr.length - 1]
-    },
-
-    dropFirst: function(text) {
-      return text.substring(1, text.length)
-    },
-
-    dropLast: function(text) {
-      return text.substring(0, text.length - 1)
-    },
-
-    contains: function(arr, elem) {
-      return arr.indexOf(elem) >= 0
-    },
-
-    defaultTo : function(obj, val) {
-      return obj == null || obj == undefined ? val : obj
     }
   }
 
@@ -578,7 +389,7 @@ var cop = function() {
               }
             }, // prevent editing
             title : feature.fid,
-            customRenderers : utils.fmap(feature.attributes, function() {
+            customRenderers : Utils.fmap(feature.attributes, function() {
               return wrapInPopupDiv
             }), // allow rendering html
             source : feature.attributes
@@ -652,7 +463,7 @@ var cop = function() {
       }
 
       function refreshStyles(rec) {
-        var styles = utils.makeUniqOnField(rec.data.styles, "name")
+        var styles = Utils.makeUniqOnField(rec.data.styles, "name")
         var currentStyleIndex = getStyleIndex(styles, rec.data.layer.params.STYLES)
         var currentStyle = styles[currentStyleIndex]
 
@@ -780,7 +591,7 @@ var cop = function() {
 
       function getStyleIndex(styles, name) {
         var styleNames = _(styles).pluck("name")
-        return getArrayIndex(styles, name)
+        return getArrayIndex(styleNames, name)
       }
 
       /**
@@ -915,7 +726,13 @@ var cop = function() {
       // you're currently editing
       function allowedToDragPoint(point, feature) {
         var id = feature.geometry.id
-        return (point.id == feature.id || id == utils.safeDot(point, ['geometry', 'parent', 'id']) || id == utils.safeDot(point, ['geometry', 'parent', 'parent', 'id']) || id == utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'id']) || id == utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'parent', 'id']) || id == utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'parent', 'parent', 'id']))
+        var n0 = point.id == feature.id
+        var n1 = id == Utils.safeDot(point, ['geometry', 'parent', 'id'])
+        var n2 = id == Utils.safeDot(point, ['geometry', 'parent', 'parent', 'id'])
+        var n3 = id == Utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'id'])
+        var n4 = id == Utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'parent', 'id'])
+        var n5 = id == Utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'parent', 'parent', 'id'])
+        return n0 || n1 || n2 || n3 || n4 || n5
       }
 
       function ensureFeatureHasAllFields() {
@@ -1160,9 +977,7 @@ var cop = function() {
         text : 'Log Out',
         iconCls : 'silk_user_go',
         handler : function() {
-          Ext.Ajax.request({
-            url : "/geoserver/j_spring_security_logout"
-          })
+          AjaxUtils.logout()
           location.reload(true)
         }
       }, ' ']
@@ -1500,24 +1315,29 @@ var cop = function() {
       items : [menu_bar, west_panel, center_south_and_east_panel]
     })
 
+    LoadingIndicator.init(app)
+
     app.center_south_and_east_panel.map_panel.map.events.on({
       //      "loadstart" : function() {
-      //       showLoadingText()
+      //       LoadingIndicator.start()
       //      },
       //      "loadend" : function() {
-      //        hideLoadingText()
+      //        LoadingIndicator.stop()
       //      },
       "movestart" : function() {
-        showLoadingText()
+        LoadingIndicator.start("move")
       },
       "moveend" : function() {
-        hideLoadingText()
+        LoadingIndicator.stop("move")
       },
       "preaddlayer" : function(e) {
-        showLoadingText()
+        LoadingIndicator.start("(pre/post)addlayer")
+      },
+      "postaddlayer" : function(e) {
+        LoadingIndicator.stop("(pre/post)addlayer")
       },
       "addlayer" : function(e) {
-        hideLoadingText()
+        LoadingIndicator.stop("(pre/post)addlayer")
       }
     })
 
@@ -1772,7 +1592,7 @@ var cop = function() {
     }
 
     function displayIconsFor(layerName) {
-      getIconInfo(layerName, function(listOfHashes) {
+      AjaxUtils.getIconInfo(layerName, function(listOfHashes) {
 
         function icons(listOfHashes) {
           Ext.DomHelper.overwrite("available_icons", {
@@ -1811,7 +1631,7 @@ var cop = function() {
       }
 
       GeoExtPopup.closeAll()
-      showLoadingText()
+      LoadingIndicator.start("refreshVectorLayerAndFeatureGrid")
       var grid = app.center_south_and_east_panel.feature_table
       if(queryFeaturesActive() || editFeaturesActive()) {
         var node = currentlySelectedLayerNode()
@@ -1822,7 +1642,7 @@ var cop = function() {
       }
       grid[queryFeaturesActive() ? "expand" : "collapse"]()// isn't this cute?
       vectorLayer.removeAllFeatures()// needed for query tab
-      hideLoadingText()
+      LoadingIndicator.stop("refreshVectorLayerAndFeatureGrid")
     }
 
     function currentlySelectedLayerNode() {
@@ -1842,7 +1662,7 @@ var cop = function() {
         // basically, not really a WFS layer -- probably KML
         return
       }
-      showLoadingText()
+      LoadingIndicator.start("populateWfsGrid")
       // the base url without params
       var baseUrl = layer.url.split("?")[0]
       //baseUrl = baseUrl.replace(/wms/, "wfs")
@@ -1865,7 +1685,7 @@ var cop = function() {
           }
         }
       })
-      hideLoadingText()
+      LoadingIndicator.stop("populateWfsGrid")
     }
 
     function shutdownDetailsPane() {
@@ -1926,7 +1746,7 @@ var cop = function() {
      * auto-layer-refresh going.
      */
     function startAutoRefreshLayersSystem() {
-      getConfigOpt("map", "refreshInterval", function(interval) {
+      AjaxUtils.getConfigOpt("map", "refreshInterval", function(interval) {
         refreshInterval = parseInt(interval)
         autoRefreshLayers()
       }, autoRefreshLayers)
@@ -1937,7 +1757,7 @@ var cop = function() {
      * for that sort of thing.
      */
     function optionallyDisplayLoginPopup() {
-      getConfigOpt("security", "showLogin", function(showLogin) {
+      AjaxUtils.getConfigOpt("security", "showLogin", function(showLogin) {
         if(showLogin == "true") {
           displayLoginPopup()
         } else {
@@ -1947,7 +1767,7 @@ var cop = function() {
     }
 
     function optionallyDisplayAvailableLayers() {
-      getConfigOpt("map", "showLayers", function(showLayers) {
+      AjaxUtils.getConfigOpt("map", "showLayers", function(showLayers) {
         if(showLayers == "true") {
           displayAvailableLayers()
         }
@@ -2037,14 +1857,10 @@ var cop = function() {
       }
 
       function loadLayers() {
-        Ext.Ajax.request({
-          url : jsonUrl("default_layer"),
-          success : function(response) {
-            var features = Ext.util.JSON.decode(response.responseText).features
-            Ext.each(features, function(feature) {
-              addLayer(buildOlLayer(feature.properties))
-            })
-          }
+        AjaxUtils.getDefaultLayers(function(layers) {
+          _(layers).each(function(layerOpts) {
+            addLayer(buildOlLayer(layerOpts))
+          })
         })
       }
 
@@ -2123,7 +1939,7 @@ var cop = function() {
     }
 
     function featureChanged(feature) {
-      return !utils.equalAttributes(feature.data, feature.attributes)
+      return !Utils.equalAttributes(feature.data, feature.attributes)
     }
 
     function displayLoginPopup() {
@@ -2267,9 +2083,9 @@ var cop = function() {
     }
 
     function displayAvailableLayers() {
-      showLoadingText()
+      LoadingIndicator.start("displayAvailableLayers")
       Ext.Ajax.request({
-        url : jsonUrl("layergroup"),
+        url : AjaxUtils.jsonUrl("layergroup"),
         success : function(response) {
 
           // Return an ext grid reprsenting the layers available within
@@ -2322,25 +2138,21 @@ var cop = function() {
 
           // load layers that are not part of the GetCapabilities
           function loadAdditionalLayers(store, layerGroupId) {
-            showLoadingText()
-            Ext.Ajax.request({
-              url : jsonUrl("layer") + "&CQL_FILTER=layergroup='" + layerGroupId + "'",
-              success : function(response) {
-                _(parseGeoserverJson(response)).each(function(layerOpts) {
-                  store.add(new store.recordType({
-                    id : _.uniqueId(),
-                    prefix : layerOpts.prefix,
-                    type : layerOpts.type,
-                    title : layerOpts.name,
-                    abstract : layerOpts.abstract,
-                    layer : buildOlLayer(layerOpts)
-                  }))
-                })
-                hideLoadingText()
-              },
-              failure : function() {
-                hideLoadingText()
-              }
+            LoadingIndicator.start("loadAdditionalLayers")
+            AjaxUtils.getAdditionalLayers(layerGroupId, function(layers) {
+              _(layers).each(function(layerOpts) {
+                store.add(new store.recordType({
+                  id : _.uniqueId(),
+                  prefix : layerOpts.prefix,
+                  type : layerOpts.type,
+                  title : layerOpts.name,
+                  abstract : layerOpts.abstract,
+                  layer : buildOlLayer(layerOpts)
+                }))
+              })
+              LoadingIndicator.stop("loadAdditionalLayers")
+            }, function() {
+              LoadingIndicator.stop("loadAdditionalLayers")
             })
           }
 
@@ -2373,7 +2185,7 @@ var cop = function() {
           }
 
           function cleanUrl(url) {
-            return utils.trimChars(url, "&?")
+            return Utils.trimChars(url, "&?")
           }
 
           function deselectAllLayers() {// from all tabs that have been
@@ -2397,7 +2209,7 @@ var cop = function() {
               enableTabScroll : true,
               ref : "tabs",
               activeTab : 0,
-              items : _(parseGeoserverJson(response)).map(createGeoserverGrid)
+              items : _(AjaxUtils.parseGeoserverJson(response)).map(createGeoserverGrid)
             }],
             listeners : {
               // close popup when user clicks on anything else
@@ -2420,10 +2232,10 @@ var cop = function() {
             }]
           })
           layersPopup.show()
-          hideLoadingText()
+          LoadingIndicator.stop("displayAvailableLayers")
         },
         failure : function() {
-          hideLoadingText()
+          LoadingIndicator.stop("displayAvailableLayers")
         }
       })
     }
@@ -2456,7 +2268,6 @@ var cop = function() {
     //   - record
     //   - olLayer
     function addLayer(obj) {
-      showLoadingText()
 
       // In the following, the record id MUST be set to the layer id by hand.
       // The automatic value is incorrect.  If this isn't done:
@@ -2564,25 +2375,22 @@ var cop = function() {
         }));
       }
 
+      AjaxUtils.getBaseLayers(function(layersOpts) {
 
-      Ext.Ajax.request({
-        url : jsonUrl("baselayer"),
-        success : function(response) {
-          var features = Ext.util.JSON.decode(response.responseText).features
-          Ext.each(features, function(f) {
-            addBaseLayer(f.properties)
-          })
-          // the default base layer must be set in the layer box by hand
-          Ext.each(features, function(f) {
-            if(f.properties.isdefault) {
-              checkBaseLayer(f.properties.name)
-            }
-          })
-        }
+        _(layersOpts).each(addBaseLayer)
+
+        // the default base layer must be set in the layer box by hand
+        _(layersOpts).chain().filter(function(opts) {
+          return opts.isdefault
+        }).each(function(opts) {
+          checkBaseLayer(opts.name)
+        })
       })
     }
 
-    // check the radio box for the base layer
+    /**
+     * Check the radio box for the base layer
+     */
     function checkBaseLayer(baseLayerName) {
 
       // This is just about the hackiest thing ever.
@@ -2653,8 +2461,7 @@ var cop = function() {
   return {
     init : init,
     debug : debug,
-    selectIcon : selectIcon,
-    utils : utils
+    selectIcon : selectIcon
   }
 }()
 
