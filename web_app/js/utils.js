@@ -90,6 +90,16 @@ var Utils = function() {
     return obj == null || obj == undefined ? val : obj
   }
 
+  /**
+    * Ex: [a, b, c, d] => [[0, a], [1, b], [2, c], [3, d]]
+    */
+  function zipWithIndex(arr) {
+    return _.map(_.range(arr.length), function(i) {
+      return [i, arr[i]]
+    })
+  }
+
+
   return {
     makeUniqOnField: makeUniqOnField,
     equalAttributes: equalAttributes,
@@ -101,6 +111,7 @@ var Utils = function() {
     dropFirst: dropFirst,
     dropLast: dropLast,
     contains: contains,
-    defaultTo: defaultTo
+    defaultTo: defaultTo,
+    zipWithIndex: zipWithIndex
   }
 }()

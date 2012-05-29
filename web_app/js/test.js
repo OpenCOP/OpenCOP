@@ -85,6 +85,8 @@ var test = (function() {
       , isEq(Utils.dropFirst("hello"), "ello")
       , isEq(Utils.dropLast("hello"), "hell")
 
+      , isEq(Utils.zipWithIndex([1, 2, 3]).toString(), [[0, 1], [1, 2], [2, 3]].toString(), "zipWithIndex")
+
       ])
   }}
 }())

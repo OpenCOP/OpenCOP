@@ -54,12 +54,12 @@ var Legend = function() {
   }
 
   /**
-       * @param rec info about currently-selected layer (short for record)
-       * @param paramName how the param is referenced in the url; lowercase
-       * @param values the array we're filling the combo box with
-       * @param extCombobox name of the ext combo box we're filling
-       * @param extTitle title over the combo box
-       */
+    * @param rec info about currently-selected layer (short for record)
+    * @param paramName how the param is referenced in the url; lowercase
+    * @param values the array we're filling the combo box with
+    * @param extCombobox name of the ext combo box we're filling
+    * @param extTitle title over the combo box
+    */
   function refreshArrayComboBox(rec, paramName, values, extCombobox, extTitle) {
 
     // params likes the uppercase, in this instance. Consistently.
@@ -157,9 +157,9 @@ var Legend = function() {
   }
 
   /**
-       * Like indexOf (returns the index of the element), except it returns
-       * index of 0 if nothing is found.  Useful for combo boxes.
-       */
+    * Like indexOf (returns the index of the element), except it returns
+    * index of 0 if nothing is found.  Useful for combo boxes.
+    */
   function getArrayIndex(arr, elem) {
     return !elem ? 0 : _.indexOf(arr, _.find(arr, function(e) {
       return e == elem
@@ -167,28 +167,19 @@ var Legend = function() {
   }
 
   /**
-       * Take a list of styles, and return a store suitable for a comboBox.
-       *
-       * Example output: [[0, "text0"], [1, "text1"], [2, "text2"], ...]
-       */
+    * Take a list of styles, and return a store suitable for a comboBox.
+    *
+    * Example output: [[0, "text0"], [1, "text1"], [2, "text2"], ...]
+    */
   function buildStylesStore(styles) {
     var styleNames = _(styles).pluck("name")
     return buildArrayStore(styleNames);
   }
 
   /**
-       * Function alias
-       */
-  var buildArrayStore = zipWithIndex
-
-  /**
-       * Ex: [a, b, c, d] => [[0, a], [1, b], [2, c], [3, d]]
-       */
-  function zipWithIndex(arr) {
-    return _.map(_.range(arr.length), function(i) {
-      return [i, arr[i]]
-    })
-  }
+   * Function alias
+   */
+  var buildArrayStore = Utils.zipWithIndex
 
   function buildPopoutLegendPopup() {
 
