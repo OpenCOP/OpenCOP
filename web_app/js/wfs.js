@@ -13,7 +13,7 @@ var WFS = function() {
       if(response.error) {
         // warning: fragile array-indexing code. Fix later.
         var e = response.error.exceptionReport.exceptions[0]
-        Growl.err("Save Failed", h.b(e.code) + h.p(h.code(e.texts[0])))
+        Growl.err("Save Failed", H.b(e.code) + H.p(H.code(e.texts[0])))
       } else {
         Growl.info("Save Successful", "Vector features saved.")
       }

@@ -21,7 +21,7 @@ var Cop = function() {
     function updateFeature(obj) {
       var popupPropertyGrid = Popup.GeoExtPopup.currentPopup().items.items[0]
       popupPropertyGrid.setProperty("default_graphic", obj.src)
-      Growl.info("Default_graphic changed", h.img(obj.src) + h.br() + h.code(obj.src))
+      Growl.info("Default_graphic changed", H.img(obj.src) + H.br() + H.code(obj.src))
     }
 
     selectedIconUrl = obj.src
@@ -1319,29 +1319,6 @@ var Cop = function() {
     DefaultLayers.loadLayers()
     Layer.startAutoRefreshLayersSystem()
   }
-
-  /**
-   * Make rendering html in javascript stupid simple
-   */
-  var h = function() {
-    return {
-      img : function(src) {
-        return "<img src='" + src + "' />"
-      },
-      code : function(text) {
-        return "<code>" + text + "<code/>"
-      },
-      b : function(text) {
-        return "<b>" + text + "<b/>"
-      },
-      p : function(text) {
-        return "<p>" + text + "<p/>"
-      },
-      br : function() {
-        return "<br />"
-      }
-    }
-  }()
 
   function getApp() {
     return app
