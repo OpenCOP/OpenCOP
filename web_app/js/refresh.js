@@ -1,9 +1,9 @@
 /**
+ * This is a dev tool.
+ *
  * When the watched url's (file's) contents change, refresh this page.
  * For this to work, you must run the startWatch.sh script on the
  * server.
- *
- * This is a dev tool.
  */
 var refresh = function() {
 

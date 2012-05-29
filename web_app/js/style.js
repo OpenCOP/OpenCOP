@@ -1,8 +1,11 @@
+/**
+ * Where our stylish constants live.
+ */
 var Style = function() {
 
   /**
    * Return next style in style sequence. Sequence will eventually
-   * loop.
+   * loop.  (This is for vector, KML layers.)
    */
   var getNext = function() {
 

@@ -1,5 +1,5 @@
 /**
- * Utils namespace (for the purest of the pure functions)
+ * Utils namespace (for the purest of the pure functions).
  */
 var Utils = function() {
 

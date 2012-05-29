@@ -1,4 +1,6 @@
-// the cheapest javascript test framework evar!
+/**
+ * The cheapest javascript test framework evar!
+ */
 var test = (function() {
 
   var passChar = "."

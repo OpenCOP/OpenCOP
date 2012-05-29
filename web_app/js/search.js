@@ -1,4 +1,6 @@
 /**
+ * This is a dev tool.
+ *
  * Search a complex, nested javascript object for values or keys matching a
  * predicate function.
  *

@@ -1,3 +1,8 @@
+/**
+ * Tells the user that something ajax-y is going on. Call start() when a
+ * new process starts, and stop() when it ends. This keeps track of the
+ * number of processes running.
+ */
 var LoadingIndicator = function() {
 
   var refcount = 0
@@ -21,7 +26,7 @@ var LoadingIndicator = function() {
   }
 
   /**
-   * Something new has started loading.
+   * User calls when something new has started loading.
    */
   function start(desc) {
     if(!inited()) {
@@ -37,7 +42,7 @@ var LoadingIndicator = function() {
   }
 
   /**
-   * Something has finished loading.
+   * User calls when something has finished loading.
    */
   function stop(desc) {
     if(!inited()) {
