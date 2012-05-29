@@ -20,66 +20,6 @@ var cop = function() {
   // var ELEVATIONS = common_elevations
   // var TIMESTAMPS = common_timestamps
 
-  function buildOlLayer(opts) {
-
-    function buildKmlLayer(opts) {
-
-      function getUrl(opts) {// relies on global "username"
-        var url = "/geoserver/rest/proxy?url=" + opts.url
-        if(username) {
-          url += "?username=" + username
-        }
-        return url
-      }
-
-      var kmlLayer = new OpenLayers.Layer.Vector(opts.name, {
-        projection : new OpenLayers.Projection("EPSG:4326"),
-        strategies : [new OpenLayers.Strategy.Fixed()],
-        protocol : new OpenLayers.Protocol.HTTP({
-          url : getUrl(opts),
-          format : new OpenLayers.Format.KML({
-            extractStyles : true,
-            extractAttributes : true,
-            maxDepth : 2
-          })
-        })
-      })
-      kmlLayer.style = Style.getNext()
-      kmlLayer.fullUrl = opts.url
-      return kmlLayer
-    }
-
-    function buildWmsLayer(opts) {
-      var wms = new OpenLayers.Layer.WMS(opts.name, opts.url, {
-        layers : opts.layers,
-        transparent : "true",
-        'random' : Math.random(),
-        format : "image/png"
-      }, {
-        isBaseLayer : false
-      })
-
-      wms.events.on({
-        "loadstart" : function() {
-          LoadingIndicator.start("loadwms")
-        },
-        "loadend" : function() {
-          LoadingIndicator.stop("loadwms")
-        }
-      })
-      return wms
-    }
-
-    if(opts.type == "KML") {
-      return buildKmlLayer(opts)
-    }
-    if(opts.type == "WMS") {
-      return buildWmsLayer(opts)
-    }
-
-    throw "Unrecognized type: " + opts.type + "."
-  }
-
   function displayAppInfo() {
     var win = new Ext.Window({
       title : "About OpenCOP",
@@ -1786,7 +1726,7 @@ var cop = function() {
       function loadLayers() {
         AjaxUtils.getDefaultLayers(function(layers) {
           _(layers).each(function(layerOpts) {
-            addLayer(buildOlLayer(layerOpts))
+            addLayer(Layer.buildOlLayer(layerOpts))
           })
         })
       }
@@ -2074,7 +2014,7 @@ var cop = function() {
                   type : layerOpts.type,
                   title : layerOpts.name,
                   abstract : layerOpts.abstract,
-                  layer : buildOlLayer(layerOpts)
+                  layer : Layer.buildOlLayer(layerOpts)
                 }))
               })
               LoadingIndicator.stop("loadAdditionalLayers")
@@ -2386,6 +2326,11 @@ var cop = function() {
   }()
 
   return {
+
+    // global member variables
+    username: username,
+
+    // methods
     init : init,
     debug : debug,
     selectIcon : selectIcon
