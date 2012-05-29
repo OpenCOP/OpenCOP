@@ -10,147 +10,6 @@ var cop = function() {
   var refreshInterval = 30000
   var kmlSelectControl
 
-  // NETCDF Constants
-  //
-  // Setting these to empty arrays will disable to NETCDF-selecting feature
-  var common_elevations = [-0.0, -2.0, -4.0, -6.0, -8.0, -10.0, -12.0, -15.0, -20.0, -25.0, -30.0, -35.0, -40.0, -45.0, -50.0, -60.0, -70.0, -80.0, -90.0, -100.0, -125.0, -150.0, -200.0, -250.0, -300.0, -350.0, -400.0, -500.0, -600.0, -700.0, -800.0, -900.0, -1000.0, -1250.0, -1500.0, -2000.0, -2500.0, -3000.0, -4000.0, -5000.0]
-  var common_timestamps = ["2012-05-17T00:00:00.000Z", "2012-05-17T03:00:00.000Z", "2012-05-17T06:00:00.000Z", "2012-05-17T09:00:00.000Z", "2012-05-17T12:00:00.000Z", "2012-05-17T15:00:00.000Z", "2012-05-17T18:00:00.000Z", "2012-05-17T21:00:00.000Z", "2012-05-18T00:00:00.000Z", "2012-05-18T03:00:00.000Z", "2012-05-18T06:00:00.000Z", "2012-05-18T09:00:00.000Z", "2012-05-18T12:00:00.000Z", "2012-05-18T15:00:00.000Z", "2012-05-18T18:00:00.000Z", "2012-05-18T21:00:00.000Z", "2012-05-19T00:00:00.000Z", "2012-05-19T03:00:00.000Z", "2012-05-19T06:00:00.000Z", "2012-05-19T09:00:00.000Z", "2012-05-19T12:00:00.000Z", "2012-05-19T15:00:00.000Z", "2012-05-19T18:00:00.000Z", "2012-05-19T21:00:00.000Z", "2012-05-20T00:00:00.000Z"]
-  var ELEVATIONS = []
-  var TIMESTAMPS = []
-  // var ELEVATIONS = common_elevations
-  // var TIMESTAMPS = common_timestamps
-
-  function displayAppInfo() {
-    var win = new Ext.Window({
-      title : "About OpenCOP",
-      iconCls : "geocent_logo",
-      modal : true,
-      layout : "fit",
-      width : 400,
-      height : 400,
-      items : [{
-        html : '<p><img src="/opencop/images/OpenCOP_logo_32.png"></p><br><p class="about-text">OpenCOP is a richly-featured, interactive open source mapping tool which allows users to identify and view incident data in near real-time, creating a common operational picture (COP) of an event. OpenCOP was created by Geocent, LLC.  </p> <br /> <p class="about-text"> For more information on Geocent, please visit us online at <a href="http://www.geocent.com" target="_blank">www.geocent.com</a>.  For information or technical support, email us at <a href="mailto:OpenCop@geocent.com">OpenCop@geocent.com</a> or call (800) 218-9009.</p> <br/> <p class="version"> Version 2.0.0.</p>',
-        padding : '10 10 10 10'
-      }],
-      buttons : [{
-        text : 'Done',
-        iconCls : 'silk_tick',
-        handler : function() {
-          win.hide()
-        }
-      }]
-    })
-    win.show()
-  }
-
-  function displayHelp() {
-    var win = new Ext.Window({
-      title : "Help",
-      iconCls : "silk_help",
-      modal : true,
-      layout : "fit",
-      width : 800,
-      height : 600,
-      items : [{
-        html : "<p>This is where the help docs will go. They will be really nice.</p>",
-        padding : '10 10 10 10'
-      }],
-      buttons : [{
-        text : 'Done',
-        iconCls : 'silk_tick',
-        handler : function() {
-          win.hide()
-        }
-      }]
-    })
-    win.show()
-  }
-
-  function displayApplicationSettings() {
-    var win = new Ext.Window({
-      title : "Application Settings",
-      iconCls : 'silk_cog_edit',
-      modal : true,
-      layout : "fit",
-      width : 800,
-      height : 600,
-      items : [{
-        html : "<p>Coming soon!</p>",
-        padding : '10 10 10 10'
-      }],
-      buttons : [{
-        text : 'Done',
-        iconCls : 'silk_tick',
-        handler : function() {
-          win.hide()
-        }
-      }]
-    })
-    win.show()
-  }
-
-  function displayMySettings() {
-    var win = new Ext.Window({
-      title : "My Settings",
-      iconCls : 'silk_user_edit',
-      modal : true,
-      layout : "fit",
-      width : 400,
-      height : 400,
-      items : [{
-        html : "<p>This is where you'll be able to change your password and administer any other settings associated with your account. It'll be cool.",
-        padding : '10 10 10 10'
-      }],
-      buttons : [{
-        text : 'Save Changes',
-        iconCls : 'silk_tick',
-        handler : function() {
-          win.hide()
-        }
-      }, {
-        text : 'Cancel',
-        iconCls : 'silk_cross',
-        handler : function() {
-          win.hide()
-        }
-      }]
-    })
-    win.show()
-  }
-
-  // This "class" ensures that only a single GeoExt popup will be
-  // available at a time.
-  var GeoExtPopup = function() {
-    var singletonPopup = null
-
-    function close() {
-      if(singletonPopup) {
-        singletonPopup.close()
-        singletonPopup = null
-      }
-    }
-
-    return {
-      // Static factory method.  Opts is the massive options hash
-      // that GeoExt.popup takes.
-      create : function(opts) {
-        close()
-        singletonPopup = new GeoExt.Popup(opts)
-        return singletonPopup
-      },
-      anyOpen : function() {
-        return singletonPopup && !singletonPopup.hidden
-      },
-      closeAll : function() {
-        close()
-      }// Close all GeoExt.popups on the map.
-      ,
-      currentPopup : function() {
-        return singletonPopup
-      }
-    }
-  }()
-
   // select an icon for a feature while in edit mode
   var selectIcon = function(obj) {
 
@@ -164,13 +23,13 @@ var cop = function() {
     }
 
     function updateFeature(obj) {
-      var popupPropertyGrid = GeoExtPopup.currentPopup().items.items[0]
+      var popupPropertyGrid = Popup.GeoExtPopup.currentPopup().items.items[0]
       popupPropertyGrid.setProperty("default_graphic", obj.src)
       msg.info("Default_graphic changed", h.img(obj.src) + h.br() + h.code(obj.src))
     }
 
     selectedIconUrl = obj.src
-    if(GeoExtPopup.anyOpen()) {
+    if(Popup.GeoExtPopup.anyOpen()) {
       updateFeature(obj)
     } else {
       createFeature(obj)
@@ -240,7 +99,7 @@ var cop = function() {
       }
 
       function createKmlPopup(feature) {
-        var popup = GeoExtPopup.create({
+        var popup = Popup.GeoExtPopup.create({
           title : "View KML Feature",
           height : 300,
           width : 300,
@@ -325,8 +184,8 @@ var cop = function() {
         Ext.get("legend_layer_title").update(title)
 
         refreshStyles(rec)
-        refreshArrayComboBox(rec, "elevation", ELEVATIONS, "elevation_combo_box_panel", "elevation_combo_box_title")
-        refreshArrayComboBox(rec, "time", TIMESTAMPS, "time_combo_box_panel", "time_combo_box_title")
+        refreshArrayComboBox(rec, "elevation", NetCDF.ELEVATIONS, "elevation_combo_box_panel", "elevation_combo_box_title")
+        refreshArrayComboBox(rec, "time", NetCDF.TIMESTAMPS, "time_combo_box_panel", "time_combo_box_title")
       }
 
       function refreshStyles(rec) {
@@ -647,7 +506,7 @@ var cop = function() {
         source : feature.attributes
       })
 
-      var popup = GeoExtPopup.create({
+      var popup = Popup.GeoExtPopup.create({
         title : "Edit WFS-T Feature",
         height : 300,
         width : 300,
@@ -737,7 +596,7 @@ var cop = function() {
         "getfeatureinfo" : function(e) {
           var bodyIsEmpty = /<body>\s*<\/body>/.test(e.text)
           if(!bodyIsEmpty)
-            GeoExtPopup.create({
+            Popup.GeoExtPopup.create({
               title : "Feature Info",
               width : 300,
               height : 300,
@@ -790,7 +649,7 @@ var cop = function() {
       items : [{
         width : 90,
         iconCls : 'opencop_logo',
-        handler : displayAppInfo
+        handler : Popup.displayAppInfo
       }, '-', {
         text : 'Zoom to Me',
         iconCls : 'silk_zoom_to_me',
@@ -1497,7 +1356,7 @@ var cop = function() {
         return // app isn't defined until later
       }
 
-      GeoExtPopup.closeAll()
+      Popup.GeoExtPopup.closeAll()
       LoadingIndicator.start("refreshVectorLayerAndFeatureGrid")
       var grid = app.center_south_and_east_panel.feature_table
       if(queryFeaturesActive() || editFeaturesActive()) {
@@ -2320,7 +2179,7 @@ var cop = function() {
         return app.center_south_and_east_panel.map_panel.map.controls
       },
       popupClass : function() {
-        return GeoExtPopup
+        return Popup.GeoExtPopup
       }
     }
   }()
