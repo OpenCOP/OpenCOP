@@ -8,7 +8,6 @@ var cop = function() {
   var selectedIconUrl
   var username// null means guest
   var refreshInterval = 30000
-  var kmlSelectControl
 
   // select an icon for a feature while in edit mode
   var selectIcon = function(obj) {
@@ -43,128 +42,7 @@ var cop = function() {
     Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
     Ext.state.Manager.setProvider(new Ext.state.CookieProvider())
 
-    vectorLayer = new OpenLayers.Layer.Vector('Editable features', {
-      'styleMap' : new OpenLayers.StyleMap({
-        "default" : new OpenLayers.Style({
-          pointRadius : 16, // sized according to type attribute
-          fillColor : "66CCFF",
-          strokeColor : "blue",
-          strokeWidth : 3,
-          fillOpacity : 0.25
-        }),
-        "select" : new OpenLayers.Style({
-          graphicName : "cross",
-          pointRadius : "16",
-          fillColor : "66CCFF",
-          strokeColor : "blue",
-          strokeWidth : 3
-        })
-      }),
-      'displayInLayerSwitcher' : false
-    })
-
-    kmlSelectControl = function() {// namespace
-
-      // When a KML layer is selected, we wanted to be able to select from
-      // any
-      // KML layer.  To do that, we have to create a Select Feature with a
-      // list
-      // of KML layers.  When we want to change that list, we rebuild the
-      // Select Feature control.
-      //
-      // This class/singleton wraps the Select Feature control, and manages
-      // the
-      // list of KML layers.
-
-      var layers = []
-      var control = null
-
-      function rebuildControl() {
-        var map = app.center_south_and_east_panel.map_panel.map
-
-        if(control) {
-          map.removeControl(control)
-        }
-
-        if(layers.length == 0) {
-          return
-        }
-        control = new OpenLayers.Control.SelectFeature(layers, {
-          onSelect : createKmlPopup,
-          onUnselect : function(feature) {
-            feature.popup.close()
-          }
-        })
-        map.addControl(control)
-      }
-
-      function createKmlPopup(feature) {
-        var popup = Popup.GeoExtPopup.create({
-          title : "View KML Feature",
-          height : 300,
-          width : 300,
-          layout : "fit",
-          map : app.center_south_and_east_panel.map_panel,
-          location : feature,
-          maximizable : true,
-          collapsible : true,
-          items : [new Ext.grid.PropertyGrid({
-            listeners : {
-              "beforeedit" : function(e) {
-                e.cancel = true
-              }
-            }, // prevent editing
-            title : feature.fid,
-            customRenderers : Utils.fmap(feature.attributes, function() {
-              return wrapInPopupDiv
-            }), // allow rendering html
-            source : feature.attributes
-          })],
-          buttons : [{
-            text : 'Close',
-            iconCls : 'silk_cross',
-            handler : function() {
-              popup.close()
-            }
-          }]
-        })
-        feature.popup = popup// so we can close the popup on unselect
-        popup.show()
-      }
-
-      function activate() {
-        if(control) {
-          control.activate()
-        }
-      }
-
-      function deactivate() {
-        if(control) {
-          control.deactivate()
-        }
-      }
-
-      return {
-        addLayer : function(kmlLayer) {
-          layers.push(kmlLayer)
-          rebuildControl()
-        },
-
-        removeLayer : function(kmlLayer) {
-          layers = _(layers).reject(function(layer) {
-            return layer.name == kmlLayer.name
-          })
-          rebuildControl()
-        },
-
-        activate : activate,
-        deactivate : deactivate,
-        refresh : function() {
-          deactivate();
-          activate()
-        }
-      }
-    }()
+    vectorLayer = Layer.buildScratchLayer()
 
     // legend namespace
     var legend = function() {
@@ -554,12 +432,6 @@ var cop = function() {
       drawControl.deactivate()
     }
 
-    function wrapInPopupDiv(text) {
-      return _("<div class='in-popup'><%=s%></div>").template({
-        s : text
-      })
-    }
-
     function vectorLayerContainsFeature(vectorLayer, feature) {
       return OpenLayers.Util.indexOf(vectorLayer.selectedFeatures, feature) > -1
     }
@@ -778,7 +650,7 @@ var cop = function() {
           if(node) {
             app.center_south_and_east_panel.map_panel.map.removeLayer(node.layer)
             shutdownDetailsPane()
-            kmlSelectControl.removeLayer(node.layer)
+            Control.KML.removeLayer(node.layer)
             refreshControls()
           }
         }
@@ -1042,6 +914,7 @@ var cop = function() {
     })
 
     LoadingIndicator.init(app)
+    Control.init(app)
 
     app.center_south_and_east_panel.map_panel.map.events.on({
       //      "loadstart" : function() {
@@ -1207,7 +1080,7 @@ var cop = function() {
       }
 
       function kml_on() {
-        kmlSelectControl.refresh()
+        Control.KML.refresh()
       }
 
       // drw_on() doesn't exist because drawControl is *only* activated when
@@ -1222,7 +1095,7 @@ var cop = function() {
       }
 
       function kml_off() {
-        kmlSelectControl.deactivate()
+        Control.KML.deactivate()
       }
 
       function drw_off() {
@@ -2031,7 +1904,7 @@ var cop = function() {
       }
 
       if(isKml(obj)) {
-        kmlSelectControl.addLayer(obj.data.layer)
+        Control.KML.addLayer(obj.data.layer)
       }
 
       app.center_south_and_east_panel.map_panel.layers.add([forceToRecord(obj)])

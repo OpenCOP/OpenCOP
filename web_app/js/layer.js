@@ -57,7 +57,30 @@ var Layer = function() {
     throw "Unrecognized type: " + opts.type + "."
   }
 
+  function buildScratchLayer() {
+    return new OpenLayers.Layer.Vector('Editable features', {
+      'styleMap' : new OpenLayers.StyleMap({
+        "default" : new OpenLayers.Style({
+          pointRadius : 16, // sized according to type attribute
+          fillColor : "66CCFF",
+          strokeColor : "blue",
+          strokeWidth : 3,
+          fillOpacity : 0.25
+        }),
+        "select" : new OpenLayers.Style({
+          graphicName : "cross",
+          pointRadius : "16",
+          fillColor : "66CCFF",
+          strokeColor : "blue",
+          strokeWidth : 3
+        })
+      }),
+      'displayInLayerSwitcher' : false
+    })
+  }
+
   return {
-    buildOlLayer: buildOlLayer
+    buildOlLayer: buildOlLayer,
+    buildScratchLayer: buildScratchLayer
   }
 }()
