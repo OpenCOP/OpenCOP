@@ -2,8 +2,8 @@ var Layer = function() {
 
   function getUrl(opts) {// relies on global "username"
     var url = "/geoserver/rest/proxy?url=" + opts.url
-    if(cop.username) {
-      url += "?username=" + cop.username
+    if(Cop.username) {
+      url += "?username=" + Cop.username
     }
     return url
   }

@@ -3,12 +3,6 @@
  */
 var Control = function() {
 
-  var app
-
-  function init(extApp) {
-    app = extApp
-  }
-
   /**
    * When a KML layer is selected, we wanted to be able to select
    * from any KML layer. To do that, we have to create a Select
@@ -24,7 +18,7 @@ var Control = function() {
     var control = null
 
     function rebuildControl() {
-      var map = app.center_south_and_east_panel.map_panel.map
+      var map = Cop.getApp().center_south_and_east_panel.map_panel.map
 
       if(control) {
         map.removeControl(control)
@@ -48,7 +42,7 @@ var Control = function() {
         height : 300,
         width : 300,
         layout : "fit",
-        map : app.center_south_and_east_panel.map_panel,
+        map : Cop.getApp().center_south_and_east_panel.map_panel,
         location : feature,
         maximizable : true,
         collapsible : true,
@@ -121,7 +115,6 @@ var Control = function() {
   }()
 
   return {
-    init: init,
     KML: KML
   }
 }()
