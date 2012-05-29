@@ -1,4 +1,4 @@
-var msg = (function() {
+var Growl = (function() {
   function builder(icon, delay) {
     return function(title, html) {
       new Ext.ux.Notification({

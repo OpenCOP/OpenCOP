@@ -25,7 +25,7 @@ var cop = function() {
     function updateFeature(obj) {
       var popupPropertyGrid = Popup.GeoExtPopup.currentPopup().items.items[0]
       popupPropertyGrid.setProperty("default_graphic", obj.src)
-      msg.info("Default_graphic changed", h.img(obj.src) + h.br() + h.code(obj.src))
+      Growl.info("Default_graphic changed", h.img(obj.src) + h.br() + h.code(obj.src))
     }
 
     selectedIconUrl = obj.src
@@ -417,7 +417,7 @@ var cop = function() {
     function cancelEditWfs(feature) {
 
       if(featureChanged(feature)) {
-        msg.info("Changes cancelled", "Changes to vector have been cancelled.")
+        Growl.info("Changes cancelled", "Changes to vector have been cancelled.")
       }
 
       feature.popup.close()
@@ -1605,9 +1605,9 @@ var cop = function() {
         if(response.error) {
           // warning: fragile array-indexing code. Fix later.
           var e = response.error.exceptionReport.exceptions[0]
-          msg.err("Save Failed", h.b(e.code) + h.p(h.code(e.texts[0])))
+          Growl.err("Save Failed", h.b(e.code) + h.p(h.code(e.texts[0])))
         } else {
-          msg.info("Save Successful", "Vector features saved.")
+          Growl.info("Save Successful", "Vector features saved.")
         }
       }
 
