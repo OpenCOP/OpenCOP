@@ -1,3 +1,5 @@
+"use strict"
+
 var NetCDF = function() {
 
   // NETCDF Constants

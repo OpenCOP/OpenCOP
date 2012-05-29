@@ -1,3 +1,5 @@
+"use strict"
+
 /**
  * The cheapest javascript test framework evar!
  */

@@ -1,4 +1,9 @@
+"use strict"
+
 var Layer = function() {
+
+  var refreshInterval = 30000
+  var vectorLayer
 
   function getUrl(opts) {// relies on global "username"
     var url = "/geoserver/rest/proxy?url=" + opts.url
@@ -57,8 +62,8 @@ var Layer = function() {
     throw "Unrecognized type: " + opts.type + "."
   }
 
-  function buildScratchLayer() {
-    return new OpenLayers.Layer.Vector('Editable features', {
+  function initScratchLayer() {
+    vectorLayer = new OpenLayers.Layer.Vector('Editable features', {
       'styleMap' : new OpenLayers.StyleMap({
         "default" : new OpenLayers.Style({
           pointRadius : 16, // sized according to type attribute
@@ -79,8 +84,58 @@ var Layer = function() {
     })
   }
 
+  function refreshAllLayers() {
+    var layers = Cop.getApp().center_south_and_east_panel.map_panel.map.layers
+    for(var i = layers.length - 1; i >= 0; --i) {
+      refreshLayer(layers[i])
+    }
+    if(Panel.editFeaturesActive()) {
+      Cop.getApp().center_south_and_east_panel.feature_table.store.reload()
+    }
+  }
+
+  function refreshLayer(layer) {
+    if(layer.CLASS_NAME == "OpenLayers.Layer.WMS") {
+      layer.mergeNewParams({
+        'random' : Math.random()
+      })
+    } else if(layer.CLASS_NAME == "OpenLayers.Layer.Vector" && layer.name != "Editable features") {
+      layer.refresh({
+        force : true,
+        params : {
+          'random' : Math.random()
+        }
+      })
+    }
+  }
+
+  function autoRefreshLayers() {
+    refreshAllLayers()
+    setTimeout(autoRefreshLayers, refreshInterval)
+  }
+
+  /**
+   * Grab the refresh interval from the server, and start
+   * auto-layer-refresh going.
+   */
+  function startAutoRefreshLayersSystem() {
+    AjaxUtils.getConfigOpt("map", "refreshInterval", function(interval) {
+      refreshInterval = parseInt(interval)
+      autoRefreshLayers()
+    }, autoRefreshLayers)
+  }
+
+  function getVectorLayer() {
+    return vectorLayer
+  }
+
   return {
     buildOlLayer: buildOlLayer,
-    buildScratchLayer: buildScratchLayer
+    initScratchLayer: initScratchLayer,
+    autoRefreshLayers: autoRefreshLayers,
+    refreshAllLayers: refreshAllLayers,
+    refreshLayer: refreshLayer,
+    startAutoRefreshLayersSystem: startAutoRefreshLayersSystem,
+    getVectorLayer: getVectorLayer
   }
 }()

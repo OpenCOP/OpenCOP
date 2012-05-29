@@ -1,3 +1,5 @@
+"use strict"
+
 /**
  * If you need to talk to geoserver, try coming here first.
  */

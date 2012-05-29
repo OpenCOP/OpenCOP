@@ -3,22 +3,19 @@
 var Cop = function() {
 
   var app
-  var drawControl
-  var vectorLayer
   var selectedIconUrl
   var username// null means guest
-  var refreshInterval = 30000
 
   // select an icon for a feature while in edit mode
   var selectIcon = function(obj) {
 
     function createFeature(obj) {
-      vectorLayer.styleMap.styles["temporary"].setDefaultStyle({
+      Layer.getVectorLayer().styleMap.styles["temporary"].setDefaultStyle({
         externalGraphic : selectedIconUrl,
         pointRadius : "12",
         graphicOpacity : "1"
       })
-      drawControl.activate()
+      Control.activateDrawControl()
     }
 
     function updateFeature(obj) {
@@ -42,203 +39,7 @@ var Cop = function() {
     Ext.BLANK_IMAGE_URL = "/opencop/lib/ext-3.4.0/resources/images/default/s.gif"
     Ext.state.Manager.setProvider(new Ext.state.CookieProvider())
 
-    vectorLayer = Layer.buildScratchLayer()
-
-    function cancelEditWfs(feature) {
-
-      if(featureChanged(feature)) {
-        Growl.info("Changes cancelled", "Changes to vector have been cancelled.")
-      }
-
-      feature.popup.close()
-      if(feature.state == "Insert") {
-        vectorLayer.removeFeatures([feature])
-      } else {
-        // reset attributes and position
-        //
-        // All that really needs to happen here is resetting the
-        // attributes and geometry.  Attributes can be reset with
-        // "feature.data = feature.attributes".  If we knew how to reset
-        // the geom, this could be more efficient.
-        refreshAllLayers()
-      }
-    }
-
-    function createWfsPopup(feature) {
-      // the "createWfsPopup" abstraction allows for the flexibility to
-      // open other types of popups when in other modes
-      if(Panel.editFeaturesActive()) {
-        createEditWfsPopup(feature)
-      }
-    }
-
-    function createEditWfsPopup(feature) {
-
-      function hasAttribute(obj, attribute) {
-        return _(obj).chain().keys().include(attribute).value()
-      }
-
-      // you're only allowed to drag a point if it's attached to the feature
-      // you're currently editing
-      function allowedToDragPoint(point, feature) {
-        var id = feature.geometry.id
-        var n0 = point.id == feature.id
-        var n1 = id == Utils.safeDot(point, ['geometry', 'parent', 'id'])
-        var n2 = id == Utils.safeDot(point, ['geometry', 'parent', 'parent', 'id'])
-        var n3 = id == Utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'id'])
-        var n4 = id == Utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'parent', 'id'])
-        var n5 = id == Utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'parent', 'parent', 'id'])
-        return n0 || n1 || n2 || n3 || n4 || n5
-      }
-
-      function ensureFeatureHasAllFields() {
-        var allFields = _(vectorLayer.store.data.items).map(function(n) {
-          return n.data.name
-        })
-        var missingFields = _(allFields).difference(_(feature.attributes).keys(), ["the_geom", "version"])
-        _(missingFields).each(function(name) {
-          feature.attributes[name] = ""
-        })
-      }
-
-      ensureFeatureHasAllFields()
-
-      // set default_graphic
-      if(hasAttribute(feature.attributes, "default_graphic")) {
-        feature.attributes.default_graphic = feature.attributes.default_graphic || selectedIconUrl
-      }
-
-      // Need to:
-      // 1. allow moving point that has popup
-      // 2. prevent selecting other points
-      // 3. prevent moving other points
-      // 4. unselecting point closes popup
-      //
-      // The empty dragStart callback is key. For whatever (stupid)
-      // reason, it inhibits the select control.
-      modifyControl.selectFeature(feature)
-      modifyControl.dragStart = function() {
-      }
-      modifyControl.dragComplete = function(point) {
-
-        if(allowedToDragPoint(point, feature)) {
-          feature.state = OpenLayers.State.UPDATE
-        } else {
-          cancelEditWfs(feature)
-        }
-      }
-      // remove the edit_url field (making a heavy assumption
-      // that this field's name won't change)
-      delete feature.attributes.edit_url
-
-      var propertyGrid = new Ext.grid.PropertyGrid({
-        title : feature.fid,
-        source : feature.attributes
-      })
-
-      var popup = Popup.GeoExtPopup.create({
-        title : "Edit WFS-T Feature",
-        height : 300,
-        width : 300,
-        layout : "fit",
-        map : app.center_south_and_east_panel.map_panel,
-        location : feature,
-        maximizable : true,
-        collapsible : true,
-        items : [propertyGrid],
-        listeners : {
-          "close" : function(feature) {
-            modifyControl.unselectFeature(feature)
-          }
-        },
-        buttons : [{
-          text : 'Cancel',
-          iconCls : 'silk_cross',
-          handler : function() {
-            cancelEditWfs(feature)
-          }
-        }, {
-          text : 'Delete',
-          iconCls : 'silk_cross',
-          handler : function() {
-            if(confirm("Delete this features?")) {
-              feature.state = OpenLayers.State.DELETE
-              saveFeature(feature)
-              popup.close()
-            }
-          }
-        }, {
-          text : 'Save',
-          iconCls : 'silk_tick',
-          handler : function() {
-            propertyGrid.stopEditing()// prevent having to click off field to
-            // save in IE
-            saveFeature(feature)
-            popup.close()
-          }
-        }]
-      })
-      feature.popup = popup// so we can close the popup through the feature
-      // later
-      popup.show()
-      drawControl.deactivate()
-    }
-
-    function vectorLayerContainsFeature(vectorLayer, feature) {
-      return OpenLayers.Util.indexOf(vectorLayer.selectedFeatures, feature) > -1
-    }
-
-    var controls = [new OpenLayers.Control.Navigation(), new OpenLayers.Control.Attribution(), new OpenLayers.Control.PanPanel(), new OpenLayers.Control.ZoomPanel(), new OpenLayers.Control.MousePosition()]
-
-    var modifyControl = new OpenLayers.Control.ModifyFeature(vectorLayer, {
-      autoActivate : true
-    })
-    controls.push(modifyControl)
-
-    drawControl = new OpenLayers.Control.DrawFeature(vectorLayer, OpenLayers.Handler.Point, {
-      featureAdded : createWfsPopup
-    })
-    controls.push(drawControl)
-
-    var selectFeatureControl = new OpenLayers.Control.SelectFeature(vectorLayer, {
-      onSelect : createWfsPopup,
-      onUnselect : cancelEditWfs
-    })
-    controls.push(selectFeatureControl)
-
-    // get feature info (popup)
-    var WMSGetFeatureInfoControl = new OpenLayers.Control.WMSGetFeatureInfo({
-      autoActivate : true,
-      infoFormat : "text/html",
-      vendorParams : {
-        buffer : 10
-      }, //geoserver param, don't have to click dead center, I believe ESRI
-      // ignores it
-      maxFeatures : 5, // Zach says this is a reasonable number [t06dec'11]ish
-      queryVisible : true, //only send the request for visible layers
-      eventListeners : {
-        "getfeatureinfo" : function(e) {
-          var bodyIsEmpty = /<body>\s*<\/body>/.test(e.text)
-          if(!bodyIsEmpty)
-            Popup.GeoExtPopup.create({
-              title : "Feature Info",
-              width : 300,
-              height : 300,
-              layout : "fit",
-              map : app.center_south_and_east_panel.map_panel,
-              location : e.xy,
-              items : [{
-                xtype : 'box',
-                autoScroll : true,
-                autoEl : {
-                  html : e.text
-                }
-              }]
-            }).show()
-        }
-      }
-    })
-    controls.push(WMSGetFeatureInfoControl)
+    Layer.initScratchLayer()
 
     var map_panel = {
       xtype : "gx_mappanel",
@@ -253,10 +54,10 @@ var Cop = function() {
         maxResolution : 156543.0339,
         tileSize : new OpenLayers.Size(256, 256),
         maxExtent : new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508.34),
-        controls : controls
+        controls : Control.buildControls()
       },
       extent : new OpenLayers.Bounds(-10918469.080342, 2472890.3987378, -9525887.0459675, 6856095.3481128),
-      layers : [vectorLayer],
+      layers : [Layer.getVectorLayer()],
       items : [{
         xtype : "gx_zoomslider",
         aggressive : false,
@@ -403,7 +204,7 @@ var Cop = function() {
             app.center_south_and_east_panel.map_panel.map.removeLayer(node.layer)
             shutdownDetailsPane()
             Control.KML.removeLayer(node.layer)
-            refreshControls()
+            Control.refreshControls()
           }
         }
       }]
@@ -419,7 +220,7 @@ var Cop = function() {
       listeners : {
         "activate" : function() {
           refreshVectorLayerAndFeatureGrid()
-          refreshControls()
+          Control.refreshControls()
         }
       },
       items : [{
@@ -470,7 +271,7 @@ var Cop = function() {
       listeners : {
         "activate" : function() {
           refreshVectorLayerAndFeatureGrid()
-          refreshControls()
+          Control.refreshControls()
           Legend.refreshLegendPanel()
         }
       },
@@ -560,7 +361,7 @@ var Cop = function() {
         "activate" : function() {
           populateIcons()
           refreshVectorLayerAndFeatureGrid()
-          refreshControls()
+          Control.refreshControls()
           refreshLayerEditPanel()
         }
       },
@@ -757,22 +558,22 @@ var Cop = function() {
         }),
         fields : fields
       }), new Ext.grid.ColumnModel(columns))
-      app.center_south_and_east_panel.feature_table.store.bind(vectorLayer)
-      app.center_south_and_east_panel.feature_table.getSelectionModel().bind(vectorLayer)
-      if(vectorLayer.strategies == null) {
-        vectorLayer.strategies = [new OpenLayers.Strategy.BBOX({
+      app.center_south_and_east_panel.feature_table.store.bind(Layer.getVectorLayer())
+      app.center_south_and_east_panel.feature_table.getSelectionModel().bind(Layer.getVectorLayer())
+      if(Layer.getVectorLayer().strategies == null) {
+        Layer.getVectorLayer().strategies = [new OpenLayers.Strategy.BBOX({
           resFactor : 1
         })];
       }
       // Set the correct sketch handler according to the geometryType
-      drawControl.handler = new OpenLayers.Handler[geometryType](drawControl, drawControl.callbacks, drawControl.handlerOptions)
+      Control.setDrawControlHandler(geometryType)
     }
 
     // fired on layer selection in the selection tree
     function setLayer() {
       refreshLayerDetailsPanel()
       refreshVectorLayerAndFeatureGrid()
-      refreshControls()
+      Control.refreshControls()
       Legend.refreshLegendPanel()
       refreshLayerEditPanel()
     }
@@ -782,108 +583,6 @@ var Cop = function() {
         return
       }
       app.west.selected_layer_panel.tabs.setActiveTab(0)
-    }
-
-    // Sometimes which controls are activated gets pretty messed up.
-    // This function attempts to set everything back to something
-    // stable.
-    //
-    // This function could equally be called "hammer time".
-    //
-    // Called whenever:
-    // - a layer is added, deleted, or selected
-    // - any of the three panels are selected
-    function refreshControls() {
-
-      if(!app) {
-        return
-      }
-
-      function currentLayerType() {
-        var layerRecord = Panel.currentlySelectedLayerRecord()
-        if(!layerRecord) {
-          return null
-        }
-        if(layerRecord.id.match("WMS")) {
-          return "WMS"
-        }
-        if(layerRecord.id.match("Google")) {
-          return "Google"
-        }
-        if(layerRecord.id.match("Yahoo")) {
-          return "Yahoo"
-        }
-        return "KML"
-      }
-
-      function isBaseLayer(type) {
-        return type == "Google" || type == "Yahoo"
-      }
-
-      function wms_on() {
-        WMSGetFeatureInfoControl.activate()
-      }
-
-      function vec_on() {
-        selectFeatureControl.activate()
-      }
-
-      function kml_on() {
-        Control.KML.refresh()
-      }
-
-      // drw_on() doesn't exist because drawControl is *only* activated when
-      // the user selects an icon on the edit tab
-
-      function wms_off() {
-        WMSGetFeatureInfoControl.deactivate()
-      }
-
-      function vec_off() {
-        selectFeatureControl.deactivate()
-      }
-
-      function kml_off() {
-        Control.KML.deactivate()
-      }
-
-      function drw_off() {
-        drawControl.deactivate()
-      }
-
-      function all_off() {
-        wms_off()
-        vec_off()
-        kml_off()
-        drw_off()
-      }
-
-      var legendPanel = app.west.selected_layer_panel.tabs.legend_panel
-      var editPanel = app.west.selected_layer_panel.tabs.edit_features
-
-      var mode = Panel.currentModePanel()
-      var type = currentLayerType()
-
-      if(isBaseLayer(type)) {
-        moveToDetailsTab()
-        legendPanel.disable()
-        editPanel.disable()
-      } else {
-        legendPanel.enable()
-        editPanel.enable()
-      }
-
-      if(mode == "edit_features" && type == "WMS") {
-        wms_off()
-        vec_on()
-        kml_off()
-      } else {
-        wms_on()
-        vec_off()
-        kml_on()
-      }
-
-      drw_off()
     }
 
     function refreshLayerEditPanel() {
@@ -985,11 +684,11 @@ var Cop = function() {
         var node = Panel.currentlySelectedLayerNode()
         if(node && node.layer) {
           populateWfsGrid(node.layer)
-          vectorLayer.parentLayer = node.layer
+          Layer.getVectorLayer().parentLayer = node.layer
         }
       }
       grid[Panel.queryFeaturesActive() ? "expand" : "collapse"]()// isn't this cute?
-      vectorLayer.removeAllFeatures()// needed for query tab
+      Layer.getVectorLayer().removeAllFeatures()// needed for query tab
       LoadingIndicator.stop("refreshVectorLayerAndFeatureGrid")
     }
 
@@ -1015,7 +714,7 @@ var Cop = function() {
         listeners : {
           "load" : function(store) {
             // make DescribeFeatureType results available to vectorLayer
-            vectorLayer.store = store
+            Layer.getVectorLayer().store = store
             app.center_south_and_east_panel.feature_table.setTitle(layer.name)
             makeWfsGridHeadersDynamic(store, baseUrl)
           }
@@ -1035,7 +734,7 @@ var Cop = function() {
       var suppressNextClick = false
 
       function onUncheckLayer(layer) {
-        var isActiveVectorLayer = (vectorLayer.parentLayer && layer.id == vectorLayer.parentLayer.id)
+        var isActiveVectorLayer = (Layer.getVectorLayer().parentLayer && layer.id == Layer.getVectorLayer().parentLayer.id)
         if(isActiveVectorLayer) {
           shutdownDetailsPane()
         }
@@ -1065,7 +764,7 @@ var Cop = function() {
 
     var sm = app.center_south_and_east_panel.feature_table.getSelectionModel()
     sm.unbind()
-    sm.bind(modifyControl.selectControl)
+    sm.bind(Control.getModifyControl().selectControl)
     sm.on("beforerowselect", function() {
       sm.clearSelections()
     })
@@ -1076,17 +775,6 @@ var Cop = function() {
      * Utility functions that require onReady scope
      * (generally meaning "including app")
      */
-
-    /**
-     * Grab the refresh interval from the server, and start
-     * auto-layer-refresh going.
-     */
-    function startAutoRefreshLayersSystem() {
-      AjaxUtils.getConfigOpt("map", "refreshInterval", function(interval) {
-        refreshInterval = parseInt(interval)
-        autoRefreshLayers()
-      }, autoRefreshLayers)
-    }
 
     /**
      * Display login popup, if this instance of opencop is configured
@@ -1108,36 +796,6 @@ var Cop = function() {
           displayAvailableLayers()
         }
       }, displayAvailableLayers)
-    }
-
-    function refreshAllLayers() {
-      var layers = app.center_south_and_east_panel.map_panel.map.layers
-      for(var i = layers.length - 1; i >= 0; --i) {
-        refreshLayer(layers[i])
-      }
-      if(Panel.editFeaturesActive()) {
-        app.center_south_and_east_panel.feature_table.store.reload()
-      }
-    }
-
-    function refreshLayer(layer) {
-      if(layer.CLASS_NAME == "OpenLayers.Layer.WMS") {
-        layer.mergeNewParams({
-          'random' : Math.random()
-        })
-      } else if(layer.CLASS_NAME == "OpenLayers.Layer.Vector" && layer.name != "Editable features") {
-        layer.refresh({
-          force : true,
-          params : {
-            'random' : Math.random()
-          }
-        })
-      }
-    }
-
-    function autoRefreshLayers() {
-      refreshAllLayers()
-      setTimeout(autoRefreshLayers, refreshInterval)
     }
 
     var DefaultLayers = function() {
@@ -1205,74 +863,6 @@ var Cop = function() {
         loadLayers: loadLayers
       }
     }()
-
-    // Save the feature in the scratch vector layer through the power
-    // of WFS-T, and refresh everything on the screen that touches that
-    // vector layer.
-    function saveFeature(feature) {
-
-      function echoResult(response) {
-        if(response.error) {
-          // warning: fragile array-indexing code. Fix later.
-          var e = response.error.exceptionReport.exceptions[0]
-          Growl.err("Save Failed", h.b(e.code) + h.p(h.code(e.texts[0])))
-        } else {
-          Growl.info("Save Successful", "Vector features saved.")
-        }
-      }
-
-      function hasKey(obj, key) {
-        return _(obj).chain().keys().include(key).value()
-      }
-
-      // Take two objects, a before and an after. Return an object that
-      // represents the diff.  (Complex, nully truth table.)
-      function objDiff(a, b) {
-        var n = {}
-        _(b).chain().keys().each(function(k) {
-
-          // Nulls make everything more complicated.  Here's a truth table.
-          //
-          // null + ""  = no
-          // ""   + ""  = no
-          // "a"  + "a" = no
-          // "a"  + ""  = include
-          // null + "a" = include
-          // ""   + "a" = include
-          // null + "b" = include
-          // ""   + "b" = include
-          // "a"  + "b" = include
-
-          var nullA = !hasKey(a, k)
-          var emptyA = a[k] == ""
-          var emptyB = b[k] == ""
-          var equal = a[k] == b[k]
-
-          if(!(nullA && emptyB) && !(emptyA && emptyB) && !equal) {
-            n[k] = b[k]
-          }
-        })
-        return n
-      }
-
-      // detect feature change and set state
-      if(!feature.state && featureChanged(feature)) {
-        feature.state = "Update"
-      }
-
-      // don't save empty attributes
-      if(feature.state == "Insert" || feature.state == "Update") {
-        feature.attributes = objDiff(feature.data, feature.attributes)
-      }
-
-      // commit vector layer via WFS-T
-      app.center_south_and_east_panel.feature_table.store.proxy.protocol.commit([feature], {
-        callback : function(response) {
-          echoResult(response)
-          refreshAllLayers()
-        }
-      })
-    }
 
     function featureChanged(feature) {
       return !Utils.equalAttributes(feature.data, feature.attributes)
@@ -1506,7 +1096,7 @@ var Cop = function() {
               })
             }).each(addLayer)
             deselectAllLayers()
-            refreshControls()
+            Control.refreshControls()
           }
 
           function layerEqualsSelected(layer, selected) {
@@ -1727,7 +1317,7 @@ var Cop = function() {
 
     loadBaselayers()
     DefaultLayers.loadLayers()
-    startAutoRefreshLayersSystem()
+    Layer.startAutoRefreshLayersSystem()
   }
 
   /**
@@ -1753,16 +1343,18 @@ var Cop = function() {
     }
   }()
 
-  function getApp() { return app }
+  function getApp() {
+    return app
+  }
 
   return {
 
     // global member variables
     username: username,
-    getApp: getApp,
 
     // methods
     init : init,
+    getApp: getApp,
     selectIcon : selectIcon
   }
 }()

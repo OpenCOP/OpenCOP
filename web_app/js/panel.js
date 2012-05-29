@@ -1,3 +1,5 @@
+"use strict"
+
 /**
  * Handles setting up and querying the ext panels.
  */

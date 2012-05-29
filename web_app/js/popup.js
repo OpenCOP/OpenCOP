@@ -1,3 +1,5 @@
+"use strict"
+
 /**
  * If it creates (or even manages) a popup, it belongs here.
  */
@@ -134,11 +136,133 @@ var Popup = function() {
     }
   }()
 
+  function createWfsPopup(feature) {
+    // the "createWfsPopup" abstraction allows for the flexibility to
+    // open other types of popups when in other modes
+    if(Panel.editFeaturesActive()) {
+      createEditWfsPopup(feature)
+    }
+  }
+
+  function createEditWfsPopup(feature) {
+
+    function hasAttribute(obj, attribute) {
+      return _(obj).chain().keys().include(attribute).value()
+    }
+
+    // you're only allowed to drag a point if it's attached to the feature
+    // you're currently editing
+    function allowedToDragPoint(point, feature) {
+      var id = feature.geometry.id
+      var n0 = point.id == feature.id
+      var n1 = id == Utils.safeDot(point, ['geometry', 'parent', 'id'])
+      var n2 = id == Utils.safeDot(point, ['geometry', 'parent', 'parent', 'id'])
+      var n3 = id == Utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'id'])
+      var n4 = id == Utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'parent', 'id'])
+      var n5 = id == Utils.safeDot(point, ['geometry', 'parent', 'parent', 'parent', 'parent', 'parent', 'id'])
+      return n0 || n1 || n2 || n3 || n4 || n5
+    }
+
+    function ensureFeatureHasAllFields() {
+      var allFields = _(Layer.getVectorLayer().store.data.items).map(function(n) {
+        return n.data.name
+      })
+      var missingFields = _(allFields).difference(_(feature.attributes).keys(), ["the_geom", "version"])
+      _(missingFields).each(function(name) {
+        feature.attributes[name] = ""
+      })
+    }
+
+    ensureFeatureHasAllFields()
+
+    // set default_graphic
+    if(hasAttribute(feature.attributes, "default_graphic")) {
+      feature.attributes.default_graphic = feature.attributes.default_graphic || selectedIconUrl
+    }
+
+    // Need to:
+    // 1. allow moving point that has popup
+    // 2. prevent selecting other points
+    // 3. prevent moving other points
+    // 4. unselecting point closes popup
+    //
+    // The empty dragStart callback is key. For whatever (stupid)
+    // reason, it inhibits the select control.
+    Control.getModifyControl().selectFeature(feature)
+    Control.getModifyControl().dragStart = function() {
+    }
+    Control.getModifyControl().dragComplete = function(point) {
+
+      if(allowedToDragPoint(point, feature)) {
+        feature.state = OpenLayers.State.UPDATE
+      } else {
+        cancelEditWfs(feature)
+      }
+    }
+    // remove the edit_url field (making a heavy assumption
+    // that this field's name won't change)
+    delete feature.attributes.edit_url
+
+    var propertyGrid = new Ext.grid.PropertyGrid({
+      title : feature.fid,
+      source : feature.attributes
+    })
+
+    var popup = Popup.GeoExtPopup.create({
+      title : "Edit WFS-T Feature",
+      height : 300,
+      width : 300,
+      layout : "fit",
+      map : Cop.getApp().center_south_and_east_panel.map_panel,
+      location : feature,
+      maximizable : true,
+      collapsible : true,
+      items : [propertyGrid],
+      listeners : {
+        "close" : function(feature) {
+          Control.getModifyControl().unselectFeature(feature)
+        }
+      },
+      buttons : [{
+        text : 'Cancel',
+        iconCls : 'silk_cross',
+        handler : function() {
+          cancelEditWfs(feature)
+        }
+      }, {
+        text : 'Delete',
+        iconCls : 'silk_cross',
+        handler : function() {
+          if(confirm("Delete this features?")) {
+            feature.state = OpenLayers.State.DELETE
+            WFS.saveFeature(feature)
+            popup.close()
+          }
+        }
+      }, {
+        text : 'Save',
+        iconCls : 'silk_tick',
+        handler : function() {
+          propertyGrid.stopEditing()// prevent having to click off field to
+          // save in IE
+          WFS.saveFeature(feature)
+          popup.close()
+        }
+      }]
+    })
+    // so we can close the popup through the feature later
+    feature.popup = popup
+    popup.show()
+    Control.deactivateDrawControl()
+  }
+
+
   return {
     displayAppInfo: displayAppInfo,
-//    displayHelp: displayHelp,
-//    displayApplicationSettings: displayApplicationSettings,
-//    displayMySettings: displayMySettings,
-    GeoExtPopup: GeoExtPopup
+    //    displayHelp: displayHelp,
+    //    displayApplicationSettings: displayApplicationSettings,
+    //    displayMySettings: displayMySettings,
+    GeoExtPopup: GeoExtPopup,
+    createWfsPopup: createWfsPopup
   }
 }()

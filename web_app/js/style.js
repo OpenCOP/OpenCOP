@@ -1,3 +1,5 @@
+"use strict"
+
 /**
  * Where our stylish constants live.
  */

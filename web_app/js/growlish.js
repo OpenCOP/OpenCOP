@@ -1,3 +1,5 @@
+"use strict"
+
 var Growl = (function() {
   function builder(icon, delay) {
     return function(title, html) {
@@ -74,7 +76,7 @@ Ext.ux.Notification = Ext.extend(Ext.Window, {
     if (document.body.clientHeight == document.body.scrollHeight) {
       document.body.style.overflowY = 'hidden';
     }
-    pos = -5;
+    var pos = -5;
     for (var i = 0; i < Ext.ux.NotificationMgr.notifications.length; i++) {
       pos -= Ext.ux.NotificationMgr.notifications[i].getSize().height + 15;
     }

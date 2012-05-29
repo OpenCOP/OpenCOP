@@ -1,3 +1,5 @@
+"use strict"
+
 /**
  * The legend class.  It's legendary!
  */

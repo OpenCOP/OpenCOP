@@ -1,3 +1,5 @@
+"use strict"
+
 /**
  * This is a dev tool.
  *

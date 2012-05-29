@@ -1,3 +1,5 @@
+"use strict"
+
 /**
  * Tells the user that something ajax-y is going on. Call start() when a
  * new process starts, and stop() when it ends. This keeps track of the
@@ -6,23 +8,18 @@
 var LoadingIndicator = function() {
 
   var refcount = 0
-  var app
   var dev_showLogging = false  // to rapidly turn logging on/off
 
-  function init(extApp) {
-    app = extApp
-  }
-
   function inited() {
-    return app && app.top_menu_bar
+    return Cop.getApp() && Cop.getApp().top_menu_bar
   }
 
   function hide() {
-    app.top_menu_bar.loading_text.hide()
+    Cop.getApp().top_menu_bar.loading_text.hide()
   }
 
   function show() {
-    app.top_menu_bar.loading_text.show()
+    Cop.getApp().top_menu_bar.loading_text.show()
   }
 
   /**
@@ -62,7 +59,6 @@ var LoadingIndicator = function() {
   }
 
   return {
-    init: init,
     start: start,
     stop: stop
   }

@@ -1,3 +1,5 @@
+"use strict"
+
 /**
  * Utils namespace (for the purest of the pure functions).
  */
