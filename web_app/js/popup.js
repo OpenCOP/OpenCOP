@@ -5,6 +5,43 @@
  */
 var Popup = function() {
 
+  var username // null means guest
+
+  /**
+   * This "class" ensures that only a single GeoExt popup will be
+   * available at a time.
+   */
+  var GeoExtPopup = function() {
+    var singletonPopup = null
+
+    function close() {
+      if(singletonPopup) {
+        singletonPopup.close()
+        singletonPopup = null
+      }
+    }
+
+    return {
+      // Static factory method.  Opts is the massive options hash
+      // that GeoExt.popup takes.
+      create : function(opts) {
+        close()
+        singletonPopup = new GeoExt.Popup(opts)
+        return singletonPopup
+      },
+      anyOpen : function() {
+        return singletonPopup && !singletonPopup.hidden
+      },
+      closeAll : function() {
+        close()
+      }// Close all GeoExt.popups on the map.
+      ,
+      currentPopup : function() {
+        return singletonPopup
+      }
+    }
+  }()
+
   function displayAppInfo() {
     var win = new Ext.Window({
       title : "About OpenCOP",
@@ -103,39 +140,6 @@ var Popup = function() {
     win.show()
   }
 
-  // This "class" ensures that only a single GeoExt popup will be
-  // available at a time.
-  var GeoExtPopup = function() {
-    var singletonPopup = null
-
-    function close() {
-      if(singletonPopup) {
-        singletonPopup.close()
-        singletonPopup = null
-      }
-    }
-
-    return {
-      // Static factory method.  Opts is the massive options hash
-      // that GeoExt.popup takes.
-      create : function(opts) {
-        close()
-        singletonPopup = new GeoExt.Popup(opts)
-        return singletonPopup
-      },
-      anyOpen : function() {
-        return singletonPopup && !singletonPopup.hidden
-      },
-      closeAll : function() {
-        close()
-      }// Close all GeoExt.popups on the map.
-      ,
-      currentPopup : function() {
-        return singletonPopup
-      }
-    }
-  }()
-
   function createWfsPopup(feature) {
     // the "createWfsPopup" abstraction allows for the flexibility to
     // open other types of popups when in other modes
@@ -177,7 +181,7 @@ var Popup = function() {
 
     // set default_graphic
     if(hasAttribute(feature.attributes, "default_graphic")) {
-      feature.attributes.default_graphic = feature.attributes.default_graphic || selectedIconUrl
+      feature.attributes.default_graphic = feature.attributes.default_graphic || WFS.getSelectedIconUrl()
     }
 
     // Need to:
@@ -196,7 +200,7 @@ var Popup = function() {
       if(allowedToDragPoint(point, feature)) {
         feature.state = OpenLayers.State.UPDATE
       } else {
-        cancelEditWfs(feature)
+        Control.cancelEditWfs(feature)
       }
     }
     // remove the edit_url field (making a heavy assumption
@@ -227,7 +231,7 @@ var Popup = function() {
         text : 'Cancel',
         iconCls : 'silk_cross',
         handler : function() {
-          cancelEditWfs(feature)
+          Control.cancelEditWfs(feature)
         }
       }, {
         text : 'Delete',
@@ -256,13 +260,342 @@ var Popup = function() {
     Control.deactivateDrawControl()
   }
 
+  function displayAvailableLayers() {
+    LoadingIndicator.start("displayAvailableLayers")
+    Ext.Ajax.request({
+      url : AjaxUtils.jsonUrl("layergroup"),
+      success : function(response) {
+
+        // Return an ext grid reprsenting the layers available within
+        // a given layergroup
+        //
+        // options:
+        // - layergroup id
+        // - layergroup name
+        // - layergroup url (with filter)
+        function createGeoserverGrid(gridOpts) {
+          return {
+            xtype : "grid",
+            title : gridOpts.name,
+            margins : '0 5 0 0',
+            layout : 'fit',
+            viewConfig : {
+              forceFit : true
+            },
+            listeners : {
+              "rowdblclick" : addAllSelectedLayers,
+              "activate" : deselectAllLayers
+            },
+            stripeRows : true,
+            store : new GeoExt.data.WMSCapabilitiesStore({
+              url : gridOpts.url,
+              autoLoad : true,
+              sortInfo : {
+                field : 'title',
+                direction : "ASC"
+              },
+              listeners : {
+                "load" : function(store, records, options) {
+                  loadAdditionalLayers(store, gridOpts.id)
+                }
+              }
+            }),
+            columns : [{
+              header : "Title",
+              dataIndex : "title",
+              width : 300,
+              sortable : true
+            }, {
+              header : "Abstract",
+              dataIndex : "abstract",
+              width : 600,
+              sortable : true
+            }]
+          }
+        }
+
+        // load layers that are not part of the GetCapabilities
+        function loadAdditionalLayers(store, layerGroupId) {
+          LoadingIndicator.start("loadAdditionalLayers")
+          AjaxUtils.getAdditionalLayers(layerGroupId, function(layers) {
+            _(layers).each(function(layerOpts) {
+              store.add(new store.recordType({
+                id : _.uniqueId(),
+                prefix : layerOpts.prefix,
+                type : layerOpts.type,
+                title : layerOpts.name,
+                abstract : layerOpts.abstract,
+                layer : Layer.buildOlLayer(layerOpts)
+              }))
+            })
+            LoadingIndicator.stop("loadAdditionalLayers")
+          }, function() {
+            LoadingIndicator.stop("loadAdditionalLayers")
+          })
+        }
+
+        function addAllSelectedLayers() {// from all tabs
+          var layers = Cop.getApp().center_south_and_east_panel.map_panel.map.layers
+          _(layersPopup.tabs.items.items).chain()// all grids
+          .map(function(grid) {
+            return grid.getSelectionModel().getSelected()
+          }).flatten().compact()// all selected layers
+          .reject(function(selected) {// only add if not already added
+            return _(layers).any(function(layer) {
+              // We're checking for the equality of a selected layer
+              // and an existing layer in the layer tree.
+              return layerEqualsSelected(layer, selected)
+            })
+          }).each(Layer.addLayer)
+          deselectAllLayers()
+          Control.refreshControls()
+        }
+
+        function layerEqualsSelected(layer, selected) {
+          // If names are urls match, they are considered equal
+          if(selected.data.type == "KML") {
+            return (selected.data.title == layer.name
+              && cleanUrl(selected.data.layer.fullUrl) == cleanUrl(layer.fullUrl))
+          } else { // assume WMS
+            return (layer.params && layer.params.LAYERS == selected.data.name
+              && cleanUrl(layer.url) == cleanUrl(selected.data.layer.url))
+          }
+        }
+
+        function cleanUrl(url) {
+          return Utils.trimChars(url, "&?")
+        }
+
+        function deselectAllLayers() {// from all tabs that have been
+          // rendered
+          _(layersPopup.tabs.items.items).chain().filter(function(g) {
+            return g.rendered
+          }).each(function(g) {
+            g.getSelectionModel().clearSelections()
+          })
+        }
+
+        var layersPopup = new Ext.Window({
+          title : "Add Layers to the Map",
+          iconCls : 'geosilk_layers_add',
+          layout : "fit",
+          modal : true,
+          width : '60%',
+          height : document.body.clientHeight - 50,
+          items : [{
+            xtype : "tabpanel",
+            enableTabScroll : true,
+            ref : "tabs",
+            activeTab : 0,
+            items : _(AjaxUtils.parseGeoserverJson(response)).map(createGeoserverGrid)
+          }],
+          listeners : {
+            // close popup when user clicks on anything else
+            show : function() {
+              Ext.select('.ext-el-mask').addListener('click', function() {
+                layersPopup.close()
+              })
+            }
+          },
+          buttons : [{
+            text : "Add to Map",
+            iconCls : 'silk_add',
+            handler : addAllSelectedLayers
+          }, {
+            text : 'Done',
+            iconCls : 'silk_tick',
+            handler : function() {
+              layersPopup.hide()
+            }
+          }]
+        })
+        layersPopup.show()
+        LoadingIndicator.stop("displayAvailableLayers")
+      },
+      failure : function() {
+        LoadingIndicator.stop("displayAvailableLayers")
+      }
+    })
+  }
+
+  function displayLoginPopup() {
+    var loginPopup = new Ext.Window({
+      title : "Welcome to OpenCOP",
+      iconCls : "geocent_logo",
+      modal : true,
+      layout : "fit",
+      width : 325,
+      height : 150,
+      listeners : {
+        // close available layers window when user clicks on
+        // anything that isn't the window
+        show : function() {
+          Ext.select('.ext-el-mask').addListener('click', function() {
+            loginPopup.close()
+            optionallyDisplayAvailableLayers()
+          })
+        }
+      },
+      items : [new Ext.FormPanel({
+        labelWidth : 75,
+        ref : "loginForm",
+        frame : true,
+        monitorValid : true,
+        bodyStyle : 'padding:5px 5px 0',
+        defaults : {
+          width : 200
+        },
+        defaultType : 'textfield',
+        items : [{
+          fieldLabel : 'Username',
+          name : 'username',
+          ref : "username",
+          allowBlank : false,
+          listeners : {
+            afterrender : function(field) {
+              // True = select existing text in box.
+              // Delay (ms).
+              field.focus(false, 100)
+            }
+          }
+        }, {
+          fieldLabel : 'Password',
+          name : 'password',
+          ref : "password",
+          inputType : "password",
+          allowBlank : false,
+          enableKeyEvents : true,
+          listeners : {
+            specialKey : function(field, el) {
+              if(el.getKey() == Ext.EventObject.ENTER) {
+                Ext.getCmp('log_in_button').handler.call(Ext.getCmp('log_in_button').scope)
+              }
+            }
+          }
+        }],
+        buttons : [{
+          text : 'Log In',
+          name : 'log_in_button',
+          id : 'log_in_button',
+          ref : 'log_in_button',
+          iconCls : 'silk_user_go',
+          formBind : true,
+          handler : function() {
+            var response = Ext.Ajax.request({
+              url : "/geoserver/j_spring_security_check",
+              params : "username=" + loginPopup.loginForm.username.getValue() + "&password=" + loginPopup.loginForm.password.getValue(),
+              callback : function(options, success, response) {
+                // Hack alert: The security check returns a success
+                // code regardless of whether the user successfully
+                // authenticated. The only way to determine success or
+                // failure is to inspect the contents of the response
+                // and see if it redirected back to a login page.
+                if(response.responseText.search("GeoServer: User login") > -1) {
+                  username = null// guest
+                  loginPopup.hide()
+                  displayFailedLoginPopup()
+                } else {
+                  username = loginPopup.loginForm.username.getValue()//
+                  // current user
+                  loginPopup.hide()
+                  optionallyDisplayAvailableLayers()
+                }
+              }
+            })
+          }
+        }, {
+          text : 'Enter as Guest',
+          iconCls : 'silk_door_in',
+          handler : function() {
+            loginPopup.hide()
+            optionallyDisplayAvailableLayers()
+          }
+        }]
+      })]
+    })
+    loginPopup.show()
+  }
+
+  function displayFailedLoginPopup() {
+    var failedLoginPopup = new Ext.Window({
+      title : "Log In Failed",
+      iconCls : "silk_exclamation",
+      modal : true,
+      layout : "fit",
+      width : 325,
+      height : 150,
+      listeners : {
+        // close available layers window when user clicks on
+        // anything that isn't the window
+        show : function() {
+          Ext.select('.ext-el-mask').addListener('click', function() {
+            failedLoginPopup.close()
+            optionallyDisplayAvailableLayers()
+          })
+        }
+      },
+      items : [{
+        html : '<p style="text-align: center; font-size: 120%">Invalid Username and/or Password.</p>',
+        frame : true,
+        padding : '20 20 20 20'
+      }],
+      buttons : [{
+        text : 'Try Again',
+        iconCls : 'silk_user_go',
+        handler : function() {
+          failedLoginPopup.hide()
+          displayLoginPopup()
+        }
+      }, {
+        text : 'Enter as Guest',
+        iconCls : 'silk_door_in',
+        handler : function() {
+          failedLoginPopup.hide()
+          optionallyDisplayAvailableLayers()
+        }
+      }]
+    })
+    failedLoginPopup.show()
+  }
+
+  /**
+   * Display login popup, if this instance of opencop is configured
+   * for that sort of thing.
+   */
+  function optionallyDisplayLoginPopup() {
+    AjaxUtils.getConfigOpt("security", "showLogin", function(showLogin) {
+      if(showLogin == "true") {
+        Popup.displayLoginPopup()
+      } else {
+        optionallyDisplayAvailableLayers()
+      }
+    }, Popup.displayLoginPopup)
+  }
+
+  function optionallyDisplayAvailableLayers() {
+    AjaxUtils.getConfigOpt("map", "showLayers", function(showLayers) {
+      if(showLayers == "true") {
+        Popup.displayAvailableLayers()
+      }
+    }, Popup.displayAvailableLayers)
+  }
+
+  function getUsername() {
+    return username
+  }
 
   return {
     displayAppInfo: displayAppInfo,
     //    displayHelp: displayHelp,
     //    displayApplicationSettings: displayApplicationSettings,
     //    displayMySettings: displayMySettings,
+    getUsername: getUsername,
     GeoExtPopup: GeoExtPopup,
-    createWfsPopup: createWfsPopup
+    createWfsPopup: createWfsPopup,
+    displayLoginPopup: displayLoginPopup,
+    displayFailedLoginPopup: displayFailedLoginPopup,
+    displayAvailableLayers: displayAvailableLayers,
+    optionallyDisplayLoginPopup: optionallyDisplayLoginPopup,
+    optionallyDisplayAvailableLayers: optionallyDisplayAvailableLayers
   }
 }()

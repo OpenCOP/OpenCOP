@@ -204,7 +204,7 @@ var Control = function() {
     var type = currentLayerType()
 
     if(isBaseLayer(type)) {
-      moveToDetailsTab()
+      Panel.moveToDetailsTab()
       legendPanel.disable()
       editPanel.disable()
     } else {
@@ -227,7 +227,7 @@ var Control = function() {
 
   function cancelEditWfs(feature) {
 
-    if(featureChanged(feature)) {
+    if(WFS.featureChanged(feature)) {
       Growl.info("Changes cancelled", "Changes to vector have been cancelled.")
     }
 
@@ -317,13 +317,24 @@ var Control = function() {
     drawControl.handler = new OpenLayers.Handler[geometryType](drawControl, drawControl.callbacks, drawControl.handlerOptions)
   }
 
+  function configFeatureTableSelectionModel() {
+    var sm = Cop.getApp().center_south_and_east_panel.feature_table.getSelectionModel()
+    sm.unbind()
+    sm.bind(getModifyControl().selectControl)
+    sm.on("beforerowselect", function() {
+      sm.clearSelections()
+    })
+  }
+
   return {
     KML: KML,
     refreshControls: refreshControls,
     buildControls: buildControls,
+    cancelEditWfs: cancelEditWfs,
     getModifyControl: getModifyControl,
     activateDrawControl: activateDrawControl,
     deactivateDrawControl: deactivateDrawControl,
-    setDrawControlHandler: setDrawControlHandler
+    setDrawControlHandler: setDrawControlHandler,
+    configFeatureTableSelectionModel: configFeatureTableSelectionModel
   }
 }()
