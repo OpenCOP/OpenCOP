@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                               http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.geocent</groupId>
+  <artifactId>opencop</artifactId>
+  <packaging>war</packaging>
+  <version>2.0</version>
+  <name>OpenCOP Web Map</name>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <name>oss.sonatype.org</name>
+      <id>oss.sonatype.org</id>
+      <url>http://oss.sonatype.org/content/groups/public</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.1.1</version>
+        <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+          <warName>${artifactId}</warName>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>yuicompressor-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compress</goal>
+            </goals>
+          </execution>
+        </executions>        
+        <configuration>
+          <nosuffix>true</nosuffix>
+          <aggregations>
+            <!-- OpenCOP js -->
+            <aggregation>
+              <!-- insert new line after each concatenation (default: false) -->
+              <insertNewLine>true</insertNewLine>
+              <output>${project.build.directory}/${project.build.finalName}/js/all.js</output>
+              <!-- files to include, path relative to output's directory or absolute path-->
+              <!--inputDir>base directory for non absolute includes, default to parent dir of output</inputDir-->
+              <includes>
+                <!-- Crazy dependencies require the javascript files to be added in the following order: -->
+                <include>style.js</include>
+                <include>ajaxUtils.js</include>
+                <include>utils.js</include>
+                <include>loadingIndicator.js</include>
+                <include>layer.js</include>
+                <include>popup.js</include>
+                <include>wfs.js</include>
+                <include>h.js</include>
+                <include>netcdf.js</include>
+                <include>control.js</include>
+                <include>legend.js</include>
+                <include>panel.js</include>
+                <include>buildPanels.js</include>
+                <include>main.js</include>
+                <include>growlish.js</include>
+              </includes>
+              <!-- files to exclude, path relative to output's directory -->
+              <excludes>
+                <!-- Dont include the debugging javascript files -->
+                <exclude>search.js</exclude>
+                <exclude>test.js</exclude>
+                <exclude>refresh.js</exclude>
+              </excludes>
+            </aggregation>
+
+            <!-- OpenCOP css -->
+            <aggregation>
+              <!-- insert new line after each concatenation (default: false) -->
+              <insertNewLine>true</insertNewLine>
+              <output>${project.build.directory}/${project.build.finalName}/css/all.css</output>
+              <!-- files to include, path relative to output's directory or absolute path-->
+              <!--inputDir>base directory for non absolute includes, default to parent dir of output</inputDir-->
+              <includes>
+                <include>**/*.css</include>
+              </includes>
+              <!-- files to exclude, path relative to output's directory
+              <excludes>
+                <exclude>**/*.pack.js</exclude>
+                <exclude>**/compressed.css</exclude>
+              </excludes>
+              -->
+            </aggregation>
+          </aggregations>
+        </configuration>
+      </plugin>
+
+<!--      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <copy todir="${tomcat_opencop}">
+                  <fileset dir="${basedir}/web_app" includes="**" />
+                </copy>
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>-->
+    </plugins>
+  </build>
+
+  <properties>
+    <tomcat_webapp_dir>/var/lib/tomcat6/webapps</tomcat_webapp_dir>
+    <tomcat_opencop>/var/lib/tomcat6/webapps/opencop</tomcat_opencop>
+  </properties>
+</project>
+

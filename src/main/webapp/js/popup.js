@@ -324,7 +324,7 @@ var Popup = function() {
                 prefix : layerOpts.prefix,
                 type : layerOpts.type,
                 title : layerOpts.name,
-                abstract : layerOpts.abstract,
+                "abstract" : layerOpts["abstract"],
                 layer : Layer.buildOlLayer(layerOpts)
               }))
             })

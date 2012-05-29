@@ -76,7 +76,7 @@ var Panel = function() {
     var slider = Cop.getApp().west.selected_layer_panel.tabs.layer_detail.opacity_slider
 
     Ext.get('layer-description-title').update(layerRecord.data.title)
-    Ext.get('layer_description').update(layerRecord.data.abstract)
+    Ext.get('layer_description').update(layerRecord.data["abstract"])
     slider.setLayer(layer)
     Cop.getApp().west.selected_layer_panel.expand()
     populateIcons()

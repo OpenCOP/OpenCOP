@@ -90,7 +90,7 @@ var Legend = function() {
   function setLegendToStyle(style) {
 
     var title = style ? style.title : ""
-    var olAbstract = style ? style.abstract : ""
+    var olAbstract = style ? style["abstract"] : ""
     var url = style ? style.legend.href : ""
 
     Ext.get("legend_style_title").update(title)
