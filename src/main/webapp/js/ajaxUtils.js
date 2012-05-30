@@ -66,22 +66,37 @@ var AjaxUtils = function() {
     getGeoserverTable(url, success)
   }
 
+  function parseId(idStr) {
+    return idStr.match(/\d*$/)[0]  // ex: "layergroup.24" -> "24"
+  }
+
   /**
    * Take a geoserver ajax response object and convert it into what
    * you'd expect: a list of javascript objects. Pulls the response out
-   * of the FeatureCollection
+   * of the FeatureCollection.
+   *
+   * If we got an error response, return an empty array.
    */
   function parseGeoserverJson(response) {
-    function parseId(idStr) {
-      return idStr.match(/\d*$/)[0]  // ex: "layergroup.24" -> "24"
+    if(errorResponse(response)) {
+      Log.warn("Error parsing respones. " + response.responseText + "\nProbably resource not found.")
+      return []
     }
-
     var features = Ext.util.JSON.decode(response.responseText).features
     return _(features).map(function(feature) {
       return _(feature.properties).defaults({
         id : parseId(feature.id)
       })
     })
+  }
+
+  /**
+   * Returns whether we got an error response.
+   */
+  function errorResponse(response) {
+    // We always request JSON responses. If we got an xml response back,
+    // it means something must have gone wrong.
+    return response.getResponseHeader("Content-Type") == "application/xml"
   }
 
   /**

@@ -45,5 +45,6 @@ Ext.onReady(function() {
   Cop.init()
   if(devMode) {
     test.run()
+    Log.enable()
   }
 })

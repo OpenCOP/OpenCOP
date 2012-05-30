@@ -99,6 +99,10 @@ var Utils = function() {
     })
   }
 
+  /**
+   * Does nothing.
+   */
+  function noop() {}
 
   return {
     makeUniqOnField: makeUniqOnField,
@@ -112,6 +116,7 @@ var Utils = function() {
     dropLast: dropLast,
     contains: contains,
     defaultTo: defaultTo,
-    zipWithIndex: zipWithIndex
+    zipWithIndex: zipWithIndex,
+    noop: noop
   }
 }()

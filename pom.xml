@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                                http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -40,7 +40,7 @@
               <goal>compress</goal>
             </goals>
           </execution>
-        </executions>        
+        </executions>
         <configuration>
           <nosuffix>true</nosuffix>
           <aggregations>
@@ -53,6 +53,7 @@
               <!--inputDir>base directory for non absolute includes, default to parent dir of output</inputDir-->
               <includes>
                 <!-- Crazy dependencies require the javascript files to be added in the following order: -->
+                <include>log.js</include>
                 <include>style.js</include>
                 <include>ajaxUtils.js</include>
                 <include>utils.js</include>
