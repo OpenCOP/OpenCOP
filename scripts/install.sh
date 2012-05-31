@@ -227,23 +227,20 @@ su $username -c 'cd ~/OpenCOP/db-setup; sh ./populate-db'
 
 # Add the workspaces/namespaces
 ## TODO: Check the return values from these calls
-for namespace in "opencop"
-do
-  echo -n "$p Adding $namespace workspace..."
-  response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<namespace><uri>http://opencop.geocent.com</uri><prefix>$namespace</prefix></namespace>" http://$localip/geoserver/rest/namespaces`
-  if [ "$response" = "201" ]; then
-      echo "Success."
-  else
-      echo "Failed. $response"
-      exit 1
-  fi
-done
+echo -n "$p Adding opencop workspace..."
+response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<namespace><uri>http://opencop.geocent.com</uri><prefix>opencop</prefix></namespace>" http://$localip/geoserver/rest/namespaces`
+if [ "$response" = "201" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
 
 for store in "opencop" "dynamic_feature"
 do
   echo -n "$p Adding the $store data store..."
   ## TODO: Not all the params are specified here(spaces in, for example, "max connections", hose up the xml). Doesn't appear they need to be, but...
-  response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<dataStore><name>$store</name><connectionParameters><host>$localip</host><port>5432</port><database>$store</database><user>opencop</user><dbtype>postgis</dbtype><passwd>57levelsofeoc</passwd></connectionParameters></dataStore>" http://$localip/geoserver/rest/workspaces/$store/datastores`
+  response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<dataStore><name>$store</name><connectionParameters><host>$localip</host><port>5432</port><database>$store</database><user>opencop</user><dbtype>postgis</dbtype><passwd>57levelsofeoc</passwd></connectionParameters></dataStore>" http://$localip/geoserver/rest/workspaces/opencop/datastores`
   if [ "$response" = "201" ]; then
       echo "Success."
   else
