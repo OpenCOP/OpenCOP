@@ -174,7 +174,7 @@ su $username -c 'cd ~/OpenCOP; sh ./local_deploy'
 
 # Kinda hacky: The war copy will fail in local_deploy because the user doesn't have permissions to the tomcat directory
 # So copy it here
-cp /home/$username/OpenCOP/build/opencop.war /var/lib/tomcat6/webapps
+cp /home/$username/OpenCOP/target/opencop.war /var/lib/tomcat6/webapps
 
 # Restart apache and tomcat
 sudo service apache2 restart
@@ -216,31 +216,51 @@ echo "$p Running populate-db script"
 su $username -c 'cd ~/OpenCOP/db-setup; sh ./populate-db'
 
 
-# Add the opencop workspace/namespace
+# Add the workspaces/namespaces
 ## TODO: Check the return values from these calls
-echo -n "$p Adding opencop workspace..."
-response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d '<namespace><uri>http://opencop.geocent.com</uri><prefix>opencop</prefix></namespace>' http://$localip/geoserver/rest/namespaces`
-if [ "$response" = "201" ]; then
-    echo "Success."
-else
-    echo "Failed. $response"
-    exit 1
-fi
+for namespace in "opencop"
+do
+  echo -n "$p Adding $1 workspace..."
+  response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d '<namespace><uri>http://opencop.geocent.com</uri><prefix>$1</prefix></namespace>' http://$localip/geoserver/rest/namespaces`
+  if [ "$response" = "201" ]; then
+      echo "Success."
+  else
+      echo "Failed. $response"
+      exit 1
+  fi
+done
 
-echo -n "$p Adding the opencop data store..."
-## TODO: Not all the params are specified here(spaces in, for example, "max connections", hose up the xml). Doesn't appear they need to be, but...
-response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<dataStore><name>opencop</name><connectionParameters><host>$localip</host><port>5432</port><database>opencop</database><user>opencop</user><dbtype>postgis</dbtype><passwd>57levelsofeoc</passwd></connectionParameters></dataStore>" http://$localip/geoserver/rest/workspaces/opencop/datastores`
-if [ "$response" = "201" ]; then
-    echo "Success."
-else
-    echo "Failed. $response"
-    exit 1
-fi
+for store in "opencop" "dynamic_feature"
+do
+  echo -n "$p Adding the $1 data store..."
+  ## TODO: Not all the params are specified here(spaces in, for example, "max connections", hose up the xml). Doesn't appear they need to be, but...
+  response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<dataStore><name>$1</name><connectionParameters><host>$localip</host><port>5432</port><database>$1</database><user>opencop</user><dbtype>postgis</dbtype><passwd>57levelsofeoc</passwd></connectionParameters></dataStore>" http://$localip/geoserver/rest/workspaces/$1/datastores`
+  if [ "$response" = "201" ]; then
+      echo "Success."
+  else
+      echo "Failed. $response"
+      exit 1
+  fi
+done
 
-for layername in "baselayer" "config" "icon" "iconmaster" "iconstolayers" "layer" "layergroup"
+# public opencop:config layers
+for layername in "baselayer" "config" "icon" "iconmaster" "iconstolayers" "layer" "layergroup" "default_layer"
 do
 echo -n "$p Publishing $layername layer... "
 response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<featureType><name>$layername</name><srs>EPSG:4326</srs><nativeBoundingBox><minx>0</minx><miny>0</miny><maxx>-1</maxx><maxy>-1</maxy></nativeBoundingBox><latLonBoundingBox><minx>-1</minx><miny>-1</miny><maxx>0</maxx><maxy>0</maxy></latLonBoundingBox></featureType>" http://$localip/geoserver/rest/workspaces/opencop/datastores/opencop/featuretypes`
+if [ "$response" = "201" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
+done
+
+# public opencop:dynamic_feature layers
+for layername in "example"
+do
+echo -n "$p Publishing $layername layer... "
+response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<featureType><name>$layername</name><srs>EPSG:4326</srs><nativeBoundingBox><minx>0</minx><miny>0</miny><maxx>-1</maxx><maxy>-1</maxy></nativeBoundingBox><latLonBoundingBox><minx>-1</minx><miny>-1</miny><maxx>0</maxx><maxy>0</maxy></latLonBoundingBox></featureType>" http://$localip/geoserver/rest/workspaces/opencop/datastores/dynamic_feature/featuretypes`
 if [ "$response" = "201" ]; then
     echo "Success."
 else
