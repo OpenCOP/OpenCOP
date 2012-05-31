@@ -129,6 +129,15 @@ else
   sudo apt-get install -y git-core
 fi
 
+# install maven
+if mvn --version
+then
+  echo "$p maven already installed"
+else
+  echo "$p install maven"
+  sudo apt-get install -y maven2
+fi
+
 # pull most recent source
 if test -s /home/$username/OpenCOP/.git/
 then
