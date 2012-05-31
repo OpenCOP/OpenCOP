@@ -21,7 +21,7 @@ create table baselayer (
   brand character varying(20),
   type character varying(20),
   name character varying(100),
-  isdefault boolean,
+  isdefault boolean
 );
 
 -- // url to retrieve base layers from geoserver
