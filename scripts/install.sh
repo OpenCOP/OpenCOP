@@ -230,7 +230,7 @@ su $username -c 'cd ~/OpenCOP/db-setup; sh ./populate-db'
 for namespace in "opencop"
 do
   echo -n "$p Adding $namespace workspace..."
-  response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d '<namespace><uri>http://opencop.geocent.com</uri><prefix>$namespace</prefix></namespace>' http://$localip/geoserver/rest/namespaces`
+  response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<namespace><uri>http://opencop.geocent.com</uri><prefix>$namespace</prefix></namespace>" http://$localip/geoserver/rest/namespaces`
   if [ "$response" = "201" ]; then
       echo "Success."
   else
