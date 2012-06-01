@@ -10,4 +10,4 @@ psql -U opencop opencop -c "drop table default_layer cascade"
 
 psql -U opencop opencop -c "drop view iconmaster cascade"
 
-psql -U opencop dynamic_feature -c "drop table example cascade"
+psql -U opencop sandbox -c "drop table example cascade"

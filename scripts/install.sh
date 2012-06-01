@@ -253,65 +253,39 @@ do
   fi
 done
 
-# add store: opencop
-echo -n "$p Adding the opencop data store..."
-## TODO: Not all the params are specified here(spaces in, for example,
-## "max connections", hose up the xml). Doesn't appear they need to be,
-## but...
-response=`curl                           \
-  -s                                     \
-  -u admin:geoserver                     \
-  --write-out %{http_code}               \
-  -XPOST                                 \
-  -H 'Content-type: text/xml'            \
-  -d "<dataStore>                        \
-        <name>opencop</name>             \
-        <connectionParameters>           \
-          <host>$localip</host>          \
-          <port>5432</port>              \
-          <database>opencop</database>   \
-          <user>opencop</user>           \
-          <dbtype>postgis</dbtype>       \
-          <passwd>57levelsofeoc</passwd> \
-        </connectionParameters>          \
-      </dataStore>"                      \
-  http://$localip/geoserver/rest/workspaces/opencop/datastores`
-if [ "$response" = "201" ]; then
-    echo "Success."
-else
-    echo "Failed. $response"
-    exit 1
-fi
-
-# add store: sandbox
-echo -n "$p Adding the sandbox data store..."
-## TODO: Not all the params are specified here(spaces in, for example,
-## "max connections", hose up the xml). Doesn't appear they need to be,
-## but...
-response=`curl                           \
-  -s                                     \
-  -u admin:geoserver                     \
-  --write-out %{http_code}               \
-  -XPOST                                 \
-  -H 'Content-type: text/xml'            \
-  -d "<dataStore>                        \
-        <name>sandbox</name>             \
-        <connectionParameters>           \
-          <host>$localip</host>          \
-          <port>5432</port>              \
-          <database>sandbox</database>   \
-          <user>opencop</user>           \
-          <dbtype>postgis</dbtype>       \
-          <passwd>57levelsofeoc</passwd> \
-        </connectionParameters>          \
-      </dataStore>"                      \
-  http://$localip/geoserver/rest/workspaces/opencop/datastores`
-if [ "$response" = "201" ]; then
-    echo "Success."
-else
-    echo "Failed. $response"
-    exit 1
-fi
+# add stores
+# Note: store name must make workspace name
+for store in "opencop" "sandbox"
+do
+  echo -n "$p Adding the $store datastore..."
+  ## TODO: Not all the params are specified here(spaces in, for example,
+  ## "max connections", hose up the xml). Doesn't appear they need to be,
+  ## but...
+  response=`curl                           \
+    -s                                     \
+    -u admin:geoserver                     \
+    --write-out %{http_code}               \
+    -XPOST                                 \
+    -H 'Content-type: text/xml'            \
+    -d "<dataStore>                        \
+          <name>$store</name>              \
+          <connectionParameters>           \
+            <host>$localip</host>          \
+            <port>5432</port>              \
+            <database>$store</database>    \
+            <user>opencop</user>           \
+            <dbtype>postgis</dbtype>       \
+            <passwd>57levelsofeoc</passwd> \
+          </connectionParameters>          \
+        </dataStore>"                      \
+    http://$localip/geoserver/rest/workspaces/$store/datastores`
+  if [ "$response" = "201" ]; then
+      echo "Success."
+  else
+      echo "Failed. $response"
+      exit 1
+  fi
+done
 
 # add opencop (config) layers
 for layername in "baselayer" "config" "icon"  \

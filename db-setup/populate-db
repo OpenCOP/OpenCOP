@@ -5,4 +5,4 @@ psql -U opencop opencop -f populate-db.sql
 psql -U opencop opencop -f icon.sql
 psql -U opencop opencop -f hswg_icons.sql
 
-psql -U opencop dynamic_feature -f setup-example-layer.sql
+psql -U opencop sandbox -f setup-example-layer.sql
