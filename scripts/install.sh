@@ -234,7 +234,17 @@ su $username -c 'cd ~/OpenCOP/db-setup; sh ./populate-db'
 for workspace in "opencop" "sandbox"
 do
   echo -n "$p Adding $workspace workspace..."
-  response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<namespace><uri>http://$workspace.geocent.com</uri><prefix>$workspace</prefix></namespace>" http://$localip/geoserver/rest/namespaces`
+  response=`curl                                   \
+    -s                                             \
+    -u admin:geoserver                             \
+    --write-out %{http_code}                       \
+    -XPOST                                         \
+    -H 'Content-type: text/xml'                    \
+    -d "<namespace>                                \
+          <uri>http://$workspace.geocent.com</uri> \
+          <prefix>$workspace</prefix>              \
+        </namespace>"                              \
+    http://$localip/geoserver/rest/namespaces`
   if [ "$response" = "201" ]; then
       echo "Success."
   else
@@ -245,8 +255,27 @@ done
 
 # add store: opencop
 echo -n "$p Adding the opencop data store..."
-## TODO: Not all the params are specified here(spaces in, for example, "max connections", hose up the xml). Doesn't appear they need to be, but...
-response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<dataStore><name>opencop</name><connectionParameters><host>$localip</host><port>5432</port><database>opencop</database><user>opencop</user><dbtype>postgis</dbtype><passwd>57levelsofeoc</passwd></connectionParameters></dataStore>" http://$localip/geoserver/rest/workspaces/opencop/datastores`
+## TODO: Not all the params are specified here(spaces in, for example,
+## "max connections", hose up the xml). Doesn't appear they need to be,
+## but...
+response=`curl                           \
+  -s                                     \
+  -u admin:geoserver                     \
+  --write-out %{http_code}               \
+  -XPOST                                 \
+  -H 'Content-type: text/xml'            \
+  -d "<dataStore>                        \
+        <name>opencop</name>             \
+        <connectionParameters>           \
+          <host>$localip</host>          \
+          <port>5432</port>              \
+          <database>opencop</database>   \
+          <user>opencop</user>           \
+          <dbtype>postgis</dbtype>       \
+          <passwd>57levelsofeoc</passwd> \
+        </connectionParameters>          \
+      </dataStore>"                      \
+  http://$localip/geoserver/rest/workspaces/opencop/datastores`
 if [ "$response" = "201" ]; then
     echo "Success."
 else
@@ -256,8 +285,27 @@ fi
 
 # add store: sandbox
 echo -n "$p Adding the sandbox data store..."
-## TODO: Not all the params are specified here(spaces in, for example, "max connections", hose up the xml). Doesn't appear they need to be, but...
-response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<dataStore><name>sandbox</name><connectionParameters><host>$localip</host><port>5432</port><database>sandbox</database><user>opencop</user><dbtype>postgis</dbtype><passwd>57levelsofeoc</passwd></connectionParameters></dataStore>" http://$localip/geoserver/rest/workspaces/opencop/datastores`
+## TODO: Not all the params are specified here(spaces in, for example,
+## "max connections", hose up the xml). Doesn't appear they need to be,
+## but...
+response=`curl                           \
+  -s                                     \
+  -u admin:geoserver                     \
+  --write-out %{http_code}               \
+  -XPOST                                 \
+  -H 'Content-type: text/xml'            \
+  -d "<dataStore>                        \
+        <name>sandbox</name>             \
+        <connectionParameters>           \
+          <host>$localip</host>          \
+          <port>5432</port>              \
+          <database>sandbox</database>   \
+          <user>opencop</user>           \
+          <dbtype>postgis</dbtype>       \
+          <passwd>57levelsofeoc</passwd> \
+        </connectionParameters>          \
+      </dataStore>"                      \
+  http://$localip/geoserver/rest/workspaces/opencop/datastores`
 if [ "$response" = "201" ]; then
     echo "Success."
 else
@@ -266,29 +314,75 @@ else
 fi
 
 # add opencop (config) layers
-for layername in "baselayer" "config" "icon" "iconmaster" "iconstolayers" "layer" "layergroup" "default_layer"
+for layername in "baselayer" "config" "icon"  \
+                 "iconmaster" "iconstolayers" \
+                 "layer" "layergroup" "default_layer"
 do
-echo -n "$p Publishing $layername layer... "
-response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<featureType><name>$layername</name><srs>EPSG:4326</srs><nativeBoundingBox><minx>0</minx><miny>0</miny><maxx>-1</maxx><maxy>-1</maxy></nativeBoundingBox><latLonBoundingBox><minx>-1</minx><miny>-1</miny><maxx>0</maxx><maxy>0</maxy></latLonBoundingBox></featureType>" http://$localip/geoserver/rest/workspaces/opencop/datastores/opencop/featuretypes`
-if [ "$response" = "201" ]; then
-    echo "Success."
-else
-    echo "Failed. $response"
-    exit 1
-fi
+  echo -n "$p Publishing $layername layer... "
+  response=`curl                  \
+    -s                            \
+    -u admin:geoserver            \
+    --write-out %{http_code}      \
+    -XPOST                        \
+    -H 'Content-type: text/xml'   \
+    -d "<featureType>             \
+          <name>$layername</name> \
+          <srs>EPSG:4326</srs>    \
+          <nativeBoundingBox>     \
+            <minx>0</minx>        \
+            <miny>0</miny>        \
+            <maxx>-1</maxx>       \
+            <maxy>-1</maxy>       \
+          </nativeBoundingBox>    \
+          <latLonBoundingBox>     \
+            <minx>-1</minx>       \
+            <miny>-1</miny>       \
+            <maxx>0</maxx>        \
+            <maxy>0</maxy>        \
+          </latLonBoundingBox>    \
+        </featureType>"           \
+    http://$localip/geoserver/rest/workspaces/opencop/datastores/opencop/featuretypes`
+  if [ "$response" = "201" ]; then
+      echo "Success."
+  else
+      echo "Failed. $response"
+      exit 1
+  fi
 done
 
 # add sandbox (example) layers
 for layername in "example"
 do
-echo -n "$p Publishing $layername layer... "
-response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<featureType><name>$layername</name><srs>EPSG:4326</srs><nativeBoundingBox><minx>0</minx><miny>0</miny><maxx>-1</maxx><maxy>-1</maxy></nativeBoundingBox><latLonBoundingBox><minx>-1</minx><miny>-1</miny><maxx>0</maxx><maxy>0</maxy></latLonBoundingBox></featureType>" http://$localip/geoserver/rest/workspaces/sandbox/datastores/sandbox/featuretypes`
-if [ "$response" = "201" ]; then
-    echo "Success."
-else
-    echo "Failed. $response"
-    exit 1
-fi
+  echo -n "$p Publishing $layername layer... "
+  response=`curl                  \
+    -s                            \
+    -u admin:geoserver            \
+    --write-out %{http_code}      \
+    -XPOST                        \
+    -H 'Content-type: text/xml'   \
+    -d "<featureType>             \
+          <name>$layername</name> \
+          <srs>EPSG:4326</srs>    \
+          <nativeBoundingBox>     \
+            <minx>0</minx>        \
+            <miny>0</miny>        \
+            <maxx>-1</maxx>       \
+            <maxy>-1</maxy>       \
+          </nativeBoundingBox>    \
+          <latLonBoundingBox>     \
+            <minx>-1</minx>       \
+            <miny>-1</miny>       \
+            <maxx>0</maxx>        \
+            <maxy>0</maxy>        \
+          </latLonBoundingBox>    \
+        </featureType>"           \
+    http://$localip/geoserver/rest/workspaces/sandbox/datastores/sandbox/featuretypes`
+  if [ "$response" = "201" ]; then
+      echo "Success."
+  else
+      echo "Failed. $response"
+      exit 1
+  fi
 done
 
 
