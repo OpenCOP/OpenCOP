@@ -159,6 +159,10 @@ var Control = function() {
       return type == "Google" || type == "Yahoo"
     }
 
+    function isKmlLayer(type) {
+      return type == "KML"
+    }
+
     function wms_on() {
       wmsGetFeatureInfoControl.activate()
     }
@@ -203,7 +207,7 @@ var Control = function() {
     var mode = Panel.currentModePanel()
     var type = currentLayerType()
 
-    if(isBaseLayer(type)) {
+    if(isBaseLayer(type) || isKmlLayer(type)) {
       Panel.moveToDetailsTab()
       legendPanel.disable()
       editPanel.disable()

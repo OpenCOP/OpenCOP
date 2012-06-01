@@ -95,6 +95,12 @@ var Legend = function() {
 
     Ext.get("legend_style_title").update(title)
     Ext.get("legend_style_abstract").update(olAbstract)
+
+    if(url == "") {
+      Ext.get("legend_style_graphic").hide()
+    } else {
+      Ext.get("legend_style_graphic").show()
+    }
     Ext.get("legend_style_graphic").dom.src = url
   }
 

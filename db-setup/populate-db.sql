@@ -169,3 +169,13 @@ create table default_layer (
 insert into default_layer (type, name, url, layers) values ('WMS', 'Water Temp', 'http://geo-dev.geocent.com/geoserver/netcdf/wms?service=WMS', 'netcdf:water_temp');
 insert into default_layer (type, name, url, layers) values ('WMS', 'parish', 'http://localhost:80/geoserver/ows?SERVICE=WMS', 'topp:parish');
 insert into default_layer (type, name, url, layers) values ('KML', 'some KML test', 'http://demo.geocent.com/opencop-icons/kml/Installations.kml', null);
+
+-- COPY default_layer (id, type, name, url, layers) FROM stdin;
+-- 1	WMS	Water Temp	http://geo-dev.geocent.com/geoserver/netcdf/wms?service=WMS	netcdf:water_temp
+-- 2	WMS	parish	http://localhost:80/geoserver/ows?SERVICE=WMS	topp:parish
+-- 3	KML	some KML test	http://demo.geocent.com/opencop-icons/kml/Installations.kml	\N
+-- 4	WMS	Spearfish bug locations	http://localhost:80/geoserver/ows?SERVICE=WMS&	sf:bugsites
+-- 5	WMS	mosaic	http://localhost:80/geoserver/ows?SERVICE=WMS&	nurc:mosaic
+-- \.
+
+-- delete from default_layer where id >= 4;
