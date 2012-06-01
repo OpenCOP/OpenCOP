@@ -158,7 +158,7 @@ else
   sudo sed -ie '/local.*ident/s/ident/trust/' /etc/postgresql/8.4/main/pg_hba.conf
   sudo service postgresql-8.4 restart
   psql -U postgres -c "CREATE ROLE opencop LOGIN ENCRYPTED PASSWORD '57levelsofeoc' INHERIT CREATEDB CREATEROLE;"
-  psql -U postgres -c "CREATE ROLE fmanager LOGIN ENCRYPTED PASSWORD 'md5247826c7fcf1dfcb0fe1b350cd0cda2e' INHERIT CREATEDB CREATEROLE;"
+  psql -U postgres -c "CREATE ROLE fmanager LOGIN ENCRYPTED PASSWORD '57levelsofeoc' INHERIT CREATEDB CREATEROLE;"
 fi
 
 # create databases (and postgis-ify them)
@@ -253,39 +253,65 @@ do
   fi
 done
 
-# add stores
-# Note: store name must make workspace name
-for store in "opencop" "sandbox"
-do
-  echo -n "$p Adding the $store datastore..."
-  ## TODO: Not all the params are specified here(spaces in, for example,
-  ## "max connections", hose up the xml). Doesn't appear they need to be,
-  ## but...
-  response=`curl                           \
-    -s                                     \
-    -u admin:geoserver                     \
-    --write-out %{http_code}               \
-    -XPOST                                 \
-    -H 'Content-type: text/xml'            \
-    -d "<dataStore>                        \
-          <name>$store</name>              \
-          <connectionParameters>           \
-            <host>$localip</host>          \
-            <port>5432</port>              \
-            <database>$store</database>    \
-            <user>opencop</user>           \
-            <dbtype>postgis</dbtype>       \
-            <passwd>57levelsofeoc</passwd> \
-          </connectionParameters>          \
-        </dataStore>"                      \
-    http://$localip/geoserver/rest/workspaces/$store/datastores`
-  if [ "$response" = "201" ]; then
-      echo "Success."
-  else
-      echo "Failed. $response"
-      exit 1
-  fi
-done
+# add store: opencop
+echo -n "$p Adding the opencop datastore..."
+## TODO: Not all the params are specified here(spaces in, for example,
+## "max connections", hose up the xml). Doesn't appear they need to be,
+## but...
+response=`curl                           \
+  -s                                     \
+  -u admin:geoserver                     \
+  --write-out %{http_code}               \
+  -XPOST                                 \
+  -H 'Content-type: text/xml'            \
+  -d "<dataStore>                        \
+        <name>opencop</name>             \
+        <connectionParameters>           \
+          <host>$localip</host>          \
+          <port>5432</port>              \
+          <database>opencop</database>   \
+          <user>opencop</user>           \
+          <dbtype>postgis</dbtype>       \
+          <passwd>57levelsofeoc</passwd> \
+        </connectionParameters>          \
+      </dataStore>"                      \
+  http://$localip/geoserver/rest/workspaces/opencop/datastores`
+if [ "$response" = "201" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
+
+# add store: sandbox
+echo -n "$p Adding the sandbox datastore..."
+## TODO: Not all the params are specified here(spaces in, for example,
+## "max connections", hose up the xml). Doesn't appear they need to be,
+## but...
+response=`curl                           \
+  -s                                     \
+  -u admin:geoserver                     \
+  --write-out %{http_code}               \
+  -XPOST                                 \
+  -H 'Content-type: text/xml'            \
+  -d "<dataStore>                        \
+        <name>sandbox</name>             \
+        <connectionParameters>           \
+          <host>$localip</host>          \
+          <port>5432</port>              \
+          <database>sandbox</database>   \
+          <user>fmanager</user>          \
+          <dbtype>postgis</dbtype>       \
+          <passwd>57levelsofeoc</passwd> \
+        </connectionParameters>          \
+      </dataStore>"                      \
+  http://$localip/geoserver/rest/workspaces/sandbox/datastores`
+if [ "$response" = "201" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
 
 # add opencop (config) layers
 for layername in "baselayer" "config" "icon"  \
