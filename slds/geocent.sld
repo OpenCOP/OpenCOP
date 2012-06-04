@@ -17,7 +17,7 @@
           <PointSymbolizer>
             <Graphic>
               <ExternalGraphic>
-                <OnlineResource xlink:href="http://localhost/opencop/images/geocent_logo_16.png"
+                <OnlineResource xlink:href="opencop/images/geocent_logo_solid.png"
                                 xlink:type="simple" />
                 <Format>image/png</Format>
               </ExternalGraphic>

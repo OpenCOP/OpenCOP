@@ -409,7 +409,7 @@ done
 # move ftls around to where they should go
 sudo cp /home/$username/OpenCOP/ftls/content.ftl \
   /usr/share/opengeo-suite-data/geoserver_data/workspaces/content.ftl
-sudo cp /home/$username/OpenCOP/ftls/description \
+sudo cp /home/$username/OpenCOP/ftls/description.ftl \
   /usr/share/opengeo-suite-data/geoserver_data/workspaces/sandbox/description.ftl
 
 
@@ -446,7 +446,7 @@ response=`curl                                   \
   -H 'Content-type: application/vnd.ogc.sld+xml' \
   -d @/home/$username/OpenCOP/slds/geocent.sld   \
   http://$localip/geoserver/rest/styles/geocent`
-if [ "$response" = "201" ]; then
+if [ "$response" = "200" ]; then
     echo "Success."
 else
     echo "Failed. $response"
@@ -456,6 +456,8 @@ fi
 # apply geocent style to example layer
 echo -n "$p Apply Geocent style to example layer..."
 response=`curl                 \
+  -s                           \
+  --write-out %{http_code}     \
   -u admin:geoserver           \
   -XPUT                        \
   -H 'Content-type: text/xml'  \
@@ -465,7 +467,7 @@ response=`curl                 \
         </defaultStyle>        \
       </layer>'                \
   http://$localip/geoserver/rest/layers/sandbox:example`
-if [ "$response" = "201" ]; then
+if [ "$response" = "200" ]; then
     echo "Success."
 else
     echo "Failed. $response"
