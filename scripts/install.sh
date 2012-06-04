@@ -172,7 +172,7 @@ else
 
   echo "$p postgis-ify databases"
   createlang plpgsql -U postgres sandbox
-  psql -U postgres -f /usr/share/postgresql/8.4/contrib/postgis-1.5/postgis.sql -d sandbox
+  psql -U fmanager -f /usr/share/postgresql/8.4/contrib/postgis-1.5/postgis.sql -d sandbox
 fi
 
 
