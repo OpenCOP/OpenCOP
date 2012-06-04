@@ -129,6 +129,15 @@ else
   sudo apt-get install -y git-core
 fi
 
+# install maven
+if mvn --version
+then
+  echo "$p maven already installed"
+else
+  echo "$p install maven"
+  sudo apt-get install -y maven2
+fi
+
 # pull most recent source
 if test -s /home/$username/OpenCOP/.git/
 then
@@ -142,14 +151,14 @@ fi
 # setup postgres users
 if psql -U postgres -c '\du' | grep -q opencop
 then
-  echo "$p posgres users already exist"
+  echo "$p postgres users already exist"
 else
   echo "$p create postgres users"
   sudo sed -ie '/postgres.*ident/s/ident/trust/' /etc/postgresql/8.4/main/pg_hba.conf
   sudo sed -ie '/local.*ident/s/ident/trust/' /etc/postgresql/8.4/main/pg_hba.conf
   sudo service postgresql-8.4 restart
   psql -U postgres -c "CREATE ROLE opencop LOGIN ENCRYPTED PASSWORD '57levelsofeoc' INHERIT CREATEDB CREATEROLE;"
-  psql -U postgres -c "CREATE ROLE fmanager LOGIN ENCRYPTED PASSWORD 'md5247826c7fcf1dfcb0fe1b350cd0cda2e' INHERIT CREATEDB CREATEROLE;"
+  psql -U postgres -c "CREATE ROLE fmanager LOGIN ENCRYPTED PASSWORD '57levelsofeoc' INHERIT CREATEDB CREATEROLE;"
 fi
 
 # create databases (and postgis-ify them)
@@ -159,11 +168,14 @@ then
 else
   echo "$p create databases"
   psql -U postgres -c "CREATE DATABASE opencop WITH OWNER = opencop CONNECTION LIMIT = -1;"
-  psql -U postgres -c "CREATE DATABASE dynamic_feature WITH ENCODING='UTF8' OWNER=fmanager TEMPLATE=template_postgis CONNECTION LIMIT=-1;"
+  psql -U postgres -c "CREATE DATABASE sandbox WITH ENCODING='UTF8' OWNER=fmanager TEMPLATE=template_postgis CONNECTION LIMIT=-1;"
 
   echo "$p postgis-ify databases"
-  createlang plpgsql -U postgres dynamic_feature
-  psql -U postgres -f /usr/share/postgresql/8.4/contrib/postgis-1.5/postgis.sql -d dynamic_feature
+  createlang plpgsql -U postgres sandbox
+  psql -U fmanager -f /usr/share/postgresql/8.4/contrib/postgis-1.5/postgis.sql -d sandbox
+  psql -U postgres sandbox -c "alter table geometry_columns owner to fmanager"
+  psql -U postgres sandbox -c "alter table geography_columns owner to fmanager"
+  psql -U postgres sandbox -c "alter table spatial_ref_sys owner to fmanager"
 fi
 
 
@@ -174,7 +186,7 @@ su $username -c 'cd ~/OpenCOP; sh ./local_deploy'
 
 # Kinda hacky: The war copy will fail in local_deploy because the user doesn't have permissions to the tomcat directory
 # So copy it here
-cp /home/$username/OpenCOP/build/opencop.war /var/lib/tomcat6/webapps
+cp /home/$username/OpenCOP/target/opencop.war /var/lib/tomcat6/webapps
 
 # Restart apache and tomcat
 sudo service apache2 restart
@@ -216,38 +228,258 @@ echo "$p Running populate-db script"
 su $username -c 'cd ~/OpenCOP/db-setup; sh ./populate-db'
 
 
-# Add the opencop workspace/namespace
+############################################################
+## Geoserver REST calls
+
+
+# add workspaces/namespaces
 ## TODO: Check the return values from these calls
-echo -n "$p Adding opencop workspace..."
-response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d '<namespace><uri>http://opencop.geocent.com</uri><prefix>opencop</prefix></namespace>' http://$localip/geoserver/rest/namespaces`
-if [ "$response" = "201" ]; then
-    echo "Success."
-else
-    echo "Failed. $response"
-    exit 1
-fi
-
-echo -n "$p Adding the opencop data store..."
-## TODO: Not all the params are specified here(spaces in, for example, "max connections", hose up the xml). Doesn't appear they need to be, but...
-response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<dataStore><name>opencop</name><connectionParameters><host>$localip</host><port>5432</port><database>opencop</database><user>opencop</user><dbtype>postgis</dbtype><passwd>57levelsofeoc</passwd></connectionParameters></dataStore>" http://$localip/geoserver/rest/workspaces/opencop/datastores`
-if [ "$response" = "201" ]; then
-    echo "Success."
-else
-    echo "Failed. $response"
-    exit 1
-fi
-
-for layername in "baselayer" "config" "icon" "iconmaster" "iconstolayers" "layer" "layergroup"
+for workspace in "opencop" "sandbox"
 do
-echo -n "$p Publishing $layername layer... "
-response=`curl -s -u admin:geoserver --write-out %{http_code} -XPOST -H 'Content-type: text/xml' -d "<featureType><name>$layername</name><srs>EPSG:4326</srs><nativeBoundingBox><minx>0</minx><miny>0</miny><maxx>-1</maxx><maxy>-1</maxy></nativeBoundingBox><latLonBoundingBox><minx>-1</minx><miny>-1</miny><maxx>0</maxx><maxy>0</maxy></latLonBoundingBox></featureType>" http://$localip/geoserver/rest/workspaces/opencop/datastores/opencop/featuretypes`
-if [ "$response" = "201" ]; then
-    echo "Success."
-else
-    echo "Failed. $response"
-    exit 1
-fi
+  echo -n "$p Adding $workspace workspace..."
+  response=`curl                                   \
+    -s                                             \
+    -u admin:geoserver                             \
+    --write-out %{http_code}                       \
+    -XPOST                                         \
+    -H 'Content-type: text/xml'                    \
+    -d "<namespace>                                \
+          <uri>http://$workspace.geocent.com</uri> \
+          <prefix>$workspace</prefix>              \
+        </namespace>"                              \
+    http://$localip/geoserver/rest/namespaces`
+  if [ "$response" = "201" ]; then
+      echo "Success."
+  else
+      echo "Failed. $response"
+      exit 1
+  fi
 done
 
+# add store: opencop
+echo -n "$p Adding the opencop datastore..."
+## TODO: Not all the params are specified here(spaces in, for example,
+## "max connections", hose up the xml). Doesn't appear they need to be,
+## but...
+response=`curl                           \
+  -s                                     \
+  -u admin:geoserver                     \
+  --write-out %{http_code}               \
+  -XPOST                                 \
+  -H 'Content-type: text/xml'            \
+  -d "<dataStore>                        \
+        <name>opencop</name>             \
+        <connectionParameters>           \
+          <host>$localip</host>          \
+          <port>5432</port>              \
+          <database>opencop</database>   \
+          <user>opencop</user>           \
+          <dbtype>postgis</dbtype>       \
+          <passwd>57levelsofeoc</passwd> \
+        </connectionParameters>          \
+      </dataStore>"                      \
+  http://$localip/geoserver/rest/workspaces/opencop/datastores`
+if [ "$response" = "201" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
+
+# add store: sandbox
+echo -n "$p Adding the sandbox datastore..."
+## TODO: Not all the params are specified here(spaces in, for example,
+## "max connections", hose up the xml). Doesn't appear they need to be,
+## but...
+response=`curl                           \
+  -s                                     \
+  -u admin:geoserver                     \
+  --write-out %{http_code}               \
+  -XPOST                                 \
+  -H 'Content-type: text/xml'            \
+  -d "<dataStore>                        \
+        <name>sandbox</name>             \
+        <connectionParameters>           \
+          <host>$localip</host>          \
+          <port>5432</port>              \
+          <database>sandbox</database>   \
+          <user>fmanager</user>          \
+          <dbtype>postgis</dbtype>       \
+          <passwd>57levelsofeoc</passwd> \
+        </connectionParameters>          \
+      </dataStore>"                      \
+  http://$localip/geoserver/rest/workspaces/sandbox/datastores`
+if [ "$response" = "201" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
+
+# add opencop (config) layers
+for layername in "baselayer" "config" "icon"  \
+                 "iconmaster" "iconstolayers" \
+                 "layer" "layergroup" "default_layer"
+do
+  echo -n "$p Publishing $layername layer... "
+  response=`curl                  \
+    -s                            \
+    -u admin:geoserver            \
+    --write-out %{http_code}      \
+    -XPOST                        \
+    -H 'Content-type: text/xml'   \
+    -d "<featureType>             \
+          <name>$layername</name> \
+          <srs>EPSG:4326</srs>    \
+          <nativeBoundingBox>     \
+            <minx>0</minx>        \
+            <miny>0</miny>        \
+            <maxx>-1</maxx>       \
+            <maxy>-1</maxy>       \
+          </nativeBoundingBox>    \
+          <latLonBoundingBox>     \
+            <minx>-1</minx>       \
+            <miny>-1</miny>       \
+            <maxx>0</maxx>        \
+            <maxy>0</maxy>        \
+          </latLonBoundingBox>    \
+        </featureType>"           \
+    http://$localip/geoserver/rest/workspaces/opencop/datastores/opencop/featuretypes`
+  if [ "$response" = "201" ]; then
+      echo "Success."
+  else
+      echo "Failed. $response"
+      exit 1
+  fi
+done
+
+# add sandbox (example) layers
+for layername in "example"
+do
+  echo -n "$p Publishing $layername layer... "
+  response=`curl                  \
+    -s                            \
+    -u admin:geoserver            \
+    --write-out %{http_code}      \
+    -XPOST                        \
+    -H 'Content-type: text/xml'   \
+    -d "<featureType>             \
+          <name>$layername</name> \
+          <srs>EPSG:4326</srs>    \
+          <nativeBoundingBox>     \
+            <minx>0</minx>        \
+            <miny>0</miny>        \
+            <maxx>-1</maxx>       \
+            <maxy>-1</maxy>       \
+          </nativeBoundingBox>    \
+          <latLonBoundingBox>     \
+            <minx>-1</minx>       \
+            <miny>-1</miny>       \
+            <maxx>0</maxx>        \
+            <maxy>0</maxy>        \
+          </latLonBoundingBox>    \
+        </featureType>"           \
+    http://$localip/geoserver/rest/workspaces/sandbox/datastores/sandbox/featuretypes`
+  if [ "$response" = "201" ]; then
+      echo "Success."
+  else
+      echo "Failed. $response"
+      exit 1
+  fi
+done
+
+# delete those layergroups we don't care about
+for layergroup in "world" "world" "medford" "medford"
+do
+  echo -n "$p Deleting '$layergroup' layer group..."
+  response=`curl             \
+    -s                       \
+    -u admin:geoserver       \
+    --write-out %{http_code} \
+    -X DELETE                \
+    http://$localip/geoserver/rest/layergroups/$layergroup`
+  if [ "$response" = "200" ]; then
+      echo "Success."
+  else
+      echo "Failed. $response"
+      exit 1
+  fi
+done
+
+# move ftls around to where they should go
+sudo cp /home/$username/OpenCOP/ftls/content.ftl \
+  /usr/share/opengeo-suite-data/geoserver_data/workspaces/content.ftl
+sudo cp /home/$username/OpenCOP/ftls/description.ftl \
+  /usr/share/opengeo-suite-data/geoserver_data/workspaces/sandbox/description.ftl
+
+
+############################################################
+## creating geocent style
+
+# create geocent style
+echo -n "$p Creating Geocent style..."
+response=`curl                           \
+  -s                                     \
+  --write-out %{http_code}               \
+  -u admin:geoserver                     \
+  -XPOST                                 \
+  -H 'Content-type: text/xml'            \
+  -d '<style>                            \
+        <name>geocent</name>             \
+        <filename>geocent.sld</filename> \
+      </style>'                          \
+  http://$localip/geoserver/rest/styles`
+if [ "$response" = "201" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
+
+# upload geocent style
+echo -n "$p Uploading Geocent style..."
+response=`curl                                   \
+  -s                                             \
+  --write-out %{http_code}                       \
+  -u admin:geoserver                             \
+  -XPUT                                          \
+  -H 'Content-type: application/vnd.ogc.sld+xml' \
+  -d @/home/$username/OpenCOP/slds/geocent.sld   \
+  http://$localip/geoserver/rest/styles/geocent`
+if [ "$response" = "200" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
+
+# apply geocent style to example layer
+echo -n "$p Apply Geocent style to example layer..."
+response=`curl                  \
+  -s                            \
+  --write-out %{http_code}      \
+  -u admin:geoserver            \
+  -XPUT                         \
+  -H 'Content-type: text/xml'   \
+  -d '<layer>                   \
+        <defaultStyle>          \
+          <name>geocent</name>  \
+        </defaultStyle>         \
+        <enabled>true</enabled> \
+      </layer>'                 \
+  http://$localip/geoserver/rest/layers/sandbox:example`
+if [ "$response" = "200" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
+
+
+############################################################
+## done, signing off
 
 echo "$p OpenCOP install complete. Have a nice day."
+
+echo "$p Starting opencop..."
+firefox "http://localhost/opencop"

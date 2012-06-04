@@ -1,11 +1,3 @@
-drop table icon cascade;
-
-CREATE TABLE icon (
-    id bigint primary key,
-    name character varying(255),
-    url text
-);
-
 COPY icon (id, name, url) FROM stdin;
 1	?	http://geo-demo4.geocent.com/opencop-icons/2525b/g-gpdab-------x.png
 2	?	http://geo-demo4.geocent.com/opencop-icons/2525b/g-mpowd-------x.png

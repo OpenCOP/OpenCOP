@@ -1,0 +1,13 @@
+#!/bin/sh
+
+psql -U opencop opencop -c "drop table icon cascade"
+psql -U opencop opencop -c "drop table baselayer cascade"
+psql -U opencop opencop -c "drop table layergroup cascade"
+psql -U opencop opencop -c "drop table layer cascade"
+psql -U opencop opencop -c "drop table iconstolayers cascade"
+psql -U opencop opencop -c "drop table config cascade"
+psql -U opencop opencop -c "drop table default_layer cascade"
+
+psql -U opencop opencop -c "drop view iconmaster cascade"
+
+psql -U opencop sandbox -c "drop table example cascade"

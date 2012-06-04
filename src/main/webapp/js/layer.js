@@ -217,7 +217,6 @@ var Layer = function() {
         type : type,
         isBaseLayer : true,
         baselayer : true, // change to 'group'
-        // numZoomLevels: opts.numzoomlevels,  // see issue 46
         visible : opts.isdefault
       }))
     }
