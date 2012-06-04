@@ -173,6 +173,9 @@ else
   echo "$p postgis-ify databases"
   createlang plpgsql -U postgres sandbox
   psql -U fmanager -f /usr/share/postgresql/8.4/contrib/postgis-1.5/postgis.sql -d sandbox
+  psql -U postgres sandbox -c "alter table geometry_columns owner to fmanager"
+  psql -U postgres sandbox -c "alter table geography_columns owner to fmanager"
+  psql -U postgres sandbox -c "alter table spatial_ref_sys owner to fmanager"
 fi
 
 
