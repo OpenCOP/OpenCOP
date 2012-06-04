@@ -398,7 +398,7 @@ do
     --write-out %{http_code} \
     -X DELETE                \
     http://$localip/geoserver/rest/layergroups/$layergroup`
-  if [ "$response" = "201" ]; then
+  if [ "$response" = "200" ]; then
       echo "Success."
   else
       echo "Failed. $response"
