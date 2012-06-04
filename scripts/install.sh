@@ -479,7 +479,6 @@ fi
 ############################################################
 ## done, signing off
 
-echo "$p OpenCOP install complete. Have a nice day."
+echo "$p OpenCOP install complete. "
 
-echo "$p Starting opencop..."
-firefox "http://localhost/opencop"
+echo "$p You can view OpenCOP at http://localhost/opencop"
