@@ -388,5 +388,95 @@ do
   fi
 done
 
+# delete those layergroups we don't care about
+for layergroup in "world" "world" "medford" "medford"
+do
+  echo -n "$p Deleting '$layergroup' layer group..."
+  response=`curl             \
+    -s                       \
+    -u admin:geoserver       \
+    --write-out %{http_code} \
+    -X DELETE                \
+    http://$localip/geoserver/rest/layergroups/$layergroup`
+  if [ "$response" = "201" ]; then
+      echo "Success."
+  else
+      echo "Failed. $response"
+      exit 1
+  fi
+done
+
+# move ftls around to where they should go
+sudo cp /home/$username/OpenCOP/ftls/content.ftl \
+  /usr/share/opengeo-suite-data/geoserver_data/workspaces/content.ftl
+sudo cp /home/$username/OpenCOP/ftls/description \
+  /usr/share/opengeo-suite-data/geoserver_data/workspaces/sandbox/description.ftl
+
+
+############################################################
+## creating geocent style
+
+# create geocent style
+echo -n "$p Creating Geocent style..."
+response=`curl                           \
+  -s                                     \
+  --write-out %{http_code}               \
+  -u admin:geoserver                     \
+  -XPOST                                 \
+  -H 'Content-type: text/xml'            \
+  -d '<style>                            \
+        <name>geocent</name>             \
+        <filename>geocent.sld</filename> \
+      </style>'                          \
+  http://$localip/geoserver/rest/styles`
+if [ "$response" = "201" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
+
+# upload geocent style
+echo -n "$p Uploading Geocent style..."
+response=`curl                                   \
+  -s                                             \
+  --write-out %{http_code}                       \
+  -u admin:geoserver                             \
+  -XPUT                                          \
+  -H 'Content-type: application/vnd.ogc.sld+xml' \
+  -d @/home/$username/OpenCOP/slds/geocent.sld   \
+  http://$localip/geoserver/rest/styles/geocent`
+if [ "$response" = "201" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
+
+# apply geocent style to example layer
+echo -n "$p Apply Geocent style to example layer..."
+response=`curl                 \
+  -u admin:geoserver           \
+  -XPUT                        \
+  -H 'Content-type: text/xml'  \
+  -d '<layer>                  \
+        <defaultStyle>         \
+          <name>geocent</name> \
+        </defaultStyle>        \
+      </layer>'                \
+  http://$localip/geoserver/rest/layers/sandbox:example`
+if [ "$response" = "201" ]; then
+    echo "Success."
+else
+    echo "Failed. $response"
+    exit 1
+fi
+
+
+############################################################
+## done, signing off
 
 echo "$p OpenCOP install complete. Have a nice day."
+
+echo "$p Starting opencop..."
+firefox "http://localhost/opencop"
