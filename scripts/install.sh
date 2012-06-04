@@ -151,7 +151,7 @@ fi
 # setup postgres users
 if psql -U postgres -c '\du' | grep -q opencop
 then
-  echo "$p posgres users already exist"
+  echo "$p postgres users already exist"
 else
   echo "$p create postgres users"
   sudo sed -ie '/postgres.*ident/s/ident/trust/' /etc/postgresql/8.4/main/pg_hba.conf
