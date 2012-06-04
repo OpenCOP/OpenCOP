@@ -455,17 +455,18 @@ fi
 
 # apply geocent style to example layer
 echo -n "$p Apply Geocent style to example layer..."
-response=`curl                 \
-  -s                           \
-  --write-out %{http_code}     \
-  -u admin:geoserver           \
-  -XPUT                        \
-  -H 'Content-type: text/xml'  \
-  -d '<layer>                  \
-        <defaultStyle>         \
-          <name>geocent</name> \
-        </defaultStyle>        \
-      </layer>'                \
+response=`curl                  \
+  -s                            \
+  --write-out %{http_code}      \
+  -u admin:geoserver            \
+  -XPUT                         \
+  -H 'Content-type: text/xml'   \
+  -d '<layer>                   \
+        <defaultStyle>          \
+          <name>geocent</name>  \
+        </defaultStyle>         \
+        <enabled>true</enabled> \
+      </layer>'                 \
   http://$localip/geoserver/rest/layers/sandbox:example`
 if [ "$response" = "200" ]; then
     echo "Success."
