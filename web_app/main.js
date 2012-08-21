@@ -988,7 +988,13 @@ var cop = function() {
       id : "map_panel",
       region : "center",
       map : {
-        // numZoomLevels: 19,  // see issue 46
+        /*
+         * numZoomLevels = 21 allows for the maximum zoom on Google Physical
+         * layer.  It doesn't seem to break the other layers too badly.
+         *
+         * See issue #46.
+         */
+        numZoomLevels: 21,
         projection : new OpenLayers.Projection("EPSG:900913"),
         displayProjection : new OpenLayers.Projection("EPSG:4326"),
         units : "m",

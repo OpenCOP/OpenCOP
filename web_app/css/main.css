@@ -174,6 +174,14 @@ div.in-popup table td {
   filter:alpha(opacity=95); /* For IE8 and earlier */
 }
 
+/*
 .olLayerGoogleV3.olLayerGooglePoweredBy {
   display: none;
 }
+*/
+/**
+ * This "hide the google baselayer popup" fix seems to work better when split
+ * into two css lines.  I don't understand why this would be, but whatever.
+ */
+.olLayerGoogleV3 { display: none; }
+.olLayerGooglePoweredBy { display: none; }
