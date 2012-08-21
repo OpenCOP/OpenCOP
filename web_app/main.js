@@ -1478,7 +1478,7 @@ var cop = function() {
             featureNS : rawAttributeData.targetNamespace,
             srsName : "EPSG:900913",
             geometryName : geometryName,
-            maxFeatures : 250
+            maxFeatures : 300
           })
         }),
         fields : fields
