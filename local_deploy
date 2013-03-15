@@ -7,8 +7,8 @@ mkdir ~/OpenCOP/build/
 
 # build opencop war
 echo "-- build war\n"
-cd ~/OpenCOP/web_app/
-jar cvf ../build/opencop.war .
+cd OpenCOP/src/main/webapp
+jar cvf ../../../build/opencop.war .
 
 # copy new opencop war to tomcat
 # Note:
