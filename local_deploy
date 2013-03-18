@@ -2,12 +2,12 @@
 
 # clean opencop build
 echo "-- clean build folder\n"
-rm -rf ~/OpenCOP/build/
-mkdir ~/OpenCOP/build/
+rm -rf build/
+mkdir build/
 
 # build opencop war
 echo "-- build war\n"
-cd OpenCOP/src/main/webapp
+cd src/main/webapp
 jar cvf ../../../build/opencop.war .
 
 # copy new opencop war to tomcat
@@ -16,7 +16,7 @@ jar cvf ../../../build/opencop.war .
 #   commented out in order for this script to run
 #   correctly in a cronjob on the server.
 #echo "-- copy war to tomcat\n"
-cp ~/OpenCOP/build/opencop.war /var/lib/tomcat6/webapps
+cp ../../../build/opencop.war /var/lib/tomcat6/webapps
 
 echo "==================="
 echo "You, sir, are done!\n"
